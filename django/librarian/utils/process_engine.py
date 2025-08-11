@@ -1,4 +1,5 @@
 import csv
+import gc
 import hashlib
 import io
 import re
@@ -23,6 +24,7 @@ from librarian.utils.extract_emails import extract_eml, extract_msg
 from librarian.utils.extract_zip import process_zip_file
 from librarian.utils.markdown_splitter import MarkdownSplitter
 from otto.models import Cost
+from otto.utils.common import log_mem
 
 logger = get_logger(__name__)
 
@@ -266,6 +268,8 @@ def extract_markdown(
     selector=None,
     root_document_id=None,
 ):
+    # if pdf_method == "default":
+    #     pdf_method = "azure_read"
     try:
         enable_markdown = True
         if process_engine == "IMAGE":
@@ -312,11 +316,28 @@ def extract_markdown(
             except Exception as e:
                 raise e
 
-        md = remove_nul_characters(md)
+        # For azure_read we already normalize per-line to avoid whole-text copies
+        needs_global_cleanup = not (
+            (process_engine == "IMAGE")
+            or (process_engine == "PDF" and pdf_method == "azure_read")
+        )
 
-        # Strip leading/trailing whitespace; replace all >2 line breaks with 2 line breaks
-        md = re.sub(r"\n{3,}", "\n\n", md.strip())
+        if needs_global_cleanup:
+            md = remove_nul_characters(md)
+            # Strip leading/trailing whitespace; collapse excessive blank lines efficiently
+            md = _collapse_blank_lines(md.strip(), max_consecutive_newlines=2)
+            try:
+                log_mem("after cleanup (pre-split)")
+            except Exception:
+                pass
+        else:
+            # Targeted memory telemetry around the suspected hotspot path
+            try:
+                log_mem("after azure_read (pre-split)")
+            except Exception:
+                pass
 
+        log_mem("md_splitter start")
         # Divide the markdown into chunks
         try:
             md_splitter = MarkdownSplitter(
@@ -333,6 +354,7 @@ def extract_markdown(
                 chunk_size=chunk_size, chunk_overlap=min(chunk_size // 4, 100)
             )
             md_chunks = sentence_splitter.split_text(md)
+        log_mem("md_splitter end")
         return md, md_chunks
     except Exception as e:
         logger.error(f"Error in extract_markdown: {str(e)}")
@@ -353,22 +375,27 @@ def pdf_to_text_pdfium(content):
     with pdfium_lock:
         try:
             pdf = pdfium.PdfDocument(content)
+            with io.StringIO() as buffer:
+                for i, page in enumerate(pdf):
+                    text_page = page.get_textpage()
+                    text_content = text_page.get_text_range()
+                    if text_content:
+                        buffer.write(f"<page_{i+1}>\n")
+                        buffer.write(text_content)
+                        buffer.write("\n")
+                        buffer.write(f"</page_{i+1}>\n")
+                    # PyPDFium does not cleanup its resources automatically. Ensures memory freed.
+                    text_page.close()
+                    del page
+                text = buffer.getvalue()
         except Exception as e:
             logger.error(f"Failed to extract text from PDF file: {e}")
             raise Exception(_("Corrupt PDF file."))
+        finally:
+            pdf.close()
 
-        text = ""
-        for i, page in enumerate(pdf):
-            text_page = page.get_textpage()
-            text_content = text_page.get_text_range()
-            if text_content:
-                text += f"<page_{i+1}>\n"
-                text += text_content + "\n"
-                text += f"</page_{i+1}>\n"
-            # PyPDFium does not cleanup its resources automatically. Ensures memory freed.
-            text_page.close()
-        pdf.close()
-
+    del pdf
+    gc.collect()
     return text
 
 
@@ -650,26 +677,38 @@ def _pdf_to_html_azure_layout(content):
     chunks = sorted(
         chunks, key=lambda item: (item.get("page_number"), item.get("y"), item.get("x"))
     )
-    html = ""
-    cur_page = None
-    for _, chunk in enumerate(chunks, 1):
-        page_start_tag = f"\n<page_{chunk.get('page_number')}>\n"
-        page_end_tag = f"\n</page_{chunk.get('page_number')}>\n"
-        prev_end_tag = f"\n</page_{cur_page}>\n" if cur_page is not None else ""
-        if chunk.get("page_number") != cur_page:
-            if cur_page is not None:
-                html += prev_end_tag
-            cur_page = chunk.get("page_number")
-            html += page_start_tag
-        html += chunk.get("text")
+    with io.StringIO() as buffer:
+        cur_page = None
+        last_page_end_tag = ""
+        for _, chunk in enumerate(chunks, 1):
+            page_start_tag = f"\n<page_{chunk.get('page_number')}>\n"
+            page_end_tag = f"\n</page_{chunk.get('page_number')}>\n"
+            if chunk.get("page_number") != cur_page:
+                if cur_page is not None:
+                    buffer.write(last_page_end_tag)
+                cur_page = chunk.get("page_number")
+                buffer.write(page_start_tag)
+            buffer.write(chunk.get("text"))
+            last_page_end_tag = page_end_tag
 
-    if cur_page is not None and chunks:
-        html += page_end_tag
+        if cur_page is not None and chunks:
+            buffer.write(last_page_end_tag)
 
-    return html
+        text = buffer.getvalue()
+
+    del result
+    del poller
+    gc.collect()
+    return text
 
 
 def pdf_to_text_azure_read(content: bytes) -> str:
+    """Fast, memory-efficient page-tagged text extraction using Azure Read.
+
+    - Avoids O(N^2) string concatenation by accumulating into a list and join once.
+    - Cleans NULs and collapses excessive blank lines per page during construction,
+      so callers don't need to run full-document regex passes.
+    """
 
     from azure.ai.formrecognizer import DocumentAnalysisClient
     from azure.core.credentials import AzureKeyCredential
@@ -683,34 +722,66 @@ def pdf_to_text_azure_read(content: bytes) -> str:
     result = poller.result()
 
     num_pages = len(result.pages)
-    cost = Cost.objects.new(cost_type="doc-ai-read", count=num_pages)
+    Cost.objects.new(cost_type="doc-ai-read", count=num_pages)
 
-    p_chunks = []
-    for page in result.pages:
-        for line in page.lines:
-            chunk = {
-                "page_number": page.page_number,
-                "text": line.content + "\n",
-            }
-            p_chunks.append(chunk)
+    # Use StringIO for memory-efficient string building
+    with io.StringIO() as buffer:
+        for page in result.pages:
+            # Open tag for page
+            page_num = getattr(page, "page_number", None) or 1
+            buffer.write(f"\n<page_{page_num}>\n")
 
-    text = ""
-    cur_page = None
-    for _, chunk in enumerate(p_chunks, 1):
-        page_start_tag = f"\n<page_{chunk.get('page_number')}>\n"
-        page_end_tag = f"\n</page_{chunk.get('page_number')}>\n"
-        prev_end_tag = f"\n</page_{cur_page}>\n" if cur_page is not None else ""
-        if chunk.get("page_number") != cur_page:
-            if cur_page is not None:
-                text = text.strip() + prev_end_tag
-            cur_page = chunk.get("page_number")
-            text = text.strip() + page_start_tag
-        text += chunk.get("text")
+            # Collapse to at most two consecutive newlines per page as we append
+            consec_newlines = 0
+            for line in page.lines:
+                # Remove NULs early to avoid a full-document replace later
+                t = (line.content or "").replace("\x00", "")
+                if not t.strip():
+                    # Blank line; cap at 2 consecutive newlines to mimic previous re.sub
+                    if consec_newlines < 2:
+                        buffer.write("\n")
+                        consec_newlines += 1
+                    # else: skip extra newlines
+                else:
+                    buffer.write(t)
+                    buffer.write("\n")
+                    consec_newlines = 0
 
-    if cur_page is not None and p_chunks:
-        text = text.strip() + page_end_tag
+            # Close tag for page
+            buffer.write(f"\n</page_{page_num}>\n")
 
+        text = buffer.getvalue()
+
+    del result
+    del poller
+    gc.collect()
     return text
+
+
+def _collapse_blank_lines(text: str, max_consecutive_newlines: int = 2) -> str:
+    """Collapse sequences of blank lines to a maximum length without regex.
+
+    This runs in O(n) and avoids regex overhead and large temporary buffers.
+    """
+    if not text:
+        return text
+    out = []
+    consec = 0
+    i = 0
+    length = len(text)
+    while i < length:
+        ch = text[i]
+        if ch == "\n":
+            if consec < max_consecutive_newlines:
+                out.append(ch)
+            consec += 1
+            i += 1
+            continue
+        # Non-newline resets the counter; append and continue
+        consec = 0
+        out.append(ch)
+        i += 1
+    return "".join(out)
 
 
 def csv_to_markdown(content):

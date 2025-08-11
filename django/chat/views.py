@@ -134,7 +134,7 @@ def chat(request, chat_id):
     Get the chat based on the provided chat ID.
     Returns read-only view if user does not have access.
     """
-
+    log_mem("start chat")
     logger.info("Chat session retrieved.", chat_id=chat_id)
     bind_contextvars(feature="chat")
 
@@ -263,6 +263,7 @@ def chat(request, chat_id):
         "start_tour": request.GET.get("start_tour") == "true",
         "upload_form": UploadForm(prefix="chat"),
     }
+    log_mem("end chat")
     return render(request, "chat/chat.html", context=context)
 
 
@@ -382,7 +383,6 @@ def cost_warning(request, message_id):
     return HttpResponse(html)
 
 
-@profile
 @require_POST
 @permission_required("chat.access_chat", objectgetter(Chat, "chat_id"))
 def save_upload(request, chat_id):

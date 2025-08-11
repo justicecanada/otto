@@ -186,7 +186,6 @@ def stop_response(request, message_id):
     return HttpResponse(200)
 
 
-@profile
 def summarize_response(chat, response_message):
     """
     Summarize the user's input text (or URL) and stream the response.
@@ -242,6 +241,7 @@ def summarize_response(chat, response_message):
         ]
 
         response_replacer = combine_batch_generators(batch_generators)
+        log_mem("end summarize_response")
         return StreamingHttpResponse(
             streaming_content=htmx_stream(
                 chat,
@@ -269,6 +269,8 @@ def summarize_response(chat, response_message):
             text_to_summarize = user_message.text
 
     if error_str:
+        log_mem("end summarize_response (error)")
+
         return StreamingHttpResponse(
             streaming_content=htmx_stream(
                 chat,

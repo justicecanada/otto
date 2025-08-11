@@ -11,3 +11,5 @@ django-livereload-server==0.5.1
 pytest-mock==3.14.0
 matplotlib==3.9.2
 memory-profiler==0.61.0
+scalene
+memray

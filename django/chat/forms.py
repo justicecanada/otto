@@ -582,7 +582,6 @@ class PresetForm(forms.ModelForm):
 class UploadForm(FileFormMixin, forms.Form):
     input_file = MultipleUploadedFileField()
 
-    @profile
     def save(self):
         log_mem("start UploadForm.save")
         saved_files = []
