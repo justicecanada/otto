@@ -479,6 +479,7 @@ def combine_sentences(line_dicts):
 
 
 def get_video_from_parlvu(url, output_path="temp"):
+    is_audio = False
     website = urlparse(url).netloc
     if website != "parlvu.parl.gc.ca":
         return "Invalid URL"
@@ -493,16 +494,22 @@ def get_video_from_parlvu(url, output_path="temp"):
     available_streams = json.loads(
         re.search("(?<=var availableStreams = ).*?(?=\;)", script_element.text)[0]
     )
+
     floor_video_sd = next(
         (
             x
             for x in available_streams
             if x["Lang"] == "fl" and not (x["AudioOnly"] or x["IsHd"])
         ),
-        next(
-            (x for x in available_streams if x["Lang"] == "fl" and x["AudioOnly"]), None
-        ),
+        None,
     )
+
+    if not floor_video_sd:
+        floor_video_sd = next(
+            (x for x in available_streams if x["Lang"] == "fl" and x["AudioOnly"]), None
+        )
+        is_audio = True
+
     video_url = floor_video_sd["Url"]
 
     temp_file_path = f"{output_path}.mp4"
@@ -516,10 +523,9 @@ def get_video_from_parlvu(url, output_path="temp"):
             byte_stream,
             field_name=None,
             name=temp_file_path,
-            content_type="video/mp4",
+            content_type="audio/mp3" if is_audio else "video/mp4",
             size=size,
             charset=None,
         )
 
-    # return f"{output_path}.mp4"  # TODO: implement some kind of file management/cleanup capabilities
     # return f"{output_path}.mp4"  # TODO: implement some kind of file management/cleanup capabilities

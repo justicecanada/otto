@@ -5,7 +5,7 @@ from urllib.parse import urlparse
 
 from django.conf import settings
 from django.core.files.base import ContentFile
-from django.http import HttpResponse, JsonResponse
+from django.http import FileResponse, HttpResponse, JsonResponse
 from django.shortcuts import redirect, render
 from django.utils import timezone
 from django.utils.translation import gettext as _
@@ -53,10 +53,19 @@ def loading_url(request):
             return HttpResponse(_("Please enter a URL from parlvu.parl.gc.ca."))
 
         try:
-            request.FILES["file"] = get_video_from_parlvu(parlvu_url)
+            parlvu_file = get_video_from_parlvu(parlvu_url)
         except Exception as e:
             return JsonResponse({"error": e})
-        return handle_upload(request)
+        parlvu_file.file.seek(0)
+
+        response = FileResponse(
+            parlvu_file.file,
+            content_type=parlvu_file.content_type,
+            as_attachment=True,
+            filename=parlvu_file.name,
+        )
+        response["Content-Length"] = str(parlvu_file.size)
+        return response
 
 
 @app_access_required(app_name)
@@ -237,9 +246,7 @@ def handle_upload(request):
             {
                 "transcript": transcript,
                 "transcript_path": os.path.basename(transcript_path),
-                "original_file": filename,
-                "file_type": file_type,
-                "file_url": f"{settings.MEDIA_URL}{upload_subdir}/{filename}",  # URL for media playback
+                # "file_url": f"{settings.MEDIA_URL}{upload_subdir}/{filename}",  # URL for media playback
             }
         )
 
