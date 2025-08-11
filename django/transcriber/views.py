@@ -56,16 +56,8 @@ def loading_url(request):
             parlvu_file = get_video_from_parlvu(parlvu_url)
         except Exception as e:
             return JsonResponse({"error": e})
-        parlvu_file.file.seek(0)
 
-        response = FileResponse(
-            parlvu_file.file,
-            content_type=parlvu_file.content_type,
-            as_attachment=True,
-            filename=parlvu_file.name,
-        )
-        response["Content-Length"] = str(parlvu_file.size)
-        return response
+        return HttpResponse(parlvu_file)
 
 
 @app_access_required(app_name)

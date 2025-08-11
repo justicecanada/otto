@@ -512,20 +512,14 @@ def get_video_from_parlvu(url, output_path="temp"):
 
     video_url = floor_video_sd["Url"]
 
-    temp_file_path = f"{output_path}.mp4"
+    if parlvu_html.find(id="description"):
+        temp_file_path = f"{parlvu_html.find(id='description').text}.mp4"
+    else:
+        temp_file_path = f"{output_path}".mp4
 
     ffmpeg.input(video_url).output(temp_file_path, c="copy").run(overwrite_output=True)
 
     with open(temp_file_path, "rb") as f:
-        byte_stream = BytesIO(f.read())
-        size = byte_stream.getbuffer().nbytes
-        return InMemoryUploadedFile(
-            byte_stream,
-            field_name=None,
-            name=temp_file_path,
-            content_type="audio/mp3" if is_audio else "video/mp4",
-            size=size,
-            charset=None,
-        )
+        return f.read()
 
-    # return f"{output_path}.mp4"  # TODO: implement some kind of file management/cleanup capabilities
+    # return temp_file_path  # TODO: implement some kind of file management/cleanup capabilities
