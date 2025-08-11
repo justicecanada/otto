@@ -22,6 +22,8 @@ from bs4 import BeautifulSoup
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from openai import AzureOpenAI
 
+# from transcriber.tasks import transcribe_audio_task
+
 # Azure Translator configuration
 translator_key = settings.AZURE_COGNITIVE_SERVICE_KEY
 translator_region = settings.AZURE_COGNITIVE_SERVICE_REGION
@@ -517,4 +519,5 @@ def get_video_from_parlvu(url, output_path="temp"):
             charset=None,
         )
 
+    # return f"{output_path}.mp4"  # TODO: implement some kind of file management/cleanup capabilities
     # return f"{output_path}.mp4"  # TODO: implement some kind of file management/cleanup capabilities

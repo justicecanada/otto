@@ -413,6 +413,7 @@ AZURE_STORAGE = AzureStorage(
 
 AZURE_STORAGE_TRANSLATION_INPUT_URL_SEGMENT = "temp/translation/in"
 AZURE_STORAGE_TRANSLATION_OUTPUT_URL_SEGMENT = "temp/translation/out"
+AZURE_STORAGE_TRANSCRIPTION_INPUT_URL_SEGMENT = "temp/transcription/in"
 
 # Media storage
 MEDIA_ROOT = os.path.join(BASE_DIR, os.environ.get("MEDIA_ROOT", "media"))
