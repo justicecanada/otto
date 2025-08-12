@@ -439,8 +439,8 @@ def convert_transcript_to_html(transcript_text, consolidate_sentences=False):
         ] = f"""
                 <div class="transcript-line">
                     <span class="notranslate timestamp" data-time={line_dict["timestamp"].strip("[]")}>{line_dict["timestamp"]}:</span>
-                    <span class="notranslate speaker">{line_dict["speaker"]}</span>
-                    <div class="text">{line_dict["content"]}</div>
+                    <span class="notranslate speaker" contenteditable="true">{line_dict["speaker"]}</span>
+                    <div class="text" contenteditable="true">{line_dict["content"]}</div>
                 </div>
                 """
     return "\n\n".join(x["html_entry"] for x in line_dicts)

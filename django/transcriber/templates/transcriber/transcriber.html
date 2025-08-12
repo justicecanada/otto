@@ -127,7 +127,9 @@
            style="width: 50%">
 
     <input type="hidden" id="transcript_uuid">
-    <input type="file" id="fileInput">
+    <form id="fileInputForm">
+      <input type="file" id="fileInput">
+    </form>
 
     {% csrf_token %}
 
@@ -344,6 +346,8 @@
 
                 reader.readAsText(file);
             }
+
+            document.getElementById('fileInputForm').reset();
         });
     
         cleanupButton.addEventListener('click', function () {
