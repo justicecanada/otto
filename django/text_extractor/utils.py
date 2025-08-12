@@ -16,7 +16,7 @@ from azure.ai.formrecognizer import DocumentAnalysisClient
 from azure.core.credentials import AzureKeyCredential
 from pdf2image import convert_from_path
 from pdf2image.exceptions import PDFPageCountError
-from PIL import Image, ImageChops, ImageSequence
+from PIL import Image, ImageDraw, ImageFont, ImageSequence
 from PIL.Image import Resampling
 from pypdf import PdfReader, PdfWriter
 from reportlab.lib import pagesizes
@@ -59,7 +59,7 @@ def format_merged_file_name(file_names_to_merge, max_length=35):
 
 
 def create_toc_pdf(file_names, start_pages):
-    default_font = "Times-Roman"
+    default_font = "Helvetica"
     toc_pdf_bytes = BytesIO()
     c = canvas.Canvas(toc_pdf_bytes, pagesize=A4)
     y_position = 750
@@ -126,7 +126,9 @@ def trim_whitespace(img, margin=10, bg_threshold=230):
     return img  # No border found
 
 
-def resize_image_to_a4(img, enlarge_size=None):  # used only when merge is on
+def resize_image_to_a4(
+    img, enlarge_size=None, header_text=None
+):  # used only when merge is on
 
     dpi = 300  # for A4 size in pixels
     # Minimum readable DPI
@@ -159,12 +161,21 @@ def resize_image_to_a4(img, enlarge_size=None):  # used only when merge is on
 
     # Create an A4 background
     background = Image.new("RGB", (a4_width, a4_height), "white")
-    # offset = ((a4_width - new_width) // 2, (a4_height - new_height) // 2)
+    # offset = ((a4_width - new_width) // 2, (a4_height - new_width) // 2)
     offset = (
         (a4_width - new_width) // 2,
         (a4_height - new_height) // 2,
     )
     background.paste(resized_img, offset)
+
+    # Add header if provided
+    if header_text:
+        draw = ImageDraw.Draw(background)
+        font = ImageFont.load_default(size=48)
+        header_text = f"Filename: {header_text}"
+        # Position header at top with some margin
+        draw.text((30, 30), header_text, fill="black", font=font)
+
     return background
 
 
@@ -172,9 +183,7 @@ def dist(p1, p2):
     return math.sqrt((p1.x - p2.x) * (p1.x - p2.x) + (p1.y - p2.y) * (p1.y - p2.y))
 
 
-def create_searchable_pdf(
-    input_file, add_header=False, merged=False, enlarge_size=None
-):
+def create_searchable_pdf(input_file):
     # Reset the file pointer to the beginning
     input_file.seek(0)
     file_content = input_file.read()
@@ -252,20 +261,13 @@ def create_searchable_pdf(
 
     elif input_file.name.lower().endswith(img_extensions):
         try:
-            if merged:
-                with Image.open(temp_path) as img:
-                    image_pages_original = ImageSequence.Iterator(img)
-                    image_pages = [
-                        resize_image_to_a4(image, enlarge_size)
-                        for image in image_pages_original
-                    ]
-            else:
-                with Image.open(temp_path) as img:
-                    image_pages_original = ImageSequence.Iterator(img)
-                    image_pages = [
-                        resize_to_azure_requirements(image)
-                        for image in image_pages_original
-                    ]
+            with Image.open(temp_path) as img:
+                image_pages_original = ImageSequence.Iterator(img)
+                image_pages = [
+                    resize_to_azure_requirements(image)
+                    for image in image_pages_original
+                ]
+
         except Exception as e:
             error_id = str(uuid.uuid4())[:7]
             logger.exception(
@@ -409,12 +411,6 @@ def create_searchable_pdf(
                 )
                 text.setHorizScale(desired_text_width / actual_text_width * 100)
                 text.textOut(word.content + " ")
-
-            # add header
-            if add_header:
-                header_text = f"Filename: {str(input_file)}"
-                pdf_canvas.setFont(default_font, 10)
-                pdf_canvas.drawString(30, page_height - 30, header_text)
 
             pdf_canvas.drawText(text)
             pdf_canvas.save()

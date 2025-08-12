@@ -45,9 +45,7 @@ def submit_document(request):
     logger.debug(_("Received {len(files)} files"))
     access_key = AccessKey(user=request.user)
 
-    # Paused merging/enlarge features for now
     merged = request.POST.get("merge_docs_checkbox", False) == "on"
-    enlarge_size = request.POST.get("enlarge_size", None)  # default to 'small'
 
     UserRequest.grant_create_to(access_key)
     OutputFile.grant_create_to(access_key)
@@ -55,7 +53,6 @@ def submit_document(request):
         access_key=access_key, merged=merged, name=request.user.username[:255]
     )
     output_files = []
-    task_ids = []
 
     try:
         if merged:
@@ -67,14 +64,6 @@ def submit_document(request):
             # Add Table of Contents as first file
             start_pages = calculate_start_pages(files)
             toc_pdf_bytes = create_toc_pdf(files, start_pages)
-            toc_file = InMemoryUploadedFile(
-                toc_pdf_bytes,
-                "file",
-                "toc.pdf",
-                "application/pdf",
-                toc_pdf_bytes.getbuffer().nbytes,
-                None,
-            )
             files_data = [("toc.pdf", toc_pdf_bytes.getvalue(), "application/pdf")]
             file_names_to_merge = []
         for idx, file in enumerate(files):
@@ -110,7 +99,6 @@ def submit_document(request):
                 output_files.append(output_file)
 
         if merged:
-            print("merging files")
             formatted_merged_name = format_merged_file_name(
                 file_names_to_merge, max_length=40
             )
@@ -128,10 +116,8 @@ def submit_document(request):
             # Start the merged OCR task
             result = process_document_merge.delay(
                 files_data,
-                formatted_merged_name,
                 str(merged_output_file.id),
                 str(request.user.id),
-                enlarge_size,
             )
             # Store the task ID
             merged_output_file.celery_task_ids = [result.id]
