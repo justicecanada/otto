@@ -85,7 +85,7 @@ def get_localized_prompt(language_code: str) -> str:
             ## Follow-ups
             ## Notable Quotes
 
-            Include timestamps (e.g. [00:00:45]) for all relevant information and quotations.
+            Include exact timestamps (e.g. [00:00:45]) for all relevant information and quotations.
             Use only information, events, and names from the provided transcript. Under no circumstances should you reference any information or knowledge outside of the provided transcript.""",
         "fr": """Créez un compte rendu détaillé à partir de cette transcription nettoyée. Inclure :
             - Points clés de discussion
