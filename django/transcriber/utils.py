@@ -492,7 +492,7 @@ def get_video_from_parlvu(url, output_path="temp"):
         lambda tag: tag.name == "script" and "var availableStreams" in tag.text
     )
     available_streams = json.loads(
-        re.search("(?<=var availableStreams = ).*?(?=\;)", script_element.text)[0]
+        re.search("(?<=var availableStreams = ).*?\](?=\;)", script_element.text)[0]
     )
 
     floor_video_sd = next(
