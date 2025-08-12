@@ -3975,6 +3975,70 @@
         "fr": "",
         "fr_auto": "Llama 4 Scout (Groq, rag open source rapide)"
     },
+    "Transcriber - Otto": {
+        "fr": "",
+        "fr_auto": "Transcripteur - Otto"
+    },
+    "Interactive Media Transcription": {
+        "fr": "",
+        "fr_auto": "Transcription des médias interactifs"
+    },
+    "Load Media": {
+        "fr": "",
+        "fr_auto": "Charger les médias"
+    },
+    "Transcribe": {
+        "fr": "",
+        "fr_auto": "Transcrire"
+    },
+    "Load Transcript": {
+        "fr": "",
+        "fr_auto": "Charger la transcription"
+    },
+    "Save Transcript": {
+        "fr": "",
+        "fr_auto": "Enregistrer la transcription"
+    },
+    "Copy to Clipboard": {
+        "fr": "",
+        "fr_auto": "Copier dans le presse-papiers"
+    },
+    "Clean Up": {
+        "fr": "",
+        "fr_auto": "Nettoyage"
+    },
+    "Generate Notes": {
+        "fr": "",
+        "fr_auto": "Générer des notes"
+    },
+    "Save transcript to Library": {
+        "fr": "",
+        "fr_auto": "Sauvegarder le relevé de notes à la bibliothèque"
+    },
+    "Save changes and open Q&A": {
+        "fr": "",
+        "fr_auto": "Enregistrer les modifications et ouvrir les questions et réponses"
+    },
+    "File name for current transcript:": {
+        "fr": "",
+        "fr_auto": "Nom du fichier pour le relevé de notes actuel :"
+    },
+    "Transcription added to library successfully.": {
+        "fr": "",
+        "fr_auto": "Transcription ajoutée à la bibliothèque avec succès."
+    },
+    "Error adding transcription to library: ": {
+        "fr": "",
+        "fr_auto": "Erreur lors de l’ajout de la transcription à la bibliothèque : "
+    },
+    "Transcript ID is required.": {
+        "fr": "",
+        "fr_auto": "Un identifiant de relevé de notes est requis."
+    },
+    "Transcript not found.": {
+        "fr": "",
+        "fr_auto": "Transcription introuvable."
+    },
     "Llama 4 Maverick (Groq, fast open-source chat)": {
         "fr": "",
         "fr_auto": "Llama 4 Maverick (Groq, chat open source rapide)"
@@ -4122,10 +4186,6 @@
     "Date and Time": {
         "fr": "",
         "fr_auto": "Date et heure"
-    },
-    "Duration": {
-        "fr": "",
-        "fr_auto": "Durée"
     },
     "Unique identifier for use in templates (letters, numbers, underscores only).": {
         "fr": "",
@@ -4466,10 +4526,6 @@
     "source(s) deleted.": {
         "fr": "",
         "fr_auto": "Source(s) supprimée(s)."
-    },
-    "Pending": {
-        "fr": "",
-        "fr_auto": "En attente"
     },
     "Extracting text": {
         "fr": "",
@@ -5534,6 +5590,34 @@
     "Agent type": {
         "fr": "",
         "fr_auto": "Type d’agent"
+    },
+    "Enter a valid ParlVU URL below.": {
+        "fr": "",
+        "fr_auto": "Entrez une URL ParlVU valide ci-dessous."
+    },
+    "Enter URL.": {
+        "fr": "",
+        "fr_auto": "Entrez l’URL."
+    },
+    "<div class='bg-warning-subtle rounded border border-warning>{_('hello')}</div>": {
+        "fr": "",
+        "fr_auto": "<div class='bg-warning-subtil bordure arrondie-avertissement>{_('hello')}</div>"
+    },
+    "<div class='bg-warning-subtle rounded border border-warning'>{_('hello')}</div>": {
+        "fr": "",
+        "fr_auto": "<div class='bg-warning-subtil bordure arrondie-avertissement'>{_('hello')}</div>"
+    },
+    "hello": {
+        "fr": "",
+        "fr_auto": "Allô"
+    },
+    "frog": {
+        "fr": "",
+        "fr_auto": "grenouille"
+    },
+    "Please enter a URL from parlvu.parl.gc.ca.": {
+        "fr": "",
+        "fr_auto": "Veuillez entrer une URL de parlvu.parl.gc.ca."
     },
     "Enlarge images (file size x 3)": {
         "fr": "",

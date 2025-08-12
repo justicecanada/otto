@@ -1,0 +1,36 @@
+{% load i18n %}
+{% load filters %}
+<form hx-post="{% url 'transcriber:loading_url' %}"
+      hx-indicator="#spinner"
+      hx-on::before-request="event.detail.xhr.responseType = 'blob';"
+      hx-on::before-swap="event.preventDefault();"
+      hx-on::after-request="addFile(event);">
+
+  <div class="form-group mt-4 mb-3">
+    <label for="parlvu_url" style="font-size: smaller;">{% trans "Enter a valid ParlVU URL below." %}</label>
+    <div>
+      <input type="url"
+             placeholder="{% trans "Enter URL." %}"
+             id="parlvu_url"
+             name="parlvu_url"
+             size="40">
+    </div>
+  </div>
+  <button type="submit" class="btn action-button">{% trans "Submit" %}</button>
+</form>
+
+<script>
+  function addFile(evt) {
+    if (evt.detail.xhr.response instanceof Blob) {
+      let dt = new DataTransfer();
+      const file = new File([evt.detail.xhr.response], "temp.mp4", { type: "video/mp4" });
+      dt.items.add(file);
+      const fileInput = document.getElementById('fileInput');
+      fileInput.files = dt.files;
+      currentInputType = 'media';
+      const event = new Event('change', { bubbles: true });
+      fileInput.dispatchEvent(event);
+      document.getElementById('urlForm').classList.add('d-none');
+    }
+  }
+</script>
