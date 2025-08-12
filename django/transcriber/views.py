@@ -4,6 +4,7 @@ from collections import deque
 from urllib.parse import urlparse
 
 from django.conf import settings
+from django.core.files import File
 from django.core.files.base import ContentFile
 from django.http import FileResponse, HttpResponse, JsonResponse
 from django.shortcuts import redirect, render
@@ -20,6 +21,8 @@ from librarian.utils.process_engine import generate_hash
 from otto.models import SecurityLabel
 from otto.utils.decorators import app_access_required, budget_required
 
+from .models import Transcription, WavFile
+from .tasks import transcribe_audio_task
 from .utils import (
     clean_transcript_chunk,
     convert_to_wav,
@@ -225,7 +228,17 @@ def handle_upload(request):
         if not wav_path:
             return JsonResponse({"error": "Failed to convert file"}, status=500)
 
+        transcript = Transcription.objects.create(extracted_title=filename)
+        transcript.status = "PROCESSING"
+        wavfile = WavFile.objects.create(
+            file=File(open(os.path.relpath(wav_path), "rb"))
+        )
+        wavfile.generate_hash()
+        transcript.saved_file = wavfile
+        transcript.save()
+
         # Perform transcription
+        # transcribe_audio_task.delay(transcript.id, transcript_path)
         transcript = transcribe_audio(wav_path, transcript_path)
 
         # Cleanup temporary files
@@ -236,7 +249,7 @@ def handle_upload(request):
 
         return JsonResponse(
             {
-                "transcript": transcript,
+                "transcript": [],
                 "transcript_path": os.path.basename(transcript_path),
                 # "file_url": f"{settings.MEDIA_URL}{upload_subdir}/{filename}",  # URL for media playback
             }

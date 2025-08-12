@@ -9,8 +9,6 @@ from itertools import groupby
 from urllib.parse import urlparse
 
 from django.conf import settings
-from django.core.files import File
-from django.core.files.uploadedfile import InMemoryUploadedFile
 
 import azure.cognitiveservices.speech as speechsdk
 import ffmpeg
@@ -21,6 +19,8 @@ from azure.core.credentials import AzureKeyCredential
 from bs4 import BeautifulSoup
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from openai import AzureOpenAI
+
+from .models import Transcription, WavFile
 
 # from transcriber.tasks import transcribe_audio_task
 
@@ -286,6 +286,67 @@ def convert_to_wav(input_path):
     except Exception as e:
         print(f"Conversion error: {e}")
         return None
+
+
+def transcribe_file(saved_file, transcript_path):
+    """Perform audio transcription using Azure Speech Service and write to file"""
+    if not speech_key or not speech_region:
+        return [{"error": "Azure Speech credentials not configured"}]
+    config = speechsdk.SpeechConfig(subscription=speech_key, region=speech_region)
+    config.speech_recognition_language = "fr-CA"
+    config.set_property(
+        speechsdk.PropertyId.SpeechServiceResponse_DiarizeIntermediateResults, "true"
+    )
+
+    audio_config = speechsdk.audio.AudioConfig(filename=saved_file.file.path)
+    # audio_config = speechsdk.audio.AudioConfig.FromWavFileInput(file)
+    transcriber = speechsdk.transcription.ConversationTranscriber(config, audio_config)
+
+    results = []
+    done = threading.Event()
+
+    # Open transcript file for writing
+    transcript_file = open(transcript_path, "w", encoding="utf-8")
+
+    def handle_transcription(evt):
+        if evt.result.reason == speechsdk.ResultReason.RecognizedSpeech:
+            offset = evt.result.offset / 10000000  # Convert to seconds
+            timestamp = time.strftime("%H:%M:%S", time.gmtime(offset))
+            speaker = evt.result.speaker_id or "Unknown"
+            text = evt.result.text
+
+            # Add to results array
+            results.append(
+                {
+                    "timestamp": timestamp,
+                    "speaker": speaker,
+                    "text": text,
+                }
+            )
+
+            # Write to transcript file as it happens
+            message = f"[{timestamp}]: {speaker}\n{text}\n\n"
+            transcript_file.write(message)
+            transcript_file.flush()  # Ensure it's written immediately
+
+            print(message)
+
+    def handle_session_stop(evt):
+        transcript_file.close()
+        done.set()
+
+    def handle_cancellation(evt):
+        transcript_file.close()
+        done.set()
+
+    transcriber.transcribed.connect(handle_transcription)
+    transcriber.session_stopped.connect(handle_session_stop)
+    transcriber.canceled.connect(handle_cancellation)
+
+    transcriber.start_transcribing_async()
+    done.wait()
+
+    return results
 
 
 def transcribe_audio(file_path, transcript_path):

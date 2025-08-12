@@ -1,15 +1,18 @@
-import os
+import traceback
 import uuid
 from datetime import datetime
 from threading import Thread
 
 from django.conf import settings
+from django.utils.translation import gettext as _
 
-from celery import shared_task
+from celery import current_task, shared_task
 from celery.exceptions import SoftTimeLimitExceeded
 from structlog import get_logger
 from structlog.contextvars import get_contextvars
-from transcriber.utils import transcribe_audio
+from transcriber.utils import transcribe_audio, transcribe_file
+
+from .models import Transcription, WavFile
 
 logger = get_logger(__name__)
 
@@ -18,40 +21,49 @@ one_minute = 60
 
 
 @shared_task(soft_time_limit=ten_minutes)
-def transcribe_wav_file(file_path, transcript_path):
+def transcribe_audio_task(transcript_id, transcript_path):
     try:
-        logger.info(f"Processing transcription for {file_path} at {datetime.now()}")
-        file_name = file_path.split("/")[-1]
-        input_file_name = file_name.replace(" ", "_")
+        transcript = Transcription.objects.get(id=transcript_id)
+    except Transcription.DoesNotExist:
+        logger.error("Transcript not found", transcript_id=transcript_id)
+        return
 
-        file_uuid = uuid.uuid4()
-        input_file_path = f"{settings.AZURE_STORAGE_TRANSCRIPTION_INPUT_URL_SEGMENT}/{file_uuid}/{input_file_name}"
-
-        # Upload to Azure Blob Storage
-        azure_storage = settings.AZURE_STORAGE
-        with open(file_path, "rb") as f:
-            azure_storage.save(input_file_path, f)
-
-        transcribe_audio(input_file_path, transcript_path)
-
-    except SoftTimeLimitExceeded:
-        logger.error(f"Transcription task timed out for {file_path}")
-        raise Exception(f"Transcription task timed out for {file_path}")
+    try:
+        process_transcription_helper(transcript, transcript_path)
     except Exception as e:
-        logger.exception(f"Error transcribing {file_path}: {e}")
-        raise Exception(f"Error transcribing {file_path}")
-    finally:
-        if input_file_path:
-            Thread(target=azure_delete, args=(input_file_path,)).start()
+        transcript.status = "ERROR"
+        full_error = traceback.format_exc()
+        error_id = str(uuid.uuid4())[:7]
+        logger.error(
+            f"Error processing transcript: {transcript.name}",
+            transcript_id=transcript.id,
+            error_id=error_id,
+            error=full_error,
+        )
+        transcript.celery_task_id = None
+        if settings.DEBUG:
+            transcript.status_details = full_error + f" ({_('Error ID')}: {error_id})"
+        else:
+            transcript.status_details = f"({_('Error ID')}: {error_id})"
+        transcript.save()
 
 
-def azure_delete(path):
-    azure_storage = settings.AZURE_STORAGE
-    try:
-        logger.info(f"Deleting {path} from azure storage.")
-        azure_storage.delete(path)
-        # Now delete the parent folder
-        azure_storage.delete(path.rsplit("/", 1)[0])
-    except:
-        logger.error(f"Error deleting {path}")
-        pass
+def process_transcription_helper(transcription, transcript_path):
+    url = transcription.url
+    file = transcription.saved_file
+    if not (url or file):
+        raise ValueError("URL or file is required")
+    logger.info("Processing file", file=file)
+    if current_task:
+        current_task.update_state(
+            state="PROCESSING",
+            meta={
+                "status_text": _("Transcribing file..."),
+            },
+        )
+    transcribe_file(file, transcript_path)
+    # Done!
+    transcription.status = "SUCCESS"
+    transcription.fetched_at = datetime.now()
+    transcription.celery_task_id = None
+    transcription.save()
