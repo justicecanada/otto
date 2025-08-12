@@ -85,7 +85,7 @@ def get_localized_prompt(language_code: str) -> str:
             ## Follow-ups
             ## Notable Quotes
 
-            Include timestamps (e.g. [00:00:45]) for all relevant information and quotations.
+            Include exact timestamps (e.g. [00:00:45]) for all relevant information and quotations.
             Use only information, events, and names from the provided transcript. Under no circumstances should you reference any information or knowledge outside of the provided transcript.""",
         "fr": """Créez un compte rendu détaillé à partir de cette transcription nettoyée. Inclure :
             - Points clés de discussion
@@ -500,8 +500,8 @@ def convert_transcript_to_html(transcript_text, consolidate_sentences=False):
         ] = f"""
                 <div class="transcript-line">
                     <span class="notranslate timestamp" data-time={line_dict["timestamp"].strip("[]")}>{line_dict["timestamp"]}:</span>
-                    <span class="notranslate speaker">{line_dict["speaker"]}</span>
-                    <div class="text">{line_dict["content"]}</div>
+                    <span class="notranslate speaker" contenteditable="true">{line_dict["speaker"]}</span>
+                    <div class="text" contenteditable="true">{line_dict["content"]}</div>
                 </div>
                 """
     return "\n\n".join(x["html_entry"] for x in line_dicts)
@@ -553,7 +553,7 @@ def get_video_from_parlvu(url, output_path="temp"):
         lambda tag: tag.name == "script" and "var availableStreams" in tag.text
     )
     available_streams = json.loads(
-        re.search("(?<=var availableStreams = ).*?(?=\;)", script_element.text)[0]
+        re.search("(?<=var availableStreams = ).*?\](?=\;)", script_element.text)[0]
     )
 
     floor_video_sd = next(

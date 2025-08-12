@@ -78,18 +78,28 @@
     </div>
     <div class="error-message" id="errorMessage"></div>
     <div id="status" class="status">{% trans "Upload an audio or video file to begin" %}</div>
-    <div class="mb-3 mt-1 p-3 border rounded">{% include "transcriber/components/url_input_form.html" %}</div>
 
     <div class="action-buttons">
+      <button id="addUrlButton"
+              class="action-button"
+              onclick="document.getElementById('urlForm').classList.remove('d-none');">
+        {% trans "Download ParlVU Media" %}
+      </button>
       <button id="loadMediaButton" class="action-button">{% trans "Load Media" %}</button>
       <button id="transcribeButton" class="action-button" disabled>{% trans "Transcribe" %}</button>
       <button id="loadTranscriptButton" class="action-button">{% trans "Load Transcript" %}</button>
       <button id="saveTranscriptButton" class="action-button" disabled>{% trans "Save Transcript" %}</button>
       <button id="copyButton" class="action-button" disabled>{% trans "Copy to Clipboard" %}</button>
     </div>
-    <div id="spinner" class="spinner container text-primary px-4 pt-3 pb-3">
-      <span class="spinner-border" aria-hidden="true"></span>
+    <div class="mb-3 mt-1 p-3 border rounded d-none" id="urlForm">
+      {% include "transcriber/components/url_input_form.html" %}
     </div>
+
+    <div id="spinner" class="spinner pt-2 pb-3" aria-hidden="true">
+      <span class="spinner-border text-primary mx-4" aria-hidden="true"></span>
+      <div id="spinner-status" aria-hidden="true">{% trans "Downloading media..." %}</div>
+    </div>
+
     <div class="action-buttons">
       <button id="cleanupButton" class="action-button" disabled>{% trans "Clean Up" %}</button>
       <button id="translateButton" class="action-button" disabled>{% trans "Translate" %}</button>
@@ -104,7 +114,7 @@
               hx-on::after-request="if (event.detail.successful) {qaButton.disabled = false;}">
         {% trans "Save transcript to Library" %}
       </button>
-      <button id="qaButton" class="action-button" disabled>{% trans "Save changes and open Q&A" %}</button>
+      <button id="qaButton" class="action-button" disabled>{% trans "Open Q&A" %}</button>
     </div>
 
     <label for="currentTranscriptName"
@@ -117,7 +127,9 @@
            style="width: 50%">
 
     <input type="hidden" id="transcript_uuid">
-    <input type="file" id="fileInput">
+    <form id="fileInputForm">
+      <input type="file" id="fileInput">
+    </form>
 
     {% csrf_token %}
 
@@ -334,6 +346,8 @@
 
                 reader.readAsText(file);
             }
+
+            document.getElementById('fileInputForm').reset();
         });
     
         cleanupButton.addEventListener('click', function () {
