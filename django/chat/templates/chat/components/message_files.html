@@ -32,3 +32,37 @@
     </li>
   {% endfor %}
 </ul>
+{% if message.mode == "translate" and message.is_bot and message.sorted_files|length > 1 %}
+  <button class="mt-2 mb-1 btn btn-sm btn-outline-dark"
+          onclick="downloadMessageFiles(this)">{% trans 'Download all files' %}</button>
+{% endif %}
+
+<script>
+  if (!window.downloadMessageFiles) {
+    window.downloadMessageFiles = function(btn) {
+      const ul = (btn.previousElementSibling && btn.previousElementSibling.matches('ul.list-unstyled'))
+        ? btn.previousElementSibling
+        : btn.parentElement.querySelector('ul.list-unstyled');
+      if (!ul) return;
+
+      const anchors = Array.from(ul.querySelectorAll('a[href]'));
+      if (!anchors.length) return;
+
+      btn.disabled = true;
+      const original = btn.textContent;
+      btn.textContent = 'Preparing...';
+
+      anchors.forEach(a => { try { a.setAttribute('download', ''); } catch(e){} });
+
+      anchors.forEach((a, i) => {
+        setTimeout(() => {
+          try { a.click(); } catch(e) { window.open(a.href, '_blank'); }
+          if (i === anchors.length - 1) {
+            btn.disabled = false;
+            btn.textContent = original;
+          }
+        }, i * 250);
+      });
+    }
+      }
+</script>
