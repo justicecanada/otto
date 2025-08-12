@@ -30,6 +30,7 @@
       currentInputType = 'media';
       const event = new Event('change', { bubbles: true });
       fileInput.dispatchEvent(event);
+      document.getElementById('urlForm').classList.add('d-none');
     }
   }
 </script>
