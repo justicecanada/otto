@@ -204,9 +204,50 @@ div.app-card-other:hover {
 }
 
 #top-nav {
-  padding-top: 0.25rem;
-  padding-bottom: 0.25rem;
-  height: 3rem;
+  padding-top: 0.125rem;
+  padding-bottom: 0.125rem;
+  height: 2.75rem;
+  z-index: 100;
+}
+
+/* app dropdown overlay and list visibility */
+body.app-list-active div#manual-lightbox-overlay,
+body.app-list-active div#top-nav-app-list {
+  display: block;
+  opacity: 1;
+}
+
+#top-nav-app-list {
+  z-index: 11;
+  display: none;
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
+  position: fixed;
+  top: 3rem;
+  left: 0.5rem;
+  zoom: 0.9;
+  background: white;
+  border-radius: 0.5rem;
+}
+
+#top-nav-app-dropdown {
+  position: absolute;
+  top: 9px;
+  z-index: 11;
+}
+
+#top-nav-app-dropdown button>i {
+  opacity: 0.75;
+}
+
+#top-nav-app-dropdown button:focus>i,
+#top-nav-app-dropdown button:hover>i {
+  opacity: 1;
+  /* color: white !important; */
+}
+
+[data-bs-theme="dark"] .text-secondary {
+  color: var(--text-secondary) !important;
 }
 
 #top-nav-search-input input {
@@ -645,7 +686,8 @@ svg.driver-overlay {
     display: none;
   }
 
-  &:hover .only-hover {
+  &:hover .only-hover,
+  &:focus .only-hover {
     display: inline;
   }
 
@@ -653,7 +695,8 @@ svg.driver-overlay {
     display: inline;
   }
 
-  &:hover .non-hover {
+  &:hover .non-hover,
+  &:focus .non-hover {
     display: none;
   }
 }
