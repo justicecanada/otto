@@ -249,7 +249,7 @@ def handle_upload(request):
 
         return JsonResponse(
             {
-                "transcript": [],
+                "transcript": transcript,
                 "transcript_path": os.path.basename(transcript_path),
                 # "file_url": f"{settings.MEDIA_URL}{upload_subdir}/{filename}",  # URL for media playback
             }
