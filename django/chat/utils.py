@@ -905,15 +905,15 @@ def label_section_index(last_modification_date):
     last_modification_date = last_modification_date.date()
     todays_date = timezone.now().date()
     if last_modification_date > todays_date - timezone.timedelta(days=1):
-        return 0
-    elif last_modification_date > todays_date - timezone.timedelta(days=2):
         return 1
-    elif last_modification_date > todays_date - timezone.timedelta(days=7):
+    elif last_modification_date > todays_date - timezone.timedelta(days=2):
         return 2
-    elif last_modification_date > todays_date - timezone.timedelta(days=30):
+    elif last_modification_date > todays_date - timezone.timedelta(days=7):
         return 3
-    else:
+    elif last_modification_date > todays_date - timezone.timedelta(days=30):
         return 4
+    else:
+        return 5
 
 
 def get_chat_history_sections(user_chats):
@@ -921,16 +921,20 @@ def get_chat_history_sections(user_chats):
     Group the chat history into sections formatted as [{"label": "(string)", "chats": [list..]}]
     """
     chat_history_sections = [
-        {"label": _("Today"), "chats": []},
-        {"label": _("Yesterday"), "chats": []},
-        {"label": _("Last 7 days"), "chats": []},
-        {"label": _("Last 30 days"), "chats": []},
-        {"label": _("Older"), "chats": []},
+        {"label": _("Pinned chats"), "chats": [], "always_show": True},
+        {"label": _("Today"), "chats": [], "always_show": False},
+        {"label": _("Yesterday"), "chats": [], "always_show": False},
+        {"label": _("Last 7 days"), "chats": [], "always_show": False},
+        {"label": _("Last 30 days"), "chats": [], "always_show": False},
+        {"label": _("Older"), "chats": [], "always_show": False},
     ]
 
     for user_chat in user_chats:
         section_index = label_section_index(user_chat.last_modification_date)
         chat_history_sections[section_index]["chats"].append(user_chat)
+        # if any chat is pinned, add a copy to the pinned chat section
+        if user_chat.pinned:
+            chat_history_sections[0]["chats"].append(user_chat)
 
     return chat_history_sections
 

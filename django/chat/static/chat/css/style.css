@@ -1703,3 +1703,20 @@ label[for="id_librarian-input_file"] {
   pointer-events: none;
   transition: opacity .15s ease-in-out;
 }
+
+.pin-button[aria-pressed="true"],
+.pin-button[aria-pressed="true"]:hover,
+.pin-button[aria-pressed="true"]:focus,
+.pin-button[aria-pressed="true"]:active,
+.pin-button[aria-pressed="true"]:focus-visible {
+  border-color: transparent !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.pin-button:focus,
+.pin-button:active,
+.pin-button:focus-visible {
+  border-color: transparent !important;
+  box-shadow: none !important;
+}

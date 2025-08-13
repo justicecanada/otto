@@ -24,14 +24,20 @@
     <div class="overflow-y-auto overflow-x-hidden p-3 pt-0 flex-grow-1"
          id="chat-history-list">
       {% for section in chat_history_sections %}
-        {% if section.chats %}
+        {% if section.chats|length or section.always_show %}
           {% with section_index=forloop.counter0 %}
             <div id="section-{{ section_index }}">
               <div class="chat-history-section-header small text-muted">{{ section.label }}</div>
               <ul class="list-unstyled" id="chat-list-{{ section_index }}">
-                {% for chat in section.chats %}
-                  {% include 'chat/components/chat_list_item.html' %}
-                {% endfor %}
+                {% if section.chats %}
+                  {% for chat in section.chats %}
+                    {% include 'chat/components/chat_list_item.html' %}
+                  {% endfor %}
+                {% else %}
+                  {% if section.always_show %}
+                    <li class="chat-title ps-2">{% trans "No pinned chats" %}</li>
+                  {% endif %}
+                {% endif %}
               </ul>
             </div>
           {% endwith %}
