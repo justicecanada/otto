@@ -184,6 +184,7 @@ def poll_tasks(request, user_request_id):
                     merged_pdf_content = pdf_file.read()
 
                 # detach pdf file from output_file
+                # this will now be the placeholder for the final pdf file
                 output_file.pdf_file = None
 
                 # send the merged doc to OCR
