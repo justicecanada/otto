@@ -13,7 +13,10 @@ from django.shortcuts import render
 from django.utils.translation import gettext as _
 
 from azure.ai.documentintelligence import DocumentIntelligenceClient
-from azure.ai.documentintelligence.models import AnalyzeOutputOption
+from azure.ai.documentintelligence.models import (
+    AnalyzeOutputOption,
+    DocumentContentFormat,
+)
 from azure.core.credentials import AzureKeyCredential
 from pdf2image import convert_from_path
 from pdf2image.exceptions import PDFPageCountError
@@ -188,6 +191,7 @@ def create_searchable_pdf(input_file):
             model_id="prebuilt-read",
             body=body_data,
             output=[AnalyzeOutputOption.PDF],
+            output_content_format=DocumentContentFormat.MARKDOWN,
         )
         start_time_ocr = time.perf_counter()
         ocr_results = poller.result()
