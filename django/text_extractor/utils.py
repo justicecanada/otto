@@ -225,7 +225,7 @@ def create_searchable_pdf(input_file):
 
     page_count = len(ocr_results.pages)
     logger.debug(
-        _("Azure Form Recognizer finished OCR text. Number of pages:"), page_count
+        _("Azure Form Recognizer finished OCR text. Number of pages:") + str(page_count)
     )
     cost = Cost.objects.new(cost_type="doc-ai-read", count=page_count)
 
