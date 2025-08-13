@@ -1,6 +1,6 @@
 from modeltranslation.translator import TranslationOptions, register
 
-from .models import App, CostType, Feature, Notification, SecurityLabel
+from .models import App, CostType, Feature, Notification
 
 
 @register(App)
@@ -11,11 +11,6 @@ class AppTranslationOptions(TranslationOptions):
 @register(Feature)
 class FeatureTranslationOptions(TranslationOptions):
     fields = ("name", "description")
-
-
-@register(SecurityLabel)
-class SecurityLabelTranslationOptions(TranslationOptions):
-    fields = ("name", "description", "acronym")
 
 
 @register(CostType)

@@ -23,7 +23,7 @@ class Command(BaseCommand):
             "objects",
             nargs="*",
             type=str,
-            help="Specify objects to reset (apps, groups, libraries, library_mini, security_labels, cost_types, presets)",
+            help="Specify objects to reset (apps, groups, libraries, library_mini, cost_types, presets)",
         )
         parser.add_argument("--all", action="store_true", help="Reset all objects")
 
@@ -69,7 +69,6 @@ class Command(BaseCommand):
         if reset_all:
             self.reset_groups()
             self.reset_apps()
-            self.reset_security_labels()
             self.reset_libraries("library_mini.yaml")
             self.reset_cost_types()
             self.reset_presets()
@@ -82,9 +81,6 @@ class Command(BaseCommand):
 
             if "cost_types" in objects_to_reset:
                 self.reset_cost_types()
-
-            if "security_labels" in objects_to_reset:
-                self.reset_security_labels()
 
             if "libraries" in objects_to_reset:
                 self.reset_libraries()
@@ -228,11 +224,6 @@ class Command(BaseCommand):
         Preset.objects.create_from_yaml(presets_data)
 
         self.stdout.write(self.style.SUCCESS("Presets reset successfully."))
-
-    def reset_security_labels(self):
-        # Simply call manage.py loaddata security_labels.yaml
-        call_command("loaddata", "security_labels.yaml")
-        self.stdout.write(self.style.SUCCESS("Security labels reset successfully."))
 
     def reset_cost_types(self):
         # Simply call manage.py loaddata cost_types.yaml

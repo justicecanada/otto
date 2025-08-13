@@ -18,7 +18,7 @@ from structlog import get_logger
 from structlog.contextvars import bind_contextvars
 
 from chat.llm import OttoLLM
-from otto.models import SecurityLabel, User
+from otto.models import User
 from otto.utils.common import display_cad_cost, set_costs
 
 logger = get_logger(__name__)
@@ -192,12 +192,6 @@ class Library(models.Model):
         return self.data_sources.all()
 
     @property
-    def security_label(self):
-        return SecurityLabel.maximum_of(
-            self.data_sources.values_list("security_label__acronym", flat=True)
-        )
-
-    @property
     def admins(self):
         return self.user_roles.filter(role="admin").values_list("user", flat=True)
 
@@ -219,7 +213,7 @@ class Library(models.Model):
         else:
             data_sources = self.data_sources.all()
 
-        return data_sources.prefetch_related("security_label")
+        return data_sources
 
 
 # AC-20: Allows for fine-grained control over who can access and manage information sources
@@ -252,12 +246,6 @@ class LibraryUserRole(models.Model):
 
 class DataSourceManager(models.Manager):
     def create(self, *args, **kwargs):
-        # Set the security label default to "UC" (unclassified)
-
-        # We do this instead of setting a default value on 'security_label' because
-        # this is a reference to an instance of the SecurityLabel model which
-        # may not exist at migration time
-        kwargs["security_label_id"] = SecurityLabel.default_security_label().id
         return super().create(*args, **kwargs)
 
 
@@ -278,13 +266,6 @@ class DataSource(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
     order = models.IntegerField(default=0)
-
-    # AC-21: Allow users to categorize sensitive information
-    security_label = models.ForeignKey(
-        SecurityLabel,
-        on_delete=models.SET_NULL,
-        null=True,
-    )
 
     chat = models.OneToOneField(
         "chat.Chat",

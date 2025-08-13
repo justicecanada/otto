@@ -56,7 +56,6 @@ async def django_db_setup(django_db_setup, django_db_blocker):
                 "reset_app_data",
                 "groups",
                 "apps",
-                "security_labels",
                 "library_mini",
                 "cost_types",
                 "presets",

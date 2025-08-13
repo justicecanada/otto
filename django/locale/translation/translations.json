@@ -867,10 +867,6 @@
         "fr": "Réinitialiser les paramètres",
         "fr_auto": "Réinitialiser les paramètres par défaut"
     },
-    "Set security label": {
-        "fr": "Définir l’étiquette de sécurité",
-        "fr_auto": "Définir l’étiquette de sécurité"
-    },
     "Warning": {
         "fr": "Avertissement",
         "fr_auto": "Avertissement"
@@ -1842,10 +1838,6 @@
     "Name (French)": {
         "fr": "Nom (français)",
         "fr_auto": "Nom (français)"
-    },
-    "Security label ": {
-        "fr": "",
-        "fr_auto": "Étiquette de sécurité "
     },
     "Order": {
         "fr": "Ordre",

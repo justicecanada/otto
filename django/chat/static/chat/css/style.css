@@ -1164,19 +1164,6 @@ div.message-text pre {
   white-space: pre-wrap;
 }
 
-.chat-security-label {
-  top: -2px;
-  position: relative;
-  width: 32px;
-  font-size: 11px;
-  color: var(--otto-primary-text-color);
-
-  [data-bs-theme="dark"] & {
-    background: var(--otto-tab-body-bg-color);
-    color: var(--otto-primary-text-color);
-  }
-}
-
 
 #editLibrariesModal {
   --bs-modal-width: calc(min(100vw - 4rem, 1430px));
