@@ -71,7 +71,9 @@ def process_document_merge(
                         if images_pages:
                             if len(images_pages) == 1:
                                 # Single image - don't use save_all
-                                images_pages[0].save(temp_file, format="PDF")
+                                images_pages[0].save(
+                                    temp_file, format="PDF", resolution=100
+                                )
                             else:
                                 # Multiple images - use save_all
                                 images_pages[0].save(
@@ -79,6 +81,7 @@ def process_document_merge(
                                     format="PDF",
                                     save_all=True,
                                     append_images=images_pages[1:],
+                                    resolution=100,
                                 )
                         temp_path = temp_file.name
 

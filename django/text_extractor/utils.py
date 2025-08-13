@@ -127,42 +127,27 @@ def trim_whitespace(img, margin=10, bg_threshold=230):
     return img  # No border found
 
 
-def resize_image_to_a4(
-    img, enlarge_size=None, header_text=None
-):  # used only when merge is on
+def resize_image_to_a4(img, header_text=None):  # used only when merge is on
 
-    dpi = 300  # for A4 size in pixels
-    # Minimum readable DPI
-    min_dpi = 150
-
-    a4_width = int(8.27 * dpi)  # 8.27 inches is 210mm
-    a4_height = int(11.69 * dpi)  # 11.69 inches is 297mm
-    min_width = int(img.width * (min_dpi / dpi))
-    min_height = int(img.height * (min_dpi / dpi))
+    # Fixed A4 dimensions at exactly 100 DPI
+    a4_width = 827  # 8.27 inches * 100 DPI
+    a4_height = 1169  # 11.69 inches * 100 DPI
 
     # Trim white borders
     img = trim_whitespace(img)
 
-    # Calculate the scale so that the image is at least 150 DPI on the A4 page
+    # Calculate the scale so that the image fits on the A4 page
     scale = min(a4_width / img.width, a4_height / img.height)
-    min_scale = max(min_width / img.width, min_height / img.height)
-
-    if enlarge_size == "enlarged":
-        scale = min(a4_width / img.width, a4_height / img.height) * 0.85
-    else:
-        # Downsample, but not below minimum readable DPI
-        scale = max(min_scale, 1.0)  # Don't upscale if already small
+    scale = min(scale, 1.0)
 
     new_width = int(img.width * scale)
     new_height = int(img.height * scale)
 
     # Resize the image using LANCZOS (formerly ANTIALIAS)
-
     resized_img = img.resize((new_width, new_height), Resampling.LANCZOS)
 
     # Create an A4 background
     background = Image.new("RGB", (a4_width, a4_height), "white")
-    # offset = ((a4_width - new_width) // 2, (a4_height - new_width) // 2)
     offset = (
         (a4_width - new_width) // 2,
         (a4_height - new_height) // 2,
@@ -172,7 +157,7 @@ def resize_image_to_a4(
     # Add header if provided
     if header_text:
         draw = ImageDraw.Draw(background)
-        font = ImageFont.load_default(size=48)
+        font = ImageFont.load_default(size=12)
         header_text = f"Filename: {header_text}"
         # Position header at top with some margin
         draw.text((30, 30), header_text, fill="black", font=font)
