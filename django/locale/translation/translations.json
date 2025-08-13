@@ -4706,5 +4706,9 @@
     "bytes": {
         "fr": "",
         "fr_auto": "octets"
+    },
+    "Azure Form Recognizer finished OCR text.": {
+        "fr": "",
+        "fr_auto": "Azure Form Recognizer a terminé le texte OCR."
     }
 }
