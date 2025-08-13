@@ -1684,39 +1684,3 @@ label[for="id_librarian-input_file"] {
   }
 
 }
-
-
-
-/* Pin button sizing to match options button footprint */
-.pin-button {
-  width: 32px;
-  height: 32px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* Hidden by default (same as options) */
-#left-sidebar .pin-button {
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
-  transition: opacity .15s ease-in-out;
-}
-
-.pin-button[aria-pressed="true"],
-.pin-button[aria-pressed="true"]:hover,
-.pin-button[aria-pressed="true"]:focus,
-.pin-button[aria-pressed="true"]:active,
-.pin-button[aria-pressed="true"]:focus-visible {
-  border-color: transparent !important;
-  background: transparent !important;
-  box-shadow: none !important;
-}
-
-.pin-button:focus,
-.pin-button:active,
-.pin-button:focus-visible {
-  border-color: transparent !important;
-  box-shadow: none !important;
-}

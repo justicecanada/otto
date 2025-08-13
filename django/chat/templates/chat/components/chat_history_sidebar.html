@@ -27,7 +27,14 @@
         {% if section.chats|length or section.always_show %}
           {% with section_index=forloop.counter0 %}
             <div id="section-{{ section_index }}">
-              <div class="chat-history-section-header small text-muted">{{ section.label }}</div>
+              <div class="chat-history-section-header small text-muted d-flex align-items-center">
+                <span class="me-auto">{{ section.label }}</span>
+                {% if section_index == 0 %}
+                  <i class="bi bi-pin-angle-fill text-dark"
+                     aria-hidden="true"
+                     title="{% trans 'Pinned chats' %}"></i>
+                {% endif %}
+              </div>
               <ul class="list-unstyled" id="chat-list-{{ section_index }}">
                 {% if section.chats %}
                   {% for chat in section.chats %}
