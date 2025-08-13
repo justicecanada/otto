@@ -4710,5 +4710,9 @@
     "Azure Form Recognizer finished OCR text.": {
         "fr": "",
         "fr_auto": "Azure Form Recognizer a terminé le texte OCR."
+    },
+    "Azure Form Recognizer finished OCR text. Number of pages:": {
+        "fr": "",
+        "fr_auto": "Azure Form Recognizer a terminé le texte OCR. Nombre de pages :"
     }
 }
