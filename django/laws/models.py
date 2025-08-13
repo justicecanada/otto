@@ -77,7 +77,7 @@ class LawManager(models.Manager):
             return obj
 
         try:
-            idx = llm.get_index("laws_lois__", hnsw=True)
+            idx = llm.get_index("laws_lois__", hnsw=False)
             nodes = []
             if law_status.law:
                 # Remove the old content from the vector store using consistent cleanup
@@ -250,10 +250,12 @@ class Law(models.Model):
         session.commit()
         session.close()
         cls.objects.all().delete()
+        # Recreate the table by calling llm get_index
+        cls.get_index()
 
     @classmethod
     def get_index(cls):
-        idx = OttoLLM().get_index("laws_lois__", hnsw=True)
+        idx = OttoLLM().get_index("laws_lois__", hnsw=False)
         return idx
 
     class Meta:
@@ -277,6 +279,7 @@ class JobStatus(models.Model):
     finished_at = models.DateTimeField(null=True, blank=True)
     error_message = models.TextField(null=True, blank=True)
     celery_task_id = models.CharField(max_length=255, null=True, blank=True)
+    options = models.JSONField(default=dict, blank=True)
 
     def cancel(self):
         """
@@ -300,6 +303,15 @@ class JobStatus(models.Model):
         self.finished_at = timezone.now()
         self.error_message = "Job was cancelled by user."
         self.save()
+
+    @property
+    def options_str(self):
+        """
+        Return a string representation of the options JSON field.
+        """
+        if not self.options:
+            return "No options provided"
+        return ", ".join(f"{k}: {v}" for k, v in self.options.items())
 
 
 class LawLoadingStatus(models.Model):
