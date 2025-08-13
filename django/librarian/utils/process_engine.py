@@ -559,13 +559,17 @@ def _convert_html_to_markdown(
 
 
 def _pdf_to_html_azure_layout(content):
-    from azure.ai.formrecognizer import DocumentAnalysisClient
+    from azure.ai.documentintelligence import DocumentIntelligenceClient
+    from azure.ai.documentintelligence.models import (
+        AnalyzeDocumentRequest,
+        DocumentContentFormat,
+    )
     from azure.core.credentials import AzureKeyCredential
     from shapely.geometry import Polygon
 
     # Note: This method handles scanned PDFs, images, and handwritten text but is $$$
 
-    document_analysis_client = DocumentAnalysisClient(
+    document_analysis_client = DocumentIntelligenceClient(
         endpoint=settings.AZURE_COGNITIVE_SERVICE_ENDPOINT,
         credential=AzureKeyCredential(settings.AZURE_COGNITIVE_SERVICE_KEY),
     )
@@ -671,10 +675,10 @@ def _pdf_to_html_azure_layout(content):
 
 def pdf_to_text_azure_read(content: bytes) -> str:
 
-    from azure.ai.formrecognizer import DocumentAnalysisClient
+    from azure.ai.documentintelligence import DocumentIntelligenceClient
     from azure.core.credentials import AzureKeyCredential
 
-    document_analysis_client = DocumentAnalysisClient(
+    document_analysis_client = DocumentIntelligenceClient(
         endpoint=settings.AZURE_COGNITIVE_SERVICE_ENDPOINT,
         credential=AzureKeyCredential(settings.AZURE_COGNITIVE_SERVICE_KEY),
     )

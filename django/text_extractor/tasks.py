@@ -159,23 +159,23 @@ def process_ocr_document(file_content, file_name, output_file_id, user_id):
 
         result = create_searchable_pdf(file)
 
-        ocr_file = result["output"]
+        pdf_content = result["pdf_content"]
         text_content = result["all_text"]
         cost = result["cost"]
-
-        pdf_bytes = BytesIO()
-        ocr_file.write(pdf_bytes)
-        pdf_content = pdf_bytes.getvalue()
 
         input_name, _ = os.path.splitext(file.name)
 
         output_name = shorten_input_name(input_name)
 
-        pdf_file = ContentFile(pdf_content, name=f"{output_name}.pdf")
+        # Convert generator to bytes
+        pdf_bytes = b"".join(chunk for chunk in pdf_content)
+        pdf_file = ContentFile(pdf_bytes, name=f"{output_name}.pdf")
         txt_file = ContentFile(
             text_content.encode("utf-8"),
             name=shorten_input_name(f"{output_name}.txt"),
         )
+        logger.info("pdf_content - shouyld be bytes", pdf_content)
+        logger.info("text_content - should be str", text_content)
 
         output_file = OutputFile.objects.get(access_key=access_key, id=output_file_id)
 
@@ -185,6 +185,9 @@ def process_ocr_document(file_content, file_name, output_file_id, user_id):
         output_file.txt_file = txt_file
         output_file.celery_task_ids = []
         output_file.save(access_key=access_key)
+
+        if not pdf_file or not txt_file:
+            raise ValueError("Failed to generate output files.")
 
         return {
             "error": False,
