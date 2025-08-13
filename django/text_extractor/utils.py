@@ -193,16 +193,23 @@ def create_searchable_pdf(input_file):
             credential=AzureKeyCredential(settings.AZURE_COGNITIVE_SERVICE_KEY),
             headers={"x-ms-useragent": "searchable-pdf-blog/1.0.0"},
         )
-        with open(input_file, "rb") as file:
-            poller = document_analysis_client.begin_analyze_document(
-                model_id="prebuilt-read",
-                output=[AnalyzeOutputOption.PDF],
-                body=file,
-            )
-            start_time_ocr = time.perf_counter()
-            ocr_results = poller.result()
-            elapsed_time_ocr = time.perf_counter() - start_time_ocr
-            logger.info(f"OCR polling took {elapsed_time_ocr:.2f} seconds")
+        # Prepare file bytes for Azure analysis to avoid serialization of file objects
+        if hasattr(input_file, "read"):
+            input_file.seek(0)
+            body_data = input_file.read()
+        else:
+            with open(input_file, "rb") as f:
+                body_data = f.read()
+        # Call Azure Form Recognizer with raw bytes
+        poller = document_analysis_client.begin_analyze_document(
+            model_id="prebuilt-read",
+            body=body_data,
+            output=[AnalyzeOutputOption.PDF],
+        )
+        start_time_ocr = time.perf_counter()
+        ocr_results = poller.result()
+        elapsed_time_ocr = time.perf_counter() - start_time_ocr
+        logger.info(f"OCR polling took {elapsed_time_ocr:.2f} seconds")
 
     except Exception as e:
         error_id = str(uuid.uuid4())[:7]
