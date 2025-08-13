@@ -199,7 +199,7 @@ def chat(request, chat_id):
         .union(Chat.objects.filter(pk=chat.id))
         .order_by("-last_modification_date")
     )
-    # Title chats in sidebar if necessary & set default labels
+    # Title chats in sidebar if necessary
     llm = None
     for user_chat in user_chats:
         user_chat.current_chat = user_chat.id == chat.id
