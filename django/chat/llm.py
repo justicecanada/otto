@@ -447,10 +447,6 @@ class OttoVectorStore(PGVectorStore):
         )
         self._async_session = sessionmaker(self._async_engine, class_=AsyncSession)  # type: ignore
 
-        # Test the connection to ensure it's established
-        with self._engine.connect() as connection:
-            connection.execute(sqlalchemy.text("SELECT 1"))
-
     def _build_sparse_query(
         self,
         query_str: Optional[str],
@@ -499,9 +495,4 @@ class OttoVectorStore(PGVectorStore):
             .order_by(text("rank desc"))
         )
 
-        # type: ignore
         return self._apply_filters_and_limit(stmt, limit, metadata_filters)
-      
-        # Optionally test the sync connection
-        # with self._engine.connect() as connection:
-        #     connection.execute(sqlalchemy.text("SELECT 1"))
