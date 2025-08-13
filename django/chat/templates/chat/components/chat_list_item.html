@@ -14,6 +14,17 @@
         {% endif %}
       </a>
     </div>
+
+    <div class="col-auto ms-auto d-flex align-items-center gap-4">
+      <button class="btn btn-sm btn-outline pin-button"
+              type="button"
+              title="{% trans 'Pin' %}"
+              aria-label="{% trans 'Pin' %}">
+        <i class="bi bi-pin-angle{% if chat.pinned %}-fill{% endif %}"></i>
+        <span class="visually-hidden">{% trans 'Pin' %}</span>
+      </button>
+
+      {% include 'chat/components/chat_list_item_menu.html' %}
+    </div>
   </div>
-  {% include 'chat/components/chat_list_item_menu.html' %}
 </li>
