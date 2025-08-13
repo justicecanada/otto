@@ -185,109 +185,6 @@ def dist(p1, p2):
 
 
 def create_searchable_pdf(input_file):
-    # Reset the file pointer to the beginning
-    input_file.seek(0)
-    file_content = input_file.read()
-
-    # Create a temporary file and write the contents of the uploaded file to it
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as temp:
-        temp.write(file_content)
-        temp_path = temp.name
-    try:
-        input_file.name.lower().endswith(
-            img_extensions
-        ) or input_file.name.lower().endswith(".pdf")
-    except AttributeError:
-        logger.exception(
-            _("AttributeError: input_file does not have a file extension.")
-        )
-        return {
-            "error": True,
-            "message": _(
-                "Error: Your file's extension is not supported, please upload images or pdf files"
-            ),
-        }
-
-    if input_file.name.lower().endswith(".pdf"):
-        try:
-            image_pages = convert_from_path(
-                temp_path, dpi=100
-            )  # Adjust DPI as needed for compression
-
-            rgb_pages = [page.convert("RGB") for page in image_pages]
-
-            # Save the compressed images to a new temporary file
-            with tempfile.NamedTemporaryFile(
-                delete=False, suffix=".pdf"
-            ) as temp_compressed:
-                start_time = time.perf_counter()
-                rgb_pages[0].save(
-                    temp_compressed,
-                    "PDF",
-                    resolution=50,
-                    save_all=True,
-                    append_images=rgb_pages[1:],
-                )
-                elapsed_time = time.perf_counter() - start_time
-                # print(f"---------Multi-page save took {elapsed_time:.2f} seconds")
-                logger.info(f"Multi-page save took {elapsed_time:.2f} seconds")
-                temp_path = temp_compressed.name
-        except PDFPageCountError as e:
-            error_id = str(uuid.uuid4())[:7]
-            logger.exception(
-                _(
-                    "PDFPageCountError while processing {input_file.name} in {error_id}: {e}"
-                )
-            )
-            return {
-                "error": True,
-                "message": _(
-                    "Error: The file '{input_file.name}' is not a valid PDF or is corrupted."
-                ),
-                "error_id": error_id,
-            }
-        except Exception as e:
-            error_id = str(uuid.uuid4())[:7]
-            logger.exception(_("Error converting pdfs into images in {error_id}: {e}"))
-            # Fallback for other exceptions
-            return {
-                "error": True,
-                "full_error": e,
-                "message": _(
-                    "Error ID:%(error_id)s - Error occurred while converting pdfs into images"
-                )
-                % {"error_id": error_id},
-                "error_id": error_id,
-            }
-
-    elif input_file.name.lower().endswith(img_extensions):
-        try:
-            with Image.open(temp_path) as img:
-                image_pages_original = ImageSequence.Iterator(img)
-                image_pages = [
-                    resize_to_azure_requirements(image)
-                    for image in image_pages_original
-                ]
-
-        except Exception as e:
-            error_id = str(uuid.uuid4())[:7]
-            logger.exception(
-                _("Error processing image {input_file.name} in {error_id}: {e}")
-            )
-            return {
-                "error": True,
-                "message": _(
-                    "Error ID: %(error_id)s -The file '{input_file.name}' cannot be processed."
-                )
-                % {"error_id": error_id},
-                "error_id": error_id,
-            }
-
-        # Save the resized images to a new temporary file
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as temp_resized:
-            for page in image_pages:
-                page.save(temp_resized, "PDF")
-            temp_path = temp_resized.name
 
     try:
         # Running OCR using Azure Form Recognizer Read API------
@@ -296,16 +193,16 @@ def create_searchable_pdf(input_file):
             credential=AzureKeyCredential(settings.AZURE_COGNITIVE_SERVICE_KEY),
             headers={"x-ms-useragent": "searchable-pdf-blog/1.0.0"},
         )
-        with open(temp_path, "rb") as f:
+        with open(input_file, "rb") as file:
             poller = document_analysis_client.begin_analyze_document(
                 model_id="prebuilt-read",
                 output=[AnalyzeOutputOption.PDF],
-                body=f,
+                body=file,
             )
-        start_time_ocr = time.perf_counter()
-        ocr_results = poller.result()
-        elapsed_time_ocr = time.perf_counter() - start_time_ocr
-        logger.info(f"OCR polling took {elapsed_time_ocr:.2f} seconds")
+            start_time_ocr = time.perf_counter()
+            ocr_results = poller.result()
+            elapsed_time_ocr = time.perf_counter() - start_time_ocr
+            logger.info(f"OCR polling took {elapsed_time_ocr:.2f} seconds")
 
     except Exception as e:
         error_id = str(uuid.uuid4())[:7]
