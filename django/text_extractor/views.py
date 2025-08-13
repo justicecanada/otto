@@ -169,16 +169,18 @@ def poll_tasks(request, user_request_id):
 
     for output_file in output_files:
         output_file_statuses = []
-        for task_id in output_file.celery_task_ids:
-            if user_request.merged:
-                result = process_document_merge.AsyncResult(task_id)
-                output_file_statuses.append(result.status)
-            else:
-                result = process_ocr_document.AsyncResult(task_id)
+        if output_file.error_message:
+            output_file_statuses.append("FAILURE")
+        else:
+            for task_id in output_file.celery_task_ids:
+                if user_request.merged:
+                    result = process_document_merge.AsyncResult(task_id)
+                else:
+                    result = process_ocr_document.AsyncResult(task_id)
                 output_file_statuses.append(result.status)
 
         if all(status == "SUCCESS" for status in output_file_statuses):
-            if user_request.merged:
+            if user_request.merged and output_file.pdf_file:
                 # Read the merged PDF file content as bytes
                 with output_file.pdf_file.open("rb") as pdf_file:
                     merged_pdf_content = pdf_file.read()

@@ -38,11 +38,11 @@ def process_document_merge(
     if current_task:
         current_task.update_state(state="PROCESSING")
 
+    # Reconstruct the access key from user ID
+    User = get_user_model()
+    user = User.objects.get(id=user_id)
+    access_key = AccessKey(user=user)
     try:
-        # Reconstruct the access key from user ID
-        User = get_user_model()
-        user = User.objects.get(id=user_id)
-        access_key = AccessKey(user=user)
 
         # create merged pdf
         merged_pdf_writer = PdfWriter()
@@ -58,9 +58,7 @@ def process_document_merge(
             elif file_name.lower().endswith(img_extensions):
                 with Image.open(BytesIO(file_content)) as img:
                     images_pages = [
-                        resize_image_to_a4(
-                            image, enlarge_size="enlarged", header_text=file_name
-                        )
+                        resize_image_to_a4(image, header_text=file_name)
                         for image in ImageSequence.Iterator(img)
                     ]
 
@@ -129,6 +127,10 @@ def process_document_merge(
             f"Error processing merging files in task {current_task.request.id}: {e}"
         )
 
+        output_file = OutputFile.objects.get(access_key=access_key, id=output_file_id)
+        output_file.error_message = f"Error processing file: {e}"
+        output_file.save(access_key=access_key)
+
         # Fallback for other exceptions
         return {
             "error": True,
@@ -144,13 +146,12 @@ def process_ocr_document(file_content, file_name, output_file_id, user_id):
     if current_task:
         current_task.update_state(state="PROCESSING")
 
-    try:
         # Reconstruct the access key from user ID
-        access_key = None
         User = get_user_model()
         user = User.objects.get(id=user_id)
         access_key = AccessKey(user=user)
 
+    try:
         file = InMemoryUploadedFile(
             file=BytesIO(file_content),
             field_name=None,
@@ -181,7 +182,6 @@ def process_ocr_document(file_content, file_name, output_file_id, user_id):
         logger.info("text_content - should be str", text_content)
 
         output_file = OutputFile.objects.get(access_key=access_key, id=output_file_id)
-
         # Clear the task IDs and update cost
         output_file.usd_cost = cost
         output_file.pdf_file = pdf_file
@@ -208,6 +208,10 @@ def process_ocr_document(file_content, file_name, output_file_id, user_id):
         logger.exception(
             f"Error processing file {file_name} in task {current_task.request.id}: {e}"
         )
+
+        output_file = OutputFile.objects.get(access_key=access_key, id=output_file_id)
+        output_file.error_message = f"Error processing file: {e}"
+        output_file.save(access_key=access_key)
 
         # Fallback for other exceptions
         return {
