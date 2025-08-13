@@ -790,7 +790,34 @@ def rename_chat(request, chat_id, current_chat=None):
             old_last_modification_date = chat.last_modification_date
             chat.last_modification_date = timezone.now()
             chat.save()
+            if request.headers.get("HX-Request") == "true" and chat.pinned:
+                # Render both the pinned and unpinned list items for OOB swap
+                base_ctx = {
+                    "chat": chat,
+                    "security_labels": SecurityLabel.objects.all(),
+                }
+                # Old section (unpin section)
+                ctx_old = {
+                    **base_ctx,
+                    "section_index": label_section_index(old_last_modification_date),
+                }
+                li_old = render_to_string(
+                    "chat/components/chat_list_item.html", ctx_old, request=request
+                )
+                # Pinned section (section_index=0)
+                ctx_pinned = {**base_ctx, "section_index": 0}
+                li_pinned = render_to_string(
+                    "chat/components/chat_list_item.html", ctx_pinned, request=request
+                )
 
+                # Out-of-band swap for both
+                def oob(li_html):
+                    return li_html.replace("<li ", '<li hx-swap-oob="outerHTML" ', 1)
+
+                response_str = oob(li_old) + oob(li_pinned)
+                return HttpResponse(response_str)
+
+            # Not pinned or not HTMX: just update the old section
             context = {
                 "chat": chat,
                 "security_labels": SecurityLabel.objects.all(),
