@@ -124,14 +124,6 @@ def index(request):
     )
 
 
-def topnav_search_inner(request):
-    return render(
-        request,
-        "components/search_inner.html",
-        {"categorized_features": get_categorized_features(request.user)},
-    )
-
-
 def frequently_asked_questions(request):
     return render(
         request,
