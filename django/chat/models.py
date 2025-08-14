@@ -73,7 +73,7 @@ class Chat(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     # Last access time manually updated when chat is opened
     accessed_at = models.DateTimeField(auto_now_add=True)
-    pinned = models.BooleanField(default=False)
+    pinned = models.BooleanField(default=False, null=True)
     last_modification_date = models.DateTimeField(default=timezone.now)
 
     loaded_preset = models.ForeignKey("Preset", on_delete=models.SET_NULL, null=True)
