@@ -149,10 +149,6 @@ def test_poll_tasks_view(
             return mock.MagicMock(status="FAILURE")
         return mock.MagicMock(status="PENDING")
 
-    add_extracted_files_mock = mock.MagicMock(
-        side_effect=lambda output_file, access_key: output_file
-    )
-
     def display_cad_cost_side_effect(usd_cost):
         if usd_cost == 10.0:
             return 13.80
@@ -169,9 +165,6 @@ def test_poll_tasks_view(
         mock.patch(
             "text_extractor.tasks.process_ocr_document.AsyncResult",
             side_effect=async_result_side_effect,
-        ),
-        mock.patch(
-            "text_extractor.views.add_extracted_files", add_extracted_files_mock
         ),
         mock.patch("text_extractor.views.display_cad_cost", display_cad_cost_mock),
         mock.patch(
