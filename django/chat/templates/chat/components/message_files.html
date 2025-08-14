@@ -2,7 +2,7 @@
 
 <p class="mb-2">
   {% if message.is_bot %}
-    {{ message.num_files }}/{{ message.parent.num_files }} {% trans "files translated" %}
+    {{ message.num_files }}/{{ message.parent.num_files }} {% trans "files translated:" %}
   {% else %}
     {{ message.num_files }}
     {% if message.num_files == 1 %}
@@ -11,7 +11,7 @@
       {% trans "files uploaded" %}
     {% endif %}
   {% endif %}
-  {% if message.mode == "translate" %}
+  {% if message.mode == "translate" and not message.is_bot %}
     {% trans "for translation:" %}
   {% elif message.mode == "qa" %}
     {% trans "for Q&A:" %}
