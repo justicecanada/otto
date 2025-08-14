@@ -130,7 +130,7 @@ def trim_whitespace(img, margin=10, bg_threshold=230):
     return img  # No border found
 
 
-def resize_image_to_a4(img, header_text=None):  # used only when merge is on
+def resize_image_to_a4(img):  # used only when merge is on
 
     # Fixed A4 dimensions at exactly 100 DPI
     a4_width = 827  # 8.27 inches * 100 DPI
@@ -156,14 +156,6 @@ def resize_image_to_a4(img, header_text=None):  # used only when merge is on
         (a4_height - new_height) // 2,
     )
     background.paste(resized_img, offset)
-
-    # Add header if provided
-    if header_text:
-        draw = ImageDraw.Draw(background)
-        font = ImageFont.load_default(size=12)
-        header_text = f"Filename: {header_text}"
-        # Position header at top with some margin
-        draw.text((30, 30), header_text, fill="black", font=font)
 
     return background
 
@@ -200,15 +192,13 @@ def create_searchable_pdf(input_file):
 
     except Exception as e:
         error_id = str(uuid.uuid4())[:7]
+        message = e.message if hasattr(e, "message") else str(e)
         logger.exception(
             _("Error running Azure's document intelligence API on in {error_id}: {e}")
         )
         return {
             "error": True,
-            "message": _(
-                "Error ID: %(error_id)s - Azure's document intelligence API failed to process the file."
-            )
-            % {"error_id": error_id},
+            "message": _(f"Error ID: {error_id} - {message}"),
             "error_id": error_id,
         }
 

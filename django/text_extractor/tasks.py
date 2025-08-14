@@ -58,7 +58,7 @@ def process_document_merge(
             elif file_name.lower().endswith(img_extensions):
                 with Image.open(BytesIO(file_content)) as img:
                     images_pages = [
-                        resize_image_to_a4(image, header_text=file_name)
+                        resize_image_to_a4(image)
                         for image in ImageSequence.Iterator(img)
                     ]
 
@@ -163,6 +163,9 @@ def process_ocr_document(file_content, file_name, output_file_id, user_id):
 
         result = create_searchable_pdf(file)
 
+        if result["error"] == True:
+            raise Exception(result["message"])
+
         pdf_content = result["pdf_content"]
         text_content = result["all_text"]
         cost = result["cost"]
@@ -208,7 +211,7 @@ def process_ocr_document(file_content, file_name, output_file_id, user_id):
         )
 
         output_file = OutputFile.objects.get(access_key=access_key, id=output_file_id)
-        output_file.error_message = f"Error processing file: {e}"
+        output_file.error_message = e
         output_file.save(access_key=access_key)
 
         # Fallback for other exceptions
