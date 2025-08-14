@@ -134,7 +134,7 @@ async def stream_to_replacer(response_stream, attribute=None):
             await asyncio.sleep(0)  # This will allow other async tasks to run
 
 
-def save_sources_and_update_security_label(source_nodes, message, chat):
+def save_sources(source_nodes, message):
     from librarian.models import Document
 
     sources = []
@@ -364,9 +364,7 @@ async def htmx_stream(
 
         # Save sources
         if source_nodes:
-            await sync_to_async(save_sources_and_update_security_label)(
-                source_nodes, message, chat
-            )
+            await sync_to_async(save_sources)(source_nodes, message)
 
     except Exception as e:
         message = await sync_to_async(Message.objects.get)(id=message_id)
