@@ -4643,13 +4643,10 @@
         "fr": "recherche_de_législation",
         "fr_auto": "law_search"
     },
-<<<<<<< HEAD
-=======
     "Download all files": {
         "fr": "",
         "fr_auto": "Télécharger tous les fichiers"
     },
->>>>>>> main
     "Error ID:": {
         "fr": "",
         "fr_auto": "ID d’erreur :"
