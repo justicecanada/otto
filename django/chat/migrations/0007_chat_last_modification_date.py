@@ -6,9 +6,11 @@ from django.db import migrations, models
 
 def set_last_modification_date(apps, schema_editor):
     Chat = apps.get_model("chat", "Chat")
-    for chat in Chat.objects.all():
+    # Only fetch the fields we need to avoid selecting columns that may not
+    # exist anymore in later schemas (e.g., removed FKs).
+    for chat in Chat.objects.only("id", "accessed_at").iterator():
         chat.last_modification_date = chat.accessed_at
-        chat.save()
+        chat.save(update_fields=["last_modification_date"])
 
 
 class Migration(migrations.Migration):
