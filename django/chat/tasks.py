@@ -41,8 +41,8 @@ def translate_file(file_path, target_language):
 
         # Azure translation client
         translation_client = DocumentTranslationClient(
-            endpoint=settings.AZURE_TRANSLATOR_ENDPOINT,
-            credential=AzureKeyCredential(settings.AZURE_TRANSLATOR_KEY),
+            endpoint=settings.AZURE_COGNITIVE_SERVICE_ENDPOINT,
+            credential=AzureKeyCredential(settings.AZURE_COGNITIVE_SERVICE_KEY),
         )
         logger.info(f"Processing translation for {file_path} at {datetime.now()}")
         file_name = file_path.split("/")[-1]
