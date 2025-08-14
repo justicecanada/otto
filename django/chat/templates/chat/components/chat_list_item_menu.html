@@ -15,7 +15,6 @@
        aria-labelledby="dropdownMenuButton-{{ chat.id }}"
        style="padding: 0.25rem 0"
        role="menu">
-    <h6 class="dropdown-header" role="presentation">{% trans 'Options' %}</h6>
     <div class="list-group list-group-flush options-menu">
       <button type="button"
               hx-get="{% url 'chat:rename_chat' chat_id=chat.id current_chat=chat.current_chat %}"

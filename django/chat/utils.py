@@ -921,12 +921,12 @@ def get_chat_history_sections(user_chats):
     Group the chat history into sections formatted as [{"label": "(string)", "chats": [list..]}]
     """
     chat_history_sections = [
-        {"label": _("Pinned chats"), "chats": [], "always_show": True},
-        {"label": _("Today"), "chats": [], "always_show": False},
-        {"label": _("Yesterday"), "chats": [], "always_show": False},
-        {"label": _("Last 7 days"), "chats": [], "always_show": False},
-        {"label": _("Last 30 days"), "chats": [], "always_show": False},
-        {"label": _("Older"), "chats": [], "always_show": False},
+        {"label": _("Pinned chats"), "chats": []},
+        {"label": _("Today"), "chats": []},
+        {"label": _("Yesterday"), "chats": []},
+        {"label": _("Last 7 days"), "chats": []},
+        {"label": _("Last 30 days"), "chats": []},
+        {"label": _("Older"), "chats": []},
     ]
 
     for user_chat in user_chats:

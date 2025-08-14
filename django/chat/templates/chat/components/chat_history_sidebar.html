@@ -30,7 +30,7 @@
               <div class="chat-history-section-header small text-muted d-flex align-items-center">
                 <span class="me-auto">{{ section.label }}</span>
                 {% if section_index == 0 %}
-                  <i class="bi bi-pin-angle-fill text-dark"
+                  <i class="bi bi-pin-angle text-muted"
                      aria-hidden="true"
                      title="{% trans 'Pinned chats' %}"></i>
                 {% endif %}
@@ -40,10 +40,6 @@
                   {% for chat in section.chats %}
                     {% include 'chat/components/chat_list_item.html' %}
                   {% endfor %}
-                {% else %}
-                  {% if section.always_show %}
-                    <li class="chat-title ps-2">{% trans "No pinned chats" %}</li>
-                  {% endif %}
                 {% endif %}
               </ul>
             </div>
