@@ -29,7 +29,11 @@ def index(request):
     return render(
         request,
         "text_extractor/ocr.html",
-        {"extensions": extensions, "hide_breadcrumbs": True},
+        {
+            "active_app": "text_extractor",
+            "extensions": extensions,
+            "hide_breadcrumbs": True,
+        },
     )
 
 

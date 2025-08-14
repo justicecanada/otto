@@ -80,6 +80,26 @@
             {{ otto_version|safe }}
           </div>
 
+          <div>
+            <ul class="nav nav-pills ms-4">
+              <li class="nav-item">
+                <a class="nav-link {% if active_app == 'ai_assistant' %}active bg-primary text-white{% else %}text-white-50{% endif %}"
+                   href="{% url 'chat:new_chat' %}"
+                   aria-current="{% if active_app == 'ai_assistant' %}page{% endif %}">{% trans "AI Assistant" %}</a>
+              </li>
+              <li class="nav-item ms-2">
+                <a class="nav-link {% if active_app == 'laws' %}active bg-primary text-white{% else %}text-white-50{% endif %}"
+                   href="{% url 'laws:index' %}"
+                   aria-current="{% if active_app == 'laws' %}page{% endif %}">{% trans "Legislation Search" %}</a>
+              </li>
+              <li class="nav-item ms-2">
+                <a class="nav-link {% if active_app == 'text_extractor' %}active bg-primary text-white{% else %}text-white-50{% endif %}"
+                   href="{% url 'text_extractor:index' %}"
+                   aria-current="{% if active_app == 'text_extractor' %}page{% endif %}">{% trans "Text Extractor" %}</a>
+              </li>
+            </ul>
+          </div>
+
           {% if request.user.is_authenticated %}
             {# {% include 'components/search.html' %} #}
             <div class="collapse navbar-collapse flex-fill-lg justify-content-end">
