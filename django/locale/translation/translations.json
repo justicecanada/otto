@@ -4722,5 +4722,9 @@
     "Error ID: {error_id} - {message}": {
         "fr": "",
         "fr_auto": "ID d’erreur : {error_id} - {message}"
+    },
+    "Maximum 2000 files / 300MB total": {
+        "fr": "",
+        "fr_auto": "Maximum de 2000 fichiers / 300 Mo au total"
     }
 }
