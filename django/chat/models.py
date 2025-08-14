@@ -25,7 +25,7 @@ from chat.llm_models import (
 from chat.prompts import current_time_prompt
 from librarian.models import DataSource, Library, SavedFile
 from librarian.utils.process_engine import guess_content_type
-from otto.models import SecurityLabel, User
+from otto.models import User
 from otto.utils.common import display_cad_cost, set_costs
 
 logger = get_logger(__name__)
@@ -49,7 +49,6 @@ class ChatManager(models.Manager):
             mode = kwargs.pop("mode")
         else:
             mode = DEFAULT_MODE
-        kwargs["security_label_id"] = SecurityLabel.default_security_label().id
         kwargs["loaded_preset"] = None
         instance = super().create(*args, **kwargs)
         ChatOptions.objects.from_defaults(
@@ -77,13 +76,6 @@ class Chat(models.Model):
     last_modification_date = models.DateTimeField(default=timezone.now)
 
     loaded_preset = models.ForeignKey("Preset", on_delete=models.SET_NULL, null=True)
-
-    # AC-20: Allows for the classification of information
-    security_label = models.ForeignKey(
-        SecurityLabel,
-        on_delete=models.SET_NULL,
-        null=True,
-    )
 
     def __str__(self):
         return f"Chat {self.id}: {self.title}"

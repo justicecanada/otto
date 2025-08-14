@@ -50,7 +50,6 @@ from chat.utils import (
 )
 from librarian.forms import LibraryUsersForm
 from librarian.models import Library
-from otto.models import SecurityLabel
 from otto.rules import can_edit_library
 from otto.utils.common import check_url_allowed, generate_mailto
 from otto.utils.decorators import (
@@ -197,7 +196,6 @@ def chat(request, chat_id):
     # The current chat is always shown, even if it's empty.
     user_chats = (
         Chat.objects.filter(user=request.user, messages__isnull=False)
-        .prefetch_related("security_label")
         .exclude(pk=chat.id)
         .union(Chat.objects.filter(pk=chat.id))
         .order_by("-last_modification_date")
@@ -212,9 +210,6 @@ def chat(request, chat_id):
             user_chat.title = title_chat(user_chat.id, llm=llm)
             if not user_chat.current_chat:
                 user_chat.save()
-        if not user_chat.security_label:
-            user_chat.security_label_id = SecurityLabel.default_security_label().id
-            user_chat.save()
     if llm:
         llm.create_costs()
 
@@ -253,7 +248,6 @@ def chat(request, chat_id):
         "hide_breadcrumbs": True,
         "user_chats": user_chats,
         "mode": mode,
-        "security_labels": SecurityLabel.objects.all(),
         "chat_history_sections": get_chat_history_sections(user_chats),
         "has_tour": True,
         "tour_name": _("AI Assistant"),
@@ -820,7 +814,6 @@ def rename_chat(request, chat_id, current_chat=None):
             # Not pinned or not HTMX: just update the old section
             context = {
                 "chat": chat,
-                "security_labels": SecurityLabel.objects.all(),
                 "section_index": label_section_index(old_last_modification_date),
             }
             return render(request, "chat/components/chat_list_item.html", context)
@@ -844,24 +837,6 @@ def rename_chat(request, chat_id, current_chat=None):
             "chat": chat,
             "section_index": label_section_index(chat.last_modification_date),
         },
-    )
-
-
-# AC-16 & AC-16(2): Allows for the modification of security labels associated with chat sessions
-@permission_required("chat.access_chat", objectgetter(Chat, "chat_id"))
-def set_security_label(request, chat_id, security_label_id):
-    logger.info(
-        "Setting security label for chat.",
-        chat_id=chat_id,
-        security_label_id=security_label_id,
-    )
-    chat = Chat.objects.get(id=chat_id)
-    chat.security_label_id = security_label_id
-    chat.save()
-    return render(
-        request,
-        "chat/components/chat_security_label.html",
-        {"chat": chat, "security_labels": SecurityLabel.objects.all()},
     )
 
 

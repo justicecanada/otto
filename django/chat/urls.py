@@ -75,11 +75,6 @@ urlpatterns = [
         name="update_from_librarian",
     ),
     path(
-        "id/<str:chat_id>/set_security_label/<str:security_label_id>",
-        views.set_security_label,
-        name="set_security_label",
-    ),
-    path(
         "id/<str:chat_id>/rename/<str:current_chat>",
         views.rename_chat,
         name="rename_chat",
