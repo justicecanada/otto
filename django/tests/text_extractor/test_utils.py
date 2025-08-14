@@ -25,7 +25,7 @@ def test_format_merged_file_name():
 
 
 def test_resize_image_to_a4(mock_image_file2):
-    dpi = 300
+    dpi = 100
     a4_width, a4_height = int(8.27 * dpi), int(11.69 * dpi)
 
     # Call the function under test

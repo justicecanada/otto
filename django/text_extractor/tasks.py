@@ -178,8 +178,6 @@ def process_ocr_document(file_content, file_name, output_file_id, user_id):
             text_content.encode("utf-8"),
             name=shorten_input_name(f"{output_name}.txt"),
         )
-        logger.info("pdf_content - shouyld be bytes", pdf_content)
-        logger.info("text_content - should be str", text_content)
 
         output_file = OutputFile.objects.get(access_key=access_key, id=output_file_id)
         # Clear the task IDs and update cost
