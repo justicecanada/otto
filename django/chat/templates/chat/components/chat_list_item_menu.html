@@ -35,7 +35,7 @@
                 hx-post="{% url 'chat:unpin_chat' chat_id=chat.id %}"
                 hx-target="closest li"
                 role="menuitem">
-          <i class="bi bi-pin-angle-fill me-1"></i>
+          <i class="bi bi-pin-angle-fill text-muted"></i>
           <span class="ms-2">{% trans 'Unpin' %}</span>
         </button>
       {% else %}
@@ -46,7 +46,7 @@
                 hx-post="{% url 'chat:pin_chat' chat_id=chat.id current_chat=chat.current_chat|default:'False' %}"
                 hx-target="closest li"
                 role="menuitem">
-          <i class="bi bi-pin-angle me-1"></i>
+          <i class="bi bi-pin-angle text-muted"></i>
           <span class="ms-2">{% trans 'Pin' %}</span>
         </button>
       {% endif %}

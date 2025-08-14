@@ -24,7 +24,7 @@
     <div class="overflow-y-auto overflow-x-hidden p-3 pt-0 flex-grow-1"
          id="chat-history-list">
       {% for section in chat_history_sections %}
-        {% if section.chats|length or section.always_show %}
+        {% if section.chats|length %}
           {% with section_index=forloop.counter0 %}
             <div id="section-{{ section_index }}">
               <div class="chat-history-section-header small text-muted d-flex align-items-center">
@@ -38,7 +38,12 @@
               <ul class="list-unstyled" id="chat-list-{{ section_index }}">
                 {% if section.chats %}
                   {% for chat in section.chats %}
-                    {% include 'chat/components/chat_list_item.html' %}
+                    {# Show the chat only if its pinned state matches the section: pinned chats go to section 0 (pinned), others to non-pinned sections #}
+                    {% if chat.pinned and section_index == 0 %}
+                      {% include 'chat/components/chat_list_item.html' %}
+                    {% elif not chat.pinned and section_index != 0 %}
+                      {% include 'chat/components/chat_list_item.html' %}
+                    {% endif %}
                   {% endfor %}
                 {% endif %}
               </ul>
