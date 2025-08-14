@@ -361,26 +361,6 @@ class Feedback(models.Model):
     objects = FeedbackManager()
 
 
-class SecurityLabel(models.Model):
-    name = models.CharField(max_length=50, unique=True)
-    description = models.TextField()
-    acronym = models.CharField(max_length=10, unique=True)
-
-    def __str__(self):
-        return self.name
-
-    @classmethod
-    def default_security_label(cls):
-        return cls.objects.get(acronym_en="UC")
-
-    @classmethod
-    def maximum_of(cls, acronyms):
-        security_label = cls.objects.filter(acronym__in=acronyms).order_by("pk").last()
-        if not security_label:
-            security_label = SecurityLabel.default_security_label()
-        return security_label
-
-
 class CostType(models.Model):
     name = models.CharField(max_length=100)
     short_name = models.CharField(max_length=50, unique=True, null=True)

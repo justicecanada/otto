@@ -647,10 +647,6 @@
         "fr": "Lisez et suivez les avis de confidentialité dans les outils Otto comme l’assistant d’IA. Certains outils tels que le mode Clavardez ne doivent pas être considérés comme faits. Utilisez plutôt les modes Q&R et Résumer pour ancrer les réponses de l’IA dans des sources fiables telles que les documents que vous téléversez ou dans une bibliothèque de documents partagée.",
         "fr_auto": "Lisez et suivez les avis dans les outils Otto comme l’assistant d’IA. Certains outils tels que le mode Chat ne doivent pas être fiables pour les faits. Utilisez plutôt les modes Q&R et Summarize pour ancrer les réponses de l’IA dans des sources fiables telles que les documents que vous téléchargez ou une bibliothèque de documents partagée."
     },
-    "In the AI assistant, apply security classification labels to chats and document libraries when they contain classified and/or personal information.": {
-        "fr": "Dans l’Assistant IA, appliquez des étiquettes de classification de sécurité aux sessions de clavardage et aux bibliothèques de documents lorsqu’elles contiennent des informations classifiées et/ou personnelles.",
-        "fr_auto": "Dans l’Assistant IA, appliquez des étiquettes de classification de sécurité aux chats et aux bibliothèques de documents lorsqu’elles contiennent des informations classifiées et/ou personnelles."
-    },
     "Email administrators": {
         "fr": "Contactez les administrateurs",
         "fr_auto": "Administrateurs de messagerie"
@@ -866,10 +862,6 @@
     "Reset settings to default": {
         "fr": "Réinitialiser les paramètres",
         "fr_auto": "Réinitialiser les paramètres par défaut"
-    },
-    "Set security label": {
-        "fr": "Définir l’étiquette de sécurité",
-        "fr_auto": "Définir l’étiquette de sécurité"
     },
     "Warning": {
         "fr": "Avertissement",
@@ -1842,10 +1834,6 @@
     "Name (French)": {
         "fr": "Nom (français)",
         "fr_auto": "Nom (français)"
-    },
-    "Security label ": {
-        "fr": "",
-        "fr_auto": "Étiquette de sécurité "
     },
     "Order": {
         "fr": "Ordre",
@@ -3546,10 +3534,6 @@
     "You must not input any information above Protected B, either through uploads or direct text input.": {
         "fr": "Vous ne devez pas utiliser de renseignements au-dessus de la catégorie Protégée B, que ce soit par téléchargement ou par saisie directe de texte. ",
         "fr_auto": "Vous ne devez pas saisir d’informations au-dessus de Protégé B, que ce soit par téléchargement ou saisie directe de texte."
-    },
-    "Apply security classification labels to chats and document libraries when they contain Protected and/or personal information.": {
-        "fr": "Appliquez des étiquettes de classification de sécurité aux conversations et aux bibliothèques de documents lorsqu'elles contiennent des informations protégées et/ou personnelles. ",
-        "fr_auto": "Appliquez des étiquettes de classification de sécurité aux clavardages et aux bibliothèques de documents lorsqu’ils contiennent des renseignements protégés ou personnels."
     },
     "Avoid uploading personal information except as needed for specific tasks. Share document libraries and chats only with those who require access (i.e. need to know if personal information is included).": {
         "fr": "Évitez de télécharger des informations personnelles, sauf si nécessaire pour des tâches spécifiques. Partagez les bibliothèques de documents et les discussions uniquement avec les personnes qui en ont besoin (c'est-à-dire qui ont besoin de savoir si des informations personnelles sont incluses). ",

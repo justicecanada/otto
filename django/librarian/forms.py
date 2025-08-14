@@ -91,14 +91,11 @@ class DataSourceDetailForm(forms.ModelForm):
 
     class Meta:
         model = DataSource
-        fields = ["name_en", "name_fr", "security_label", "order", "library"]
+        fields = ["name_en", "name_fr", "order", "library"]
         widgets = {
             "library": forms.HiddenInput(),
             "name_en": forms.TextInput(attrs={"class": "form-control form-control-sm"}),
             "name_fr": forms.TextInput(attrs={"class": "form-control form-control-sm"}),
-            "security_label": forms.Select(
-                attrs={"class": "form-select form-select-sm"}
-            ),
             "order": forms.NumberInput(attrs={"class": "form-control form-control-sm"}),
         }
 

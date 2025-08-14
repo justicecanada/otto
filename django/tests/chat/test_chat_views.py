@@ -15,7 +15,7 @@ from chat.llm import OttoLLM
 from chat.models import Chat, ChatFile, Message, Preset
 from chat.utils import htmx_stream, title_chat
 from librarian.models import Library, LibraryUserRole
-from otto.models import Notification, SecurityLabel
+from otto.models import Notification
 
 pytest_plugins = ("pytest_asyncio",)
 
@@ -100,21 +100,15 @@ def test_chat(client, basic_user, all_apps_user):
     response = client.get(reverse("chat:new_chat"))
     assert response.status_code == 302
     chat = Chat.objects.filter(user=user).order_by("-created_at").first()
-    assert chat.security_label == SecurityLabel.default_security_label()
     chat_id = chat.id
     assert response.url == reverse("chat:chat", args=[chat_id])
     response = client.get(reverse("chat:chat", args=[chat_id]))
     assert "Untitled chat" in response.content.decode("utf-8")
 
-    # Test scenario: Check that the chat will create a security label if it doesn't exist
     Message.objects.create(chat=chat, text="Message 1", chat_id=chat_id)
     Message.objects.create(chat=chat, text="Message 2", chat_id=chat_id)
-    chat.security_label = None
-    chat.save()
-
     client.get(reverse("chat:chat", args=[chat_id]))
     chat = Chat.objects.filter(user=user).order_by("-created_at").first()
-    assert chat.security_label == SecurityLabel.default_security_label()
 
 
 @pytest.mark.django_db

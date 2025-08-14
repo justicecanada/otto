@@ -15,7 +15,7 @@ from chat.llm import OttoLLM
 from chat.models import Chat, ChatFile, ChatOptions, Message, Preset
 from chat.utils import htmx_stream, title_chat
 from librarian.models import Library
-from otto.models import App, Notification, SecurityLabel
+from otto.models import App, Notification
 
 pytest_plugins = ("pytest_asyncio",)
 

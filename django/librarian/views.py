@@ -205,9 +205,7 @@ def modal_view(request, item_type=None, item_id=None, parent_id=None):
                 # Refresh the form so "public" checkbox behaves properly
                 form = LibraryDetailForm(instance=selected_library, user=request.user)
                 item_id = selected_library.id
-                data_sources = selected_library.data_sources.all().prefetch_related(
-                    "security_label"
-                )
+                data_sources = selected_library.data_sources.all()
                 if request.user.has_perm(
                     "librarian.manage_library_users", selected_library
                 ):
@@ -255,9 +253,7 @@ def modal_view(request, item_type=None, item_id=None, parent_id=None):
                 "librarian.manage_library_users", selected_library
             ):
                 users_form = None
-            data_sources = selected_library.data_sources.all().prefetch_related(
-                "security_label"
-            )
+            data_sources = selected_library.data_sources.all()
             form = LibraryDetailForm(instance=selected_library, user=request.user)
         else:
             return HttpResponse(status=405)

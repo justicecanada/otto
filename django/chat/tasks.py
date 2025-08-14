@@ -5,7 +5,7 @@ from threading import Thread
 
 from django.conf import settings
 
-from azure.ai.translation.document import DocumentTranslationClient
+from azure.ai.translation.document import DocumentTranslationClient, StorageInputType
 from azure.core.credentials import AzureKeyCredential
 from celery import shared_task
 from celery.exceptions import SoftTimeLimitExceeded
@@ -41,8 +41,8 @@ def translate_file(file_path, target_language):
 
         # Azure translation client
         translation_client = DocumentTranslationClient(
-            endpoint=settings.AZURE_COGNITIVE_SERVICE_ENDPOINT,
-            credential=AzureKeyCredential(settings.AZURE_COGNITIVE_SERVICE_KEY),
+            endpoint=settings.AZURE_TRANSLATOR_ENDPOINT,
+            credential=AzureKeyCredential(settings.AZURE_TRANSLATOR_KEY),
         )
         logger.info(f"Processing translation for {file_path} at {datetime.now()}")
         file_name = file_path.split("/")[-1]
@@ -67,7 +67,11 @@ def translate_file(file_path, target_language):
 
         # Submit the translation job
         poller = translation_client.begin_translation(
-            source_url, target_url, target_language, storage_type="File"
+            source_url,
+            target_url,
+            target_language,
+            storage_type=StorageInputType.FILE,
+            category_id=settings.AZURE_TRANSLATOR_ID,
         )
         result = poller.result()
 
