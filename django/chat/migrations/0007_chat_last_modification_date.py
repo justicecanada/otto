@@ -8,7 +8,7 @@ def set_last_modification_date(apps, schema_editor):
     Chat = apps.get_model("chat", "Chat")
     for chat in Chat.objects.all():
         chat.last_modification_date = chat.accessed_at
-        chat.save()
+        chat.save(update_fields=["last_modification_date"])
 
 
 class Migration(migrations.Migration):

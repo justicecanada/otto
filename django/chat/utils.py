@@ -32,7 +32,7 @@ from chat.forms import ChatOptionsForm
 from chat.llm import OttoLLM
 from chat.models import AnswerSource, Chat, ChatOptions, Message
 from chat.prompts import QA_PRUNING_INSTRUCTIONS, current_time_prompt
-from otto.models import CostType, SecurityLabel
+from otto.models import CostType
 from otto.utils.common import cad_cost, display_cad_cost
 
 logger = get_logger(__name__)
@@ -160,13 +160,6 @@ def save_sources_and_update_security_label(source_nodes, message, chat):
                     ref_doc_id=node.node.ref_doc_id,
                     node=node,
                 )
-
-    security_labels = [
-        source.document.data_source.security_label.acronym for source in sources
-    ] + [chat.security_label.acronym]
-
-    message.chat.security_label = SecurityLabel.maximum_of(security_labels)
-    message.chat.save()
 
 
 def close_md_code_blocks(text):
@@ -369,14 +362,11 @@ async def htmx_stream(
             message.text = wrap_llm_response(full_message)  # full_message)
         context = {"message": message, "swap_oob": True, "update_cost_bar": True}
 
-        # Save sources and security label
+        # Save sources
         if source_nodes:
             await sync_to_async(save_sources_and_update_security_label)(
                 source_nodes, message, chat
             )
-            context["security_labels"] = await sync_to_async(
-                SecurityLabel.objects.all
-            )()
 
     except Exception as e:
         message = await sync_to_async(Message.objects.get)(id=message_id)
