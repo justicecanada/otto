@@ -376,7 +376,7 @@ def translate_response(chat, response_message):
         "What size is the file?\nPlease answer in bytes."
         "\n---\nTranslation: Quelle est la taille du fichier?\nVeuillez répondre en octets.\n"
         f"Translate the following text to {target_language} (Canada):\n"
-        f"{user_message.text}"
+        f"<content_to_translate>\n{user_message.text}\n</content_to_translate>"
         "\n---\nTranslation: "
     )
 
