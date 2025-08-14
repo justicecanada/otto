@@ -559,13 +559,17 @@ def _convert_html_to_markdown(
 
 
 def _pdf_to_html_azure_layout(content):
-    from azure.ai.formrecognizer import DocumentAnalysisClient
+    from azure.ai.documentintelligence import DocumentIntelligenceClient
+    from azure.ai.documentintelligence.models import (
+        AnalyzeDocumentRequest,
+        DocumentContentFormat,
+    )
     from azure.core.credentials import AzureKeyCredential
     from shapely.geometry import Polygon
 
     # Note: This method handles scanned PDFs, images, and handwritten text but is $$$
 
-    document_analysis_client = DocumentAnalysisClient(
+    document_analysis_client = DocumentIntelligenceClient(
         endpoint=settings.AZURE_COGNITIVE_SERVICE_ENDPOINT,
         credential=AzureKeyCredential(settings.AZURE_COGNITIVE_SERVICE_KEY),
     )
@@ -603,10 +607,15 @@ def _pdf_to_html_azure_layout(content):
             table_html += "</tr>"
         table_html += "</table>"
 
+        # Polygon is a flat list of coordinates [x1, y1, x2, y2, ...]
+        polygon = table.bounding_regions[0].polygon
+        points = [(polygon[i], polygon[i + 1]) for i in range(0, len(polygon), 2)]
+        table_polygon = Polygon(points)
+
         chunk = {
             "page_number": page_number,
-            "x": table.bounding_regions[0].polygon[0].x,
-            "y": table.bounding_regions[0].polygon[0].y,
+            "x": table_polygon.bounds[0],
+            "y": table_polygon.bounds[1],
             "text": table_html,
         }
         table_chunks.append(chunk)
@@ -614,18 +623,25 @@ def _pdf_to_html_azure_layout(content):
     p_chunks = []
     for paragraph in result.paragraphs:
         paragraph_page_number = paragraph.bounding_regions[0].page_number
-        paragraph_polygon = Polygon(
-            [(point.x, point.y) for point in paragraph.bounding_regions[0].polygon]
-        )
+
+        # Polygon is a flat list of coordinates [x1, y1, x2, y2, ...]
+        polygon = paragraph.bounding_regions[0].polygon
+        points = [(polygon[i], polygon[i + 1]) for i in range(0, len(polygon), 2)]
+        paragraph_polygon = Polygon(points)
 
         # Check intersection between paragraph and table cells
-        if any(
-            paragraph_polygon.intersects(
-                Polygon([point.x, point.y] for point in cell.polygon)
-            )
-            for cell in table_bounding_regions
-            if cell.page_number == paragraph_page_number
-        ):
+        table_intersections = []
+        for bounding_region in table_bounding_regions:
+            if bounding_region.page_number == paragraph_page_number:
+                # Polygon is a flat list of coordinates [x1, y1, x2, y2, ...]
+                polygon = bounding_region.polygon
+                points = [
+                    (polygon[i], polygon[i + 1]) for i in range(0, len(polygon), 2)
+                ]
+                table_poly = Polygon(points)
+                table_intersections.append(paragraph_polygon.intersects(table_poly))
+
+        if any(table_intersections):
             continue
 
         # If text contains words like :selected:, :checked:, or :unchecked:, then skip it
@@ -671,10 +687,10 @@ def _pdf_to_html_azure_layout(content):
 
 def pdf_to_text_azure_read(content: bytes) -> str:
 
-    from azure.ai.formrecognizer import DocumentAnalysisClient
+    from azure.ai.documentintelligence import DocumentIntelligenceClient
     from azure.core.credentials import AzureKeyCredential
 
-    document_analysis_client = DocumentAnalysisClient(
+    document_analysis_client = DocumentIntelligenceClient(
         endpoint=settings.AZURE_COGNITIVE_SERVICE_ENDPOINT,
         credential=AzureKeyCredential(settings.AZURE_COGNITIVE_SERVICE_KEY),
     )
