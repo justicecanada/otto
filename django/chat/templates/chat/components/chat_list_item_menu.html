@@ -33,7 +33,9 @@
                 class="d-flex align-items-center px-3 py-2 chat-unpin dropdown-item"
                 data-section-number="{{ section_index }}"
                 hx-post="{% url 'chat:unpin_chat' chat_id=chat.id %}"
-                hx-target="closest li"
+                hx-target="#chat-history-list"
+                hx-swap="outerHTML"
+                hx-trigger="click"
                 role="menuitem">
           <i class="bi bi-pin-angle-fill text-muted"></i>
           <span class="ms-2">{% trans 'Unpin' %}</span>
@@ -44,7 +46,9 @@
                 class="d-flex align-items-center px-3 py-2 chat-pin dropdown-item"
                 data-section-number="{{ section_index }}"
                 hx-post="{% url 'chat:pin_chat' chat_id=chat.id current_chat=chat.current_chat|default:'False' %}"
-                hx-target="closest li"
+                hx-target="#chat-history-list"
+                hx-swap="outerHTML"
+                hx-trigger="click"
                 role="menuitem">
           <i class="bi bi-pin-angle text-muted"></i>
           <span class="ms-2">{% trans 'Pin' %}</span>

@@ -1161,20 +1161,31 @@ def pin_chat(request, chat_id, current_chat=None):
     chat.save(update_fields=["pinned"])
     logger.info("Chat pinned.", chat_id=chat_id)
     if request.headers.get("HX-Request") == "true":
-        response = HttpResponse()
-        response["HX-Refresh"] = "true"  # full page reload by HTMX
-        return response
+        #     response = HttpResponse()
+        #     response["HX-Refresh"] = "true"  # full page reload by HTMX
+        #     return response
+        chat_history_sections = get_chat_history_sections(request.user)
+        html = render_to_string(
+            "chat/components/chat_history_list.html",  # You may need to extract this from your sidebar template
+            {"chat_history_sections": chat_history_sections, "request": request},
+            request=request,
+        )
+        return HttpResponse(html, content_type="text/html")
+
     return HttpResponse(status=200)
 
 
 @permission_required("chat.access_chat", objectgetter(Chat, "chat_id"))
 def unpin_chat(request, chat_id):
     chat = get_object_or_404(Chat, id=chat_id, user=request.user)
-    chat.pinned = False
-    chat.save(update_fields=["pinned"])
-    logger.info("Chat unpinned.", chat_id=chat_id)
-    if request.headers.get("HX-Request") == "true":
-        response = HttpResponse()
-        response["HX-Refresh"] = "true"  # full page reload by HTMX
-        return response
+    if chat.pinned:
+        old_last_modification_date = chat.last_modification_date
+        chat.pinned = False
+        chat.save(update_fields=["pinned"])
+        logger.info("Chat unpinned.", chat_id=chat_id)
+        if request.headers.get("HX-Request") == "true":
+            response = HttpResponse()
+            response["HX-Refresh"] = "true"  # full page reload by HTMX
+            return response
+
     return HttpResponse(status=200)
