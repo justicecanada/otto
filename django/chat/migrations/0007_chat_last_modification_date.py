@@ -4,13 +4,6 @@ import django.utils.timezone
 from django.db import migrations, models
 
 
-def set_last_modification_date(apps, schema_editor):
-    Chat = apps.get_model("chat", "Chat")
-    for chat in Chat.objects.all():
-        chat.last_modification_date = chat.accessed_at
-        chat.save(update_fields=["last_modification_date"])
-
-
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -23,5 +16,4 @@ class Migration(migrations.Migration):
             name="last_modification_date",
             field=models.DateTimeField(default=django.utils.timezone.now),
         ),
-        migrations.RunPython(set_last_modification_date),
     ]
