@@ -991,7 +991,7 @@ def estimate_cost_of_request(chat, response_message, response_estimation_count=5
                 else:
                     continue
             chunk_count = min(total_chunks_of_library, chat.options.qa_topk)
-            count = 768 * chunk_count
+            count = 512 * chunk_count
             cost_type = CostType.objects.get(short_name=model + "-in")
             cost += (count * cost_type.unit_cost) / cost_type.unit_quantity
         else:

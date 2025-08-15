@@ -139,7 +139,7 @@ class Migration(migrations.Migration):
                 ("qa_answer_mode", models.CharField(default="combined", max_length=20)),
                 ("qa_prune", models.BooleanField(default=True)),
                 ("qa_rewrite", models.BooleanField(default=False)),
-                ("qa_granularity", models.IntegerField(default=768)),
+                ("qa_granularity", models.IntegerField(default=512)),
             ],
         ),
         migrations.CreateModel(

@@ -254,7 +254,7 @@ class ChatOptions(models.Model):
     )
     qa_vector_ratio = models.FloatField(default=0.6)
     qa_granular_toggle = models.BooleanField(default=False)
-    qa_granularity = models.IntegerField(default=768)
+    qa_granularity = models.IntegerField(default=512)
     qa_prune = models.BooleanField(default=True)
     qa_rewrite = models.BooleanField(default=False)
 

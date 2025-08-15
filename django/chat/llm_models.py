@@ -93,125 +93,14 @@ class LLM(BaseModel):
 # This is the new source of truth.
 ALL_MODELS: List[LLM] = [
     LLM(
-        model_id="gpt-4.1",
-        deployment_name="gpt-4.1",
-        description_en="GPT-4.1 (speed & quality, 1x cost)",
-        description_fr="GPT-4.1 (vitesse et qualité, coût 1x)",
-        max_tokens_in=1047576,
-        max_tokens_out=32768,
-        help_text_en="The highest quality model available. Use for complex tasks requiring deep reasoning, analysis, or creativity, such as legal analysis or generating detailed reports.",
-        help_text_fr="Le modèle de la plus haute qualité disponible. À utiliser pour des tâches complexes nécessitant un raisonnement approfondi, une analyse ou de la créativité, telles que l'analyse juridique ou la génération de rapports détaillés.",
-        group_en="General / long input",
-        group_fr="Général / entrée longue",
-    ),
-    LLM(
-        model_id="gpt-4.1-mini",
-        deployment_name="gpt-4.1-mini",
-        description_en="GPT-4.1-mini (best value, 0.2x cost)",
-        description_fr="GPT-4.1-mini (qualité-prix, coût 0.2x)",
-        max_tokens_in=1047576,
-        max_tokens_out=32768,
-        help_text_en="A good balance of performance and cost. Suitable for a wide range of general tasks like drafting emails, summarizing documents, and answering questions.",
-        help_text_fr="Un bon équilibre entre performance et coût. Convient à une large gamme de tâches générales telles que la rédaction d'e-mails, le résumé de documents et la réponse à des questions.",
-        group_en="General / long input",
-        group_fr="Général / entrée longue",
-    ),
-    LLM(
-        model_id="gpt-4.1-nano",
-        deployment_name="gpt-4.1-nano",
-        description_en="GPT-4.1-nano (most efficient, < 0.1x cost)",
-        description_fr="GPT-4.1-nano (le plus efficace, coût < 0.1x)",
-        max_tokens_in=1047576,
-        max_tokens_out=32768,
-        help_text_en="The most efficient model available. Recommended only when other models are too slow or expensive. Use for simple queries or basic text generation tasks.",
-        help_text_fr="Le modèle le plus efficace disponible. Recommandé uniquement lorsque les autres modèles sont trop lents ou coûteux. À utiliser pour des requêtes simples ou des tâches de génération de texte de base.",
-        group_en="General / long input",
-        group_fr="Général / entrée longue",
-    ),
-    LLM(
-        model_id="o4-mini",
-        deployment_name="o4-mini",
-        description_en="o4-mini (good reasoning, 1x cost)",
-        description_fr="o4-mini (bon raisonnement, coût 1x)",
-        max_tokens_in=200000,
-        max_tokens_out=100000,
-        system_prompt_prefix="Formatting re-enabled.\nUse markdown formatting (headings, LaTeX math, tables, code blocks, etc. *as needed*) for your final response.",
-        help_text_en="A specialized model with enhanced reasoning capabilities. Ideal for tasks that involve logical deduction, step-by-step problem solving, or structured data extraction.",
-        help_text_fr="Un modèle spécialisé avec des capacités de raisonnement améliorées. Idéal pour les tâches impliquant une déduction logique, une résolution de problèmes étape par étape ou une extraction de données structurées.",
-        group_en="Reasoning / long output",
-        group_fr="Raisonnement / sortie longue",
-        reasoning=True,
-    ),
-    LLM(
-        model_id="o3",
-        deployment_name="o3",
-        description_en="o3 (special purpose, 2x cost)",
-        description_fr="o3 (but spécial, coût 2x)",
-        max_tokens_in=200000,
-        max_tokens_out=100000,
-        system_prompt_prefix="Formatting re-enabled.\nUse markdown formatting (headings, LaTeX math, tables, code blocks, etc. *as needed*) for your final response.",
-        help_text_en="A specialized model with enhanced reasoning capabilities. Ideal for tasks that involve logical deduction, step-by-step problem solving, or structured data extraction.",
-        help_text_fr="Un modèle spécialisé avec des capacités de raisonnement améliorées. Idéal pour les tâches impliquant une déduction logique, une résolution de problèmes étape par étape ou une extraction de données structurées.",
-        group_en="Reasoning / long output",
-        group_fr="Raisonnement / sortie longue",
-        reasoning=True,
-        is_active=False,  # Not available in all environments
-    ),
-    LLM(
-        model_id="gpt-4o",
-        deployment_name="gpt-4o",
-        description_en="GPT-4o (deprecated by gpt-4.1)",
-        description_fr="GPT-4o (obsolète, remplacé par gpt-4.1)",
+        model_id="gpt-oss-20b",
+        deployment_name="gpt-oss-20b",
+        description_en="GPT-OSS-20B",
+        description_fr="GPT-OSS-20B",
         max_tokens_in=128000,
-        max_tokens_out=16384,
-        is_active=True,
-        help_text_en="This model is deprecated and will be removed soon.",
-        help_text_fr="Ce modèle est obsolète et sera bientôt supprimé.",
-        deprecated_by="gpt-4.1",
-        group_en="Legacy / outdated models",
-        group_fr="Modèles obsolètes",
-    ),
-    LLM(
-        model_id="gpt-4o-mini",
-        deployment_name="gpt-4o-mini",
-        description_en="GPT-4o-mini (deprecated by gpt-4.1-mini)",
-        description_fr="GPT-4o-mini (obsolète, remplacé par gpt-4.1-mini)",
-        max_tokens_in=128000,
-        max_tokens_out=16384,
-        is_active=True,
-        help_text_en="This model is deprecated and will be removed soon.",
-        help_text_fr="Ce modèle est obsolète et sera bientôt supprimé.",
-        deprecated_by="gpt-4.1-mini",
-        group_en="Legacy / outdated models",
-        group_fr="Modèles obsolètes",
-    ),
-    LLM(
-        model_id="o3-mini",
-        deployment_name="o3-mini",
-        description_en="o3-mini (deprecated by o4-mini)",
-        description_fr="o3-mini (obsolète, remplacé par o4-mini)",
-        max_tokens_in=200000,
-        max_tokens_out=100000,
-        system_prompt_prefix="Formatting re-enabled.\nUse markdown formatting (headings, LaTeX math, tables, code blocks, etc. *as needed*) for your final response.",
-        help_text_en="This model is deprecated and will be removed soon.",
-        help_text_fr="Ce modèle est obsolète et sera bientôt supprimé.",
-        deprecated_by="o4-mini",
-        reasoning=True,
-        group_en="Legacy / outdated models",
-        group_fr="Modèles obsolètes",
-    ),
-    LLM(
-        model_id="command-a",
-        deployment_name="command-a",
-        provider=ModelProvider.COHERE,
-        description_en="Command-A (Cohere, Canadian)",
-        description_fr="Command-A (Cohere, Canadian)",
-        max_tokens_in=4096,
-        max_tokens_out=1024,
-        supports_chat_history=False,
-        is_active=False,  # Assuming this might not be for general chat
-        help_text_en="Not available in Pilot",
-        help_text_fr="Non disponible dans Pilot",
+        max_tokens_out=32768,
+        group_en="Local / on-prem",
+        group_fr="Local / sur site",
     ),
 ]
 
@@ -269,10 +158,10 @@ def get_grouped_chat_model_choices() -> list[tuple[str, list[tuple[str, dict]]]]
 
 
 # Default models for various modes
-DEFAULT_CHAT_MODEL_ID = "gpt-4.1-mini"
-DEFAULT_QA_MODEL_ID = "gpt-4.1-mini"
-DEFAULT_SUMMARIZE_MODEL_ID = "gpt-4.1-mini"
-DEFAULT_TRANSLATE_MODEL_ID = "gpt-4.1-mini"
+DEFAULT_CHAT_MODEL_ID = "gpt-oss-20b"
+DEFAULT_QA_MODEL_ID = "gpt-oss-20b"
+DEFAULT_SUMMARIZE_MODEL_ID = "gpt-oss-20b"
+DEFAULT_TRANSLATE_MODEL_ID = "gpt-oss-20b"
 DEFAULT_LAWS_MODEL_ID = "gpt-4.1"
 
 

@@ -40,6 +40,8 @@ llama-index==0.13.0
 llama-index-llms-azure-openai==0.4.0
 llama-index-vector-stores-postgres==0.6.1
 llama-index-embeddings-azure-openai==0.4.0
+llama-index-llms-ollama==0.7.0
+llama-index-embeddings-ollama==0.8.1
 
 # Document extraction ----------------------------------------------------------
 beautifulsoup4==4.13.4

@@ -11,7 +11,7 @@ logger = get_logger(__name__)
 
 class MarkdownSplitter:
     def __init__(
-        self, chunk_size=768, chunk_overlap=100, enable_markdown=True, debug=False
+        self, chunk_size=512, chunk_overlap=100, enable_markdown=True, debug=False
     ):
         self.chunk_size = chunk_size
         self.chunk_overlap = chunk_overlap

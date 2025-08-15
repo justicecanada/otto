@@ -129,9 +129,9 @@ default_en:
       Failure to adhere to the context-only rule will result in incorrect answers. Any deviation from the context will be considered a failure to comply with the guidelines.
 
       If the user's query seems incomplete (e.g. "tell me more about THAT", where THAT is not specified), don't answer; instead, remind them that Q&A mode does not have access to the chat history so the user must provide all necessary context in each query. If the context is insufficient, the user can upload relevant files to the chat or a Q&A Library before asking again.
-    chat_model: "gpt-4.1"
-    qa_model: "gpt-4.1-mini"
-    summarize_model: "gpt-4.1-mini"
+    chat_model: "gpt-oss-20b"
+    qa_model: "gpt-oss-20b"
+    summarize_model: "gpt-oss-20b"
     summarize_prompt: |
       Summarize the document above in markdown format with a nice structure for readability.
 
@@ -307,8 +307,8 @@ short_summary_fr:
   based_on: "default_fr"
   name_en: "Short summary (French)"
   name_fr: "Résumé court (français)"
-  description_en: "Summarizes documents in 3-4 sentences max with gpt-4.1-mini"
-  description_fr: "Résume les documents en 3-4 phrases maximum avec gpt-4.1-mini"
+  description_en: "Summarizes documents in 3-4 sentences max with gpt-oss-20b"
+  description_fr: "Résume les documents en 3-4 phrases maximum avec gpt-oss-20b"
   options:
     mode: "summarize"
     summarize_prompt: |
@@ -321,11 +321,11 @@ medium_summary_en:
   based_on: "default_en"
   name_en: "Medium summary (English)"
   name_fr: "Résumé moyen (anglais)"
-  description_en: "Summarizes documents in 2-3 paragraphs in English with gpt-4.1-mini."
-  description_fr: "Résume les documents en 2-3 paragraphes en anglais avec gpt-4.1-mini."
+  description_en: "Summarizes documents in 2-3 paragraphs in English with gpt-oss-20b."
+  description_fr: "Résume les documents en 2-3 paragraphes en anglais avec gpt-oss-20b."
   options:
     mode: "summarize"
-    summarize_model: "gpt-4.1-mini"
+    summarize_model: "gpt-oss-20b"
     summarize_prompt: |
       Rewrite the text (in English) in a medium sized summary format and make sure the length is around two or three paragraphs. If document is shorter than this, just output the document verbatim.
       Use markdown format for the output.
@@ -341,7 +341,7 @@ medium_summary_fr:
   description_fr: "Résume les documents en 2-3 paragraphes en français."
   options:
     mode: "summarize"
-    summarize_model: "gpt-4.1-mini"
+    summarize_model: "gpt-oss-20b"
     summarize_prompt: |
       Réécrivez le texte (en français) sous forme de résumé moyen et assurez-vous que la longueur est d'environ deux ou trois paragraphes. Si le document est plus court, affichez-le tel quel.
       Utilisez le format markdown pour la sortie.
@@ -353,11 +353,11 @@ long_summary_en:
   based_on: "default_en"
   name_en: "Long summary (English)"
   name_fr: "Résumé long (anglais)"
-  description_en: "Summarizes documents in detail using multiple paragraphs in English with gpt-4.1-mini."
-  description_fr: "Résume les documents en détail en utilisant plusieurs paragraphes en anglais avec gpt-4.1-mini."
+  description_en: "Summarizes documents in detail using multiple paragraphs in English with gpt-oss-20b."
+  description_fr: "Résume les documents en détail en utilisant plusieurs paragraphes en anglais avec gpt-oss-20b."
   options:
     mode: "summarize"
-    summarize_model: "gpt-4.1-mini"
+    summarize_model: "gpt-oss-20b"
     summarize_prompt: |
       Rewrite the text (in English) as a detailed summary, using multiple paragraphs if necessary. (If the input is short, output 1 paragraph only)
       Use markdown format for the output.
@@ -375,11 +375,11 @@ long_summary_fr:
   based_on: "default_fr"
   name_en: "Long summary (French)"
   name_fr: "Résumé long (français)"
-  description_en: "Summarizes documents in detail using multiple paragraphs in French with gpt-4.1-mini."
-  description_fr: "Résume les documents en détail en utilisant plusieurs paragraphes en français avec gpt-4.1-mini."
+  description_en: "Summarizes documents in detail using multiple paragraphs in French with gpt-oss-20b."
+  description_fr: "Résume les documents en détail en utilisant plusieurs paragraphes en français avec gpt-oss-20b."
   options:
     mode: "summarize"
-    summarize_model: "gpt-4.1-mini"
+    summarize_model: "gpt-oss-20b"
     summarize_prompt: |
       Réécrivez le texte (en français) sous forme de résumé détaillé, en utilisant plusieurs paragraphes si nécessaire. (Si la saisie est courte, affichez 1 seul paragraphe)
       Utilisez le format markdown pour la sortie.

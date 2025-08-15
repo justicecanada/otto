@@ -75,7 +75,7 @@ SET hnsw.ef_search = 512;
 -- 2. Run your test query (random vector generated ONCE per query)
 EXPLAIN (ANALYZE, BUFFERS)
 WITH q AS (
-  SELECT vector_random(1536) AS query_emb
+  SELECT vector_random(768) AS query_emb
 )
 SELECT id, (embedding <=> q.query_emb) AS dist
 FROM data_laws_lois__ d
@@ -105,7 +105,7 @@ VACUUM ANALYZE data_laws_lois__;
 EXPLAIN (ANALYZE, BUFFERS)
 WITH params AS (
   SELECT
-    vector_random(1536)    AS query_emb,
+    vector_random(768)    AS query_emb,
     'environment|law'::text AS keywords
 ),
 dense AS (

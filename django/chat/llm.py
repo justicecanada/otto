@@ -20,7 +20,10 @@ from llama_index.core.response_synthesizers import CompactAndRefine, TreeSummari
 from llama_index.core.retrievers import BaseRetriever, QueryFusionRetriever
 from llama_index.core.vector_stores.types import MetadataFilter, MetadataFilters
 from llama_index.embeddings.azure_openai import AzureOpenAIEmbedding
+from llama_index.embeddings.ollama import OllamaEmbedding
 from llama_index.llms.azure_openai import AzureOpenAI
+from llama_index.llms.ollama import Ollama
+from llama_index.llms.openai import OpenAI
 from llama_index.vector_stores.postgres import PGVectorStore
 from retrying import retry
 from sqlalchemy import create_engine
@@ -35,6 +38,7 @@ from .llm_models import get_model
 logger = get_logger(__name__)
 
 debug = settings.DEBUG
+OLLAMA_URL = "http://host.docker.internal:11434"
 
 
 class ModelEventHandler(BaseEventHandler):
@@ -329,7 +333,7 @@ class OttoLLM:
         vector_store = OttoVectorStore.from_params(
             **connection_params,
             table_name=vector_store_table,
-            embed_dim=1536,  # openai embedding dimension
+            embed_dim=1024,  # snowflake-arctic-embed2:latest dimension
             hybrid_search=True,
             text_search_config="english",
             perform_setup=not skip_setup,
@@ -385,29 +389,20 @@ class OttoLLM:
             verbose=True,
         )
 
-    def _get_llm(self) -> AzureOpenAI:
-        return AzureOpenAI(
-            azure_endpoint=settings.AZURE_OPENAI_ENDPOINT,
-            api_version=settings.AZURE_OPENAI_VERSION,
-            api_key=settings.AZURE_OPENAI_KEY,
-            deployment_name=self.deployment,
-            model=self.model,
-            temperature=self.temperature,
-            callback_manager=self._callback_manager,
-            reasoning_effort=self.reasoning_effort,
+    def _get_llm(self) -> Ollama:
+        return Ollama(
+            model="gpt-oss:20b",
+            request_timeout=120,
+            base_url=OLLAMA_URL,
         )
 
     def _get_embed_model(self) -> AzureOpenAIEmbedding | MockEmbedding:
         if self.mock_embedding:
-            return MockEmbedding(1536)
-        return AzureOpenAIEmbedding(
-            model="text-embedding-3-large",
-            deployment_name="text-embedding-3-large",
-            dimensions=1536,
+            return MockEmbedding(1024)
+        return OllamaEmbedding(
+            model_name="snowflake-arctic-embed2:latest",
+            base_url=OLLAMA_URL,
             embed_batch_size=16,
-            api_key=settings.AZURE_OPENAI_KEY,
-            azure_endpoint=settings.AZURE_OPENAI_ENDPOINT,
-            api_version=settings.AZURE_OPENAI_VERSION,
             callback_manager=self._callback_manager,
         )
 

@@ -262,7 +262,7 @@ def extract_markdown(
     process_engine,
     pdf_method="default",
     base_url=None,
-    chunk_size=768,
+    chunk_size=512,
     selector=None,
     root_document_id=None,
 ):

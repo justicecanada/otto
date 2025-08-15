@@ -22,16 +22,16 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name="chatoptions",
             name="chat_model",
-            field=models.CharField(default="gpt-4.1-mini", max_length=255),
+            field=models.CharField(default="gpt-oss-20b", max_length=255),
         ),
         migrations.AlterField(
             model_name="chatoptions",
             name="qa_model",
-            field=models.CharField(default="gpt-4.1-mini", max_length=255),
+            field=models.CharField(default="gpt-oss-20b", max_length=255),
         ),
         migrations.AlterField(
             model_name="chatoptions",
             name="summarize_model",
-            field=models.CharField(default="gpt-4.1-mini", max_length=255),
+            field=models.CharField(default="gpt-oss-20b", max_length=255),
         ),
     ]

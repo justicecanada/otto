@@ -3795,9 +3795,9 @@
         "fr": "",
         "fr_auto": "Retour en haut de la page"
     },
-    "GPT-4.1-mini (best value, 3x cost)": {
+    "gpt-oss-20b (best value, 3x cost)": {
         "fr": "",
-        "fr_auto": "GPT-4.1-mini (meilleur rapport qualité-prix, coût 3x)"
+        "fr_auto": "gpt-oss-20b (meilleur rapport qualité-prix, coût 3x)"
     },
     "GPT-4.1 (best quality, 12x cost)": {
         "fr": "",
