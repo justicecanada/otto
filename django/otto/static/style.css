@@ -247,6 +247,37 @@ div.app-card-other:hover {
   .nav-item:hover .nav-link:not(.active) {
     outline: solid 1px var(--bs-border-color);
   }
+
+  .dropdown-toggle::after {
+    position: relative;
+    top: 2px;
+  }
+}
+
+/* Responsive swap: show compact dropdown instead of full app tabs on small screens */
+@media (max-width: 1024px) {
+
+  /* Hide the full tab list when narrow */
+  #app-tabs-list {
+    display: none !important;
+  }
+
+  /* Show the compact dropdown */
+  #app-tabs-dropdown {
+    display: inline-block !important;
+  }
+}
+
+@media (min-width: 1025px) {
+
+  /* Default: show full tabs, hide compact dropdown */
+  #app-tabs-list {
+    display: flex !important;
+  }
+
+  #app-tabs-dropdown {
+    display: none !important;
+  }
 }
 
 .navbar .nav-link {

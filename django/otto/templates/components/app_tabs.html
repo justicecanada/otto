@@ -1,0 +1,44 @@
+{% load i18n %}
+
+<div>
+  <!-- Full tab list (visible on wide screens) -->
+  <ul id="app-tabs-list" class="nav nav-pills ms-4">
+    <li class="nav-item">
+      <a class="nav-link {% if active_app == 'chat' %}active{% endif %}"
+         href="{% url 'chat:new_chat' %}"
+         aria-current="{% if active_app == 'chat' %}page{% endif %}">{% trans "AI Assistant" %}</a>
+    </li>
+    <li class="nav-item ms-1">
+      <a class="nav-link {% if active_app == 'laws' %}active{% endif %}"
+         href="{% url 'laws:index' %}"
+         aria-current="{% if active_app == 'laws' %}page{% endif %}">{% trans "Legislation Search" %}</a>
+    </li>
+    <li class="nav-item ms-1">
+      <a class="nav-link {% if active_app == 'text_extractor' %}active{% endif %}"
+         href="{% url 'text_extractor:index' %}"
+         aria-current="{% if active_app == 'text_extractor' %}page{% endif %}">{% trans "Text Extractor" %}</a>
+    </li>
+  </ul>
+
+  <!-- Compact dropdown (visible on small screens) -->
+  <div id="app-tabs-dropdown" class="dropdown d-inline-block ms-2">
+    <button class="btn btn-link nav-link dropdown-toggle p-0 text-muted"
+            type="button"
+            id="appTabsDropdownBtn"
+            data-bs-toggle="dropdown"
+            aria-expanded="false">
+      <span class="visually-hidden">{% trans "show app list" %}</span>
+    </button>
+    <ul class="dropdown-menu" aria-labelledby="appTabsDropdownBtn">
+      <li>
+        <a class="dropdown-item" href="{% url 'chat:new_chat' %}">{% trans "AI Assistant" %}</a>
+      </li>
+      <li>
+        <a class="dropdown-item" href="{% url 'laws:index' %}">{% trans "Legislation Search" %}</a>
+      </li>
+      <li>
+        <a class="dropdown-item" href="{% url 'text_extractor:index' %}">{% trans "Text Extractor" %}</a>
+      </li>
+    </ul>
+  </div>
+</div>
