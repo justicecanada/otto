@@ -5,12 +5,7 @@
   <div id="cost-bar-outer"
        hx-get="{% url 'user_cost' %}"
        hx-swap="outerHTML"
-       hx-trigger='load delay:100ms'
-       style="position: absolute;
-              bottom: -2px;
-              width: calc(100% - 0.75rem);
-              margin-left: 0.2rem;
-              z-index: 1">
+       hx-trigger='load delay:100ms'>
     <meter id="cost-bar-inner"
            class="w-100 d-block"
            style="height: 12px"

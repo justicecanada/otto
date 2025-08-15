@@ -4726,5 +4726,9 @@
     "Maximum 2000 files / 300MB total": {
         "fr": "",
         "fr_auto": "Maximum de 2000 fichiers / 300 Mo au total"
+    },
+    "show app list": {
+        "fr": "",
+        "fr_auto": "Afficher la liste des applications"
     }
 }
