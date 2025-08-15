@@ -67,7 +67,11 @@ def translate_file(file_path, target_language):
 
         # Submit the translation job
         poller = translation_client.begin_translation(
-            source_url, target_url, target_language, storage_type="File"
+            source_url,
+            target_url,
+            target_language,
+            storage_type="File",
+            category_id=settings.CUSTOM_TRANSLATOR_ID,
         )
         result = poller.result()
 
