@@ -17,7 +17,7 @@
        role="menu">
     <div class="list-group list-group-flush options-menu">
       <button type="button"
-              hx-get="{% url 'chat:rename_chat' chat_id=chat.id current_chat=chat.current_chat %}"
+              hx-get="{% url 'chat:rename_chat' chat_id=chat.id current_chat=chat.current_chat|default:'False' %}"
               hx-swap="innerHTML"
               hx-target="closest li"
               class="d-flex align-items-center px-3 dropdown-item py-2"
@@ -33,9 +33,8 @@
                 class="d-flex align-items-center px-3 py-2 chat-unpin dropdown-item"
                 data-section-number="{{ section_index }}"
                 hx-post="{% url 'chat:unpin_chat' chat_id=chat.id %}"
-                hx-target="#chat-history-list"
+                hx-target="#left-sidebar"
                 hx-swap="outerHTML"
-                hx-trigger="click"
                 role="menuitem">
           <i class="bi bi-pin-angle-fill text-muted"></i>
           <span class="ms-2">{% trans 'Unpin' %}</span>
@@ -45,10 +44,9 @@
                 id="pin-chat-{{ chat.id }}"
                 class="d-flex align-items-center px-3 py-2 chat-pin dropdown-item"
                 data-section-number="{{ section_index }}"
-                hx-post="{% url 'chat:pin_chat' chat_id=chat.id current_chat=chat.current_chat|default:'False' %}"
-                hx-target="#chat-history-list"
+                hx-post="{% url 'chat:pin_chat' chat_id=chat.id %}"
+                hx-target="#left-sidebar"
                 hx-swap="outerHTML"
-                hx-trigger="click"
                 role="menuitem">
           <i class="bi bi-pin-angle text-muted"></i>
           <span class="ms-2">{% trans 'Pin' %}</span>
@@ -58,7 +56,7 @@
               id="delete-chat-{{ chat.id }}"
               class="d-flex align-items-center px-3 py-2 chat-delete dropdown-item"
               data-section-number="{{ section_index }}"
-              hx-delete="{% url 'chat:delete_chat' chat_id=chat.id current_chat=chat.current_chat %}"
+              hx-delete="{% url 'chat:delete_chat' chat_id=chat.id current_chat=chat.current_chat|default:'False' %}"
               hx-target="closest li"
               role="menuitem">
         <i class="bi bi-trash me-1"></i>

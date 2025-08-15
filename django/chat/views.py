@@ -784,34 +784,7 @@ def rename_chat(request, chat_id, current_chat=None):
             old_last_modification_date = chat.last_modification_date
             chat.last_modification_date = timezone.now()
             chat.save()
-            if request.headers.get("HX-Request") == "true" and chat.pinned:
-                # Render both the pinned and unpinned list items for OOB swap
-                base_ctx = {
-                    "chat": chat,
-                    "security_labels": SecurityLabel.objects.all(),
-                }
-                # Old section (unpin section)
-                ctx_old = {
-                    **base_ctx,
-                    "section_index": label_section_index(old_last_modification_date),
-                }
-                li_old = render_to_string(
-                    "chat/components/chat_list_item.html", ctx_old, request=request
-                )
-                # Pinned section (section_index=0)
-                ctx_pinned = {**base_ctx, "section_index": 0}
-                li_pinned = render_to_string(
-                    "chat/components/chat_list_item.html", ctx_pinned, request=request
-                )
 
-                # Out-of-band swap for both
-                def oob(li_html):
-                    return li_html.replace("<li ", '<li hx-swap-oob="outerHTML" ', 1)
-
-                response_str = oob(li_old) + oob(li_pinned)
-                return HttpResponse(response_str)
-
-            # Not pinned or not HTMX: just update the old section
             context = {
                 "chat": chat,
                 "section_index": label_section_index(old_last_modification_date),
@@ -1130,23 +1103,29 @@ def email_author(request, chat_id):
 
 
 @permission_required("chat.access_chat", objectgetter(Chat, "chat_id"))
-def pin_chat(request, chat_id, current_chat=None):
+def pin_chat(request, chat_id):
+    print("----------------------------------")
+    print(f"pin_chat called with chat_id={chat_id}")
     chat = get_object_or_404(Chat, id=chat_id, user=request.user)
+    print(f"Found chat: {chat}")
     chat.pinned = True
     chat.save(update_fields=["pinned"])
     logger.info("Chat pinned.", chat_id=chat_id)
+    print("Chat pinned and saved.")
     if request.headers.get("HX-Request") == "true":
-        #     response = HttpResponse()
-        #     response["HX-Refresh"] = "true"  # full page reload by HTMX
-        #     return response
-        chat_history_sections = get_chat_history_sections(request.user)
-        html = render_to_string(
-            "chat/components/chat_history_list.html",  # You may need to extract this from your sidebar template
-            {"chat_history_sections": chat_history_sections, "request": request},
-            request=request,
+        user_chats = (
+            Chat.objects.filter(user=request.user, messages__isnull=False)
+            .exclude(pk=chat.id)
+            .union(Chat.objects.filter(pk=chat.id))
+            .order_by("-last_modification_date")
         )
-        return HttpResponse(html, content_type="text/html")
-
+        chat_history_sections = get_chat_history_sections(user_chats)
+        return render(
+            request,
+            "chat/components/chat_history_sidebar.html",  # This should include <div id="left-sidebar">
+            {"chat_history_sections": chat_history_sections},
+        )
+    print("Not an htmx request.")
     return HttpResponse(status=200)
 
 
@@ -1154,13 +1133,21 @@ def pin_chat(request, chat_id, current_chat=None):
 def unpin_chat(request, chat_id):
     chat = get_object_or_404(Chat, id=chat_id, user=request.user)
     if chat.pinned:
-        old_last_modification_date = chat.last_modification_date
         chat.pinned = False
         chat.save(update_fields=["pinned"])
         logger.info("Chat unpinned.", chat_id=chat_id)
-        if request.headers.get("HX-Request") == "true":
-            response = HttpResponse()
-            response["HX-Refresh"] = "true"  # full page reload by HTMX
-            return response
 
+    if request.headers.get("HX-Request") == "true":
+        user_chats = (
+            Chat.objects.filter(user=request.user, messages__isnull=False)
+            .exclude(pk=chat.id)
+            .union(Chat.objects.filter(pk=chat.id))
+            .order_by("-last_modification_date")
+        )
+        chat_history_sections = get_chat_history_sections(user_chats)
+        return render(
+            request,
+            "chat/components/chat_history_sidebar.html",
+            {"chat_history_sections": chat_history_sections},
+        )
     return HttpResponse(status=200)

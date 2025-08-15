@@ -112,7 +112,7 @@ urlpatterns = [
     path("generate-prompt/", views.generate_prompt_view, name="generate_prompt_view"),
     path("id/<str:chat_id>/email_author/", views.email_author, name="email_author"),
     path(
-        "id/<str:chat_id>/pin_chat/<str:current_chat>",
+        "id/<str:chat_id>/pin_chat/",
         views.pin_chat,
         name="pin_chat",
     ),
