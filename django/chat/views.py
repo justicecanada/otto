@@ -240,7 +240,7 @@ def chat(request, chat_id):
     form = ChatOptionsForm(instance=chat.options, user=request.user)
 
     context = {
-        "active_app": "ai_assistant",
+        "active_app": "chat",
         "chat": chat,
         "options_form": form,
         "prompt": chat.options.prompt,

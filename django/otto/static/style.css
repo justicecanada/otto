@@ -207,6 +207,20 @@ div.app-card-other:hover {
   padding-top: 0.25rem;
   padding-bottom: 0.25rem;
   height: 3rem;
+
+  .nav-item {
+    padding-top: 0.25rem;
+    padding-bottom: 0.25rem;
+  }
+
+  .nav-item .nav-link.active {
+    background-color: transparent !important;
+    outline: none !important;
+  }
+
+  .nav-item:hover .nav-link:not(.active) {
+    outline: solid 1px var(--bs-border-color);
+  }
 }
 
 #top-nav-search-input input {
@@ -296,6 +310,14 @@ ul.navbar-nav :not(.btn-check)+.btn:active,
 ul.navbar-nav .btn:hover {
   background: transparent;
   border-color: transparent;
+}
+
+#cost-bar-outer {
+  position: absolute;
+  bottom: 0;
+  width: calc(100% - 0.75rem);
+  margin-left: 0.2rem;
+  z-index: 1;
 }
 
 li.notification {
