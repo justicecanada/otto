@@ -15,6 +15,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.html import format_html
 from django.utils.translation import get_language
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_GET, require_POST
@@ -1100,3 +1101,49 @@ def email_author(request, chat_id):
     )
     mailto_link = generate_mailto(to=chat.user.email, subject=subject, body=body)
     return HttpResponse(f"<a href='{mailto_link}'>mailto link</a>")
+
+
+@permission_required("chat.access_chat", objectgetter(Chat, "chat_id"))
+def pin_chat(request, chat_id):
+    chat = get_object_or_404(Chat, id=chat_id, user=request.user)
+    chat.pinned = True
+    chat.save(update_fields=["pinned"])
+    logger.info("Chat pinned.", chat_id=chat_id)
+    if request.headers.get("HX-Request") == "true":
+        user_chats = (
+            Chat.objects.filter(user=request.user, messages__isnull=False)
+            .exclude(pk=chat.id)
+            .union(Chat.objects.filter(pk=chat.id))
+            .order_by("-last_modification_date")
+        )
+        chat_history_sections = get_chat_history_sections(user_chats)
+        return render(
+            request,
+            "chat/components/chat_history_sidebar.html",
+            {"chat_history_sections": chat_history_sections},
+        )
+    return HttpResponse(status=200)
+
+
+@permission_required("chat.access_chat", objectgetter(Chat, "chat_id"))
+def unpin_chat(request, chat_id):
+    chat = get_object_or_404(Chat, id=chat_id, user=request.user)
+    if chat.pinned:
+        chat.pinned = False
+        chat.save(update_fields=["pinned"])
+        logger.info("Chat unpinned.", chat_id=chat_id)
+
+    if request.headers.get("HX-Request") == "true":
+        user_chats = (
+            Chat.objects.filter(user=request.user, messages__isnull=False)
+            .exclude(pk=chat.id)
+            .union(Chat.objects.filter(pk=chat.id))
+            .order_by("-last_modification_date")
+        )
+        chat_history_sections = get_chat_history_sections(user_chats)
+        return render(
+            request,
+            "chat/components/chat_history_sidebar.html",
+            {"chat_history_sections": chat_history_sections},
+        )
+    return HttpResponse(status=200)

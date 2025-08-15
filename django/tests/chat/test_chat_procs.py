@@ -434,7 +434,12 @@ def test_get_chat_history_sections(client, all_apps_user):
     user = all_apps_user()
     client.force_login(user)
 
-    # Create chats with different last_modification_date
+    # Create a pinned chat
+    pinned_chats = Chat.objects.create(
+        user=user, last_modification_date=timezone.now(), pinned=True
+    )
+    # Create a few chats with different last modification dates
+    # to test the sectioning logic
     chat_today = Chat.objects.create(user=user, last_modification_date=timezone.now())
     chat_yesterday = Chat.objects.create(
         user=user, last_modification_date=timezone.now() - timezone.timedelta(days=1)
@@ -450,6 +455,7 @@ def test_get_chat_history_sections(client, all_apps_user):
     )
 
     user_chats = [
+        pinned_chats,
         chat_today,
         chat_yesterday,
         chat_last_7_days,
@@ -462,13 +468,18 @@ def test_get_chat_history_sections(client, all_apps_user):
     sections = get_chat_history_sections(user_chats)
 
     # Check that each section contains the correct chat
-    assert sections[0]["label"] == "Today"
-    assert sections[0]["chats"] == [chat_today]
-    assert sections[1]["label"] == "Yesterday"
-    assert sections[1]["chats"] == [chat_yesterday]
-    assert sections[2]["label"] == "Last 7 days"
-    assert sections[2]["chats"] == [chat_last_7_days]
-    assert sections[3]["label"] == "Last 30 days"
-    assert sections[3]["chats"] == [chat_last_30_days]
-    assert sections[4]["label"] == "Older"
-    assert sections[4]["chats"] == [chat_older]
+    assert sections[0]["label"] == "Pinned chats"
+    assert [c.id for c in sections[0]["chats"]] == [pinned_chats.id]
+    assert sections[1]["label"] == "Today"
+    assert [c.id for c in sections[1]["chats"]] == [
+        pinned_chats.id,
+        chat_today.id,
+    ]  # pinned chat will not remove the chat from its original position, so it stays in Today's chat too as it is created just now.
+    assert sections[2]["label"] == "Yesterday"
+    assert [c.id for c in sections[2]["chats"]] == [chat_yesterday.id]
+    assert sections[3]["label"] == "Last 7 days"
+    assert [c.id for c in sections[3]["chats"]] == [chat_last_7_days.id]
+    assert sections[4]["label"] == "Last 30 days"
+    assert [c.id for c in sections[4]["chats"]] == [chat_last_30_days.id]
+    assert sections[5]["label"] == "Older"
+    assert [c.id for c in sections[5]["chats"]] == [chat_older.id]
