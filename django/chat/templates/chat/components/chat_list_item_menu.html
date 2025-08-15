@@ -33,7 +33,8 @@
                 class="d-flex align-items-center px-3 py-2 chat-unpin dropdown-item"
                 data-section-number="{{ section_index }}"
                 hx-post="{% url 'chat:unpin_chat' chat_id=chat.id %}"
-                hx-target="#left-sidebar"
+                hx-target="#chat-history-list"
+                hx-select="#chat-history-list"
                 hx-swap="outerHTML"
                 role="menuitem">
           <i class="bi bi-pin-angle-fill text-muted"></i>
@@ -45,7 +46,8 @@
                 class="d-flex align-items-center px-3 py-2 chat-pin dropdown-item"
                 data-section-number="{{ section_index }}"
                 hx-post="{% url 'chat:pin_chat' chat_id=chat.id %}"
-                hx-target="#left-sidebar"
+                hx-target="#chat-history-list"
+                hx-select="#chat-history-list"
                 hx-swap="outerHTML"
                 role="menuitem">
           <i class="bi bi-pin-angle text-muted"></i>
