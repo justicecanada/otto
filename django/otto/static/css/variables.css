@@ -152,11 +152,5 @@
   --prompt-send-btn-bg: #1a1e20;
 }
 
-.navbar .nav-link {
-  color: var(--nav-text-color);
-  transition: color 0.2s ease-in-out;
-}
-
-.navbar .nav-link:hover {
-  color: var(--nav-text-hover-color);
-}
+.
+/* navbar link rules moved to ../style.css to keep top-nav styles together */

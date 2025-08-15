@@ -213,14 +213,49 @@ div.app-card-other:hover {
     padding-bottom: 0.25rem;
   }
 
+  /* Default nav-link color: use muted (text-muted) to match other nav items. 
+     Fallback to Bootstrap secondary color if project variable missing. */
+  .nav-item .nav-link {
+    color: var(--text-muted, var(--bs-secondary-color));
+    background-color: transparent;
+  }
+
+  /* Keep light-theme consistent (still muted by default) */
+  [data-bs-theme="light"] #top-nav .nav-item .nav-link {
+    color: var(--text-muted, var(--bs-secondary-color));
+  }
+
+  /* Hover, focus, active/pressed states should use the primary text color and persist when active */
+  #top-nav .nav-item .nav-link:hover,
+  #top-nav .nav-item .nav-link:focus,
+  #top-nav .nav-item .nav-link:focus-visible,
+  #top-nav .nav-item .nav-link:active {
+    color: var(--otto-primary-text-color) !important;
+    background-color: transparent !important;
+    outline: none !important;
+    text-decoration: none;
+  }
+
+  /* Maintain primary text color for links that were clicked (persisting .active) */
   .nav-item .nav-link.active {
+    color: var(--otto-primary-text-color) !important;
     background-color: transparent !important;
     outline: none !important;
   }
 
+  /* Keep the existing hover outline but don't let it hide the link */
   .nav-item:hover .nav-link:not(.active) {
     outline: solid 1px var(--bs-border-color);
   }
+}
+
+.navbar .nav-link {
+  color: var(--nav-text-color);
+  transition: color 0.2s ease-in-out;
+}
+
+.navbar .nav-link:hover {
+  color: var(--nav-text-color-hover);
 }
 
 #top-nav-search-input input {
