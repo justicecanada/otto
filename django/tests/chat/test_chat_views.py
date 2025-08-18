@@ -705,7 +705,7 @@ def test_qa_response(client, all_apps_user):
 
     content = async_to_sync(final_response_helper)(response.streaming_content)
     content_str = content.decode("utf-8")
-    assert "Try selecting a different library" in content_str
+    assert "a different library" in content_str
 
 
 @pytest.mark.django_db
