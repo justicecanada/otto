@@ -620,6 +620,62 @@ function expandAllSources(message_id, force_expand = false) {
   }
 }
 
+
+function expandAllMessages(chat_id) {
+  // Find all truncated messages that haven't been expanded yet
+  const truncatedMessages = document.querySelectorAll('.message-outer.truncate:not(.show-all)');
+  // Add 'show-all' class to expand all truncated messages
+  truncatedMessages.forEach(function (message) {
+    message.classList.add('show-all');
+  });
+
+  // Toggle buttons visibility
+  const expandBtn = document.querySelector(`#expand-all-btn-${chat_id}`);
+  const collapseBtn = document.querySelector(`#collapse-all-btn-${chat_id}`);
+  let chatName = '';
+  if (expandBtn && expandBtn.dataset.chatname) {
+    chatName = expandBtn.dataset.chatname;
+  }
+  if (expandBtn) expandBtn.classList.add('d-none');
+  if (collapseBtn) collapseBtn.classList.remove('d-none');
+}
+
+
+function collapseAllMessages(chat_id) {
+  // Find all expanded messages
+  const expandedMessages = document.querySelectorAll('.message-outer.show-all');
+
+  // Remove 'show-all' class to collapse all expanded messages
+  expandedMessages.forEach(function (message) {
+    message.classList.remove('show-all');
+  });
+
+  // Toggle buttons visibility
+  const expandBtn = document.querySelector(`#expand-all-btn-${chat_id}`);
+  const collapseBtn = document.querySelector(`#collapse-all-btn-${chat_id}`);
+  let chatName = '';
+  if (expandBtn && expandBtn.dataset.chatname) {
+    chatName = expandBtn.dataset.chatname;
+  }
+  if (expandBtn) expandBtn.classList.remove('d-none');
+  if (collapseBtn) collapseBtn.classList.add('d-none');
+}
+
+// Call expandAllMessages on page load if expand_all=true is in the URL
+document.addEventListener("DOMContentLoaded", function () {
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('expand_all') === 'true') {
+    console.log("window.location.pathname:", window.location.pathname);
+    // Get chat_id from the URL path (e.g., /chat/id/12345/)
+    const pathParts = window.location.pathname.split('/');
+    const chatIdIndex = pathParts.indexOf('id') + 1;
+    if (chatIdIndex > 0 && chatIdIndex < pathParts.length) {
+      const chat_id = pathParts[chatIdIndex];
+      expandAllMessages(chat_id);
+    }
+  }
+});
+
 function nextSourceHighlight(message_id) {
   const highlights = document.querySelectorAll(`#sources-${message_id}-accordion mark`);
   if (highlights.length === 0) return;
