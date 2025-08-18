@@ -117,7 +117,17 @@ urlpatterns = [
         name="pin_chat",
     ),
     path(
+        "pin_chat/<str:chat_id>/",
+        views.pin_chat,
+        name="pin_chat",
+    ),
+    path(
         "id/<str:current_chat_id>/unpin_chat/<str:chat_id>/",
+        views.unpin_chat,
+        name="unpin_chat",
+    ),
+    path(
+        "unpin_chat/<str:chat_id>/",
         views.unpin_chat,
         name="unpin_chat",
     ),
