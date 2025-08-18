@@ -471,10 +471,7 @@ def test_get_chat_history_sections(client, all_apps_user):
     assert sections[0]["label"] == "Pinned chats"
     assert [c.id for c in sections[0]["chats"]] == [pinned_chats.id]
     assert sections[1]["label"] == "Today"
-    assert [c.id for c in sections[1]["chats"]] == [
-        pinned_chats.id,
-        chat_today.id,
-    ]  # pinned chat will not remove the chat from its original position, so it stays in Today's chat too as it is created just now.
+    assert [c.id for c in sections[1]["chats"]] == [chat_today.id]
     assert sections[2]["label"] == "Yesterday"
     assert [c.id for c in sections[2]["chats"]] == [chat_yesterday.id]
     assert sections[3]["label"] == "Last 7 days"
