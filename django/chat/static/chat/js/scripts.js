@@ -632,10 +632,6 @@ function expandAllMessages(chat_id) {
   // Toggle buttons visibility
   const expandBtn = document.querySelector(`#expand-all-btn-${chat_id}`);
   const collapseBtn = document.querySelector(`#collapse-all-btn-${chat_id}`);
-  let chatName = '';
-  if (expandBtn && expandBtn.dataset.chatname) {
-    chatName = expandBtn.dataset.chatname;
-  }
   if (expandBtn) expandBtn.classList.add('d-none');
   if (collapseBtn) collapseBtn.classList.remove('d-none');
 }
@@ -653,10 +649,6 @@ function collapseAllMessages(chat_id) {
   // Toggle buttons visibility
   const expandBtn = document.querySelector(`#expand-all-btn-${chat_id}`);
   const collapseBtn = document.querySelector(`#collapse-all-btn-${chat_id}`);
-  let chatName = '';
-  if (expandBtn && expandBtn.dataset.chatname) {
-    chatName = expandBtn.dataset.chatname;
-  }
   if (expandBtn) expandBtn.classList.remove('d-none');
   if (collapseBtn) collapseBtn.classList.add('d-none');
 }
