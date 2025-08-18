@@ -762,7 +762,8 @@ def library_access(request, preset, library, action, old_library=None):
 @permission_required("chat.access_chat", objectgetter(Chat, "chat_id"))
 def chat_list_item(request, chat_id, current_chat_id):
     chat = get_object_or_404(Chat, id=chat_id)
-    # current_chat = get_object_or_404(Chat, id=current_chat_id)
+    chat.current_chat = chat.id == current_chat_id
+
     return render(
         request,
         "chat/components/chat_list_item.html",
@@ -777,7 +778,7 @@ def chat_list_item(request, chat_id, current_chat_id):
 @permission_required("chat.access_chat", objectgetter(Chat, "chat_id"))
 def rename_chat(request, chat_id, current_chat_id):
     chat = get_object_or_404(Chat, id=chat_id)
-    # current_chat = get_object_or_404(Chat, id=current_chat_id)
+    chat.current_chat = chat_id == current_chat_id
 
     if request.method == "POST":
         chat_rename_form = ChatRenameForm(request.POST)
