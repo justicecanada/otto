@@ -17,7 +17,7 @@
        role="menu">
     <div class="list-group list-group-flush options-menu">
       <button type="button"
-              hx-get="{% url 'chat:rename_chat' chat_id=chat.id current_chat=chat.current_chat|default:'False' %}"
+              hx-get="{% url 'chat:rename_chat' current_chat_id=current_chat_id chat_id=chat.id %}"
               hx-swap="innerHTML"
               hx-target="closest li"
               class="d-flex align-items-center px-3 dropdown-item py-2"
@@ -32,7 +32,7 @@
                 id="unpin-chat-{{ chat.id }}"
                 class="d-flex align-items-center px-3 py-2 chat-unpin dropdown-item"
                 data-section-number="{{ section_index }}"
-                {% if current_chat and current_chat.id %} hx-post="{% url 'chat:unpin_chat' current_chat_id=current_chat.id chat_id=chat.id %}" {% else %} hx-post="{% url 'chat:unpin_chat' chat_id=chat.id %}" {% endif %}
+                hx-post="{% url 'chat:unpin_chat' current_chat_id=current_chat_id chat_id=chat.id %}"
                 hx-target="#chat-history-list"
                 hx-select="#chat-history-list"
                 hx-swap="outerHTML"
@@ -45,7 +45,7 @@
                 id="pin-chat-{{ chat.id }}"
                 class="d-flex align-items-center px-3 py-2 chat-pin dropdown-item"
                 data-section-number="{{ section_index }}"
-                {% if current_chat and current_chat.id %} hx-post="{% url 'chat:pin_chat' current_chat_id=current_chat.id chat_id=chat.id %}" {% else %} hx-post="{% url 'chat:pin_chat' chat_id=chat.id %}" {% endif %}
+                hx-post="{% url 'chat:pin_chat' current_chat_id=current_chat_id chat_id=chat.id %}"
                 hx-target="#chat-history-list"
                 hx-select="#chat-history-list"
                 hx-swap="outerHTML"

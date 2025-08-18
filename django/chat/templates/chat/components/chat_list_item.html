@@ -1,6 +1,6 @@
 {% load i18n %}
 
-<li class="chat-list-item{% if chat.current_chat %} current{% endif %}"
+<li class="chat-list-item{% if current_chat_id and chat.id|stringformat:'s' == current_chat_id|stringformat:'s' %} current{% elif chat.current_chat %} current{% endif %}"
     id="chat-list-item-{{ chat.id }}">
   <div class="row border-bottom py-2 flex-nowrap">
 
@@ -15,5 +15,5 @@
       </a>
     </div>
   </div>
-  {% include 'chat/components/chat_list_item_menu.html' %}
+  {% include 'chat/components/chat_list_item_menu.html' with chat=chat section_index=section_index current_chat_id=current_chat_id %}
 </li>

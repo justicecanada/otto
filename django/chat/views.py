@@ -760,23 +760,24 @@ def library_access(request, preset, library, action, old_library=None):
 
 
 @permission_required("chat.access_chat", objectgetter(Chat, "chat_id"))
-def chat_list_item(request, chat_id, current_chat=None):
+def chat_list_item(request, chat_id, current_chat_id):
     chat = get_object_or_404(Chat, id=chat_id)
-    chat.current_chat = bool(current_chat == "True")
+    # current_chat = get_object_or_404(Chat, id=current_chat_id)
     return render(
         request,
         "chat/components/chat_list_item.html",
         {
             "chat": chat,
+            "current_chat_id": current_chat_id,
             "section_index": label_section_index(chat.last_modification_date),
         },
     )
 
 
 @permission_required("chat.access_chat", objectgetter(Chat, "chat_id"))
-def rename_chat(request, chat_id, current_chat=None):
+def rename_chat(request, chat_id, current_chat_id):
     chat = get_object_or_404(Chat, id=chat_id)
-    chat.current_chat = bool(current_chat == "True")
+    # current_chat = get_object_or_404(Chat, id=current_chat_id)
 
     if request.method == "POST":
         chat_rename_form = ChatRenameForm(request.POST)
@@ -789,6 +790,7 @@ def rename_chat(request, chat_id, current_chat=None):
 
             context = {
                 "chat": chat,
+                "current_chat_id": current_chat_id,
                 "section_index": label_section_index(old_last_modification_date),
             }
             return render(request, "chat/components/chat_list_item.html", context)
@@ -799,6 +801,7 @@ def rename_chat(request, chat_id, current_chat=None):
                 {
                     "form": chat_rename_form,
                     "chat": chat,
+                    "current_chat_id": current_chat_id,
                     "section_index": label_section_index(chat.last_modification_date),
                 },
             )
@@ -810,6 +813,7 @@ def rename_chat(request, chat_id, current_chat=None):
         {
             "form": chat_rename_form,
             "chat": chat,
+            "current_chat_id": current_chat_id,
             "section_index": label_section_index(chat.last_modification_date),
         },
     )

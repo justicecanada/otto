@@ -37,9 +37,10 @@
               </div>
               <ul class="list-unstyled" id="chat-list-{{ section_index }}">
                 {% if section.chats %}
-                  {% with current_chat=chat %}
-                    {% for chat in section.chats %}
-                      {% include 'chat/components/chat_list_item.html' %}
+                  {# Persist the open chat id from the outer context and pass it down explicitly #}
+                  {% with open_chat_id=chat.id %}
+                    {% for item in section.chats %}
+                      {% include 'chat/components/chat_list_item.html' with chat=item section_index=section_index current_chat_id=open_chat_id %}
                     {% endfor %}
                   {% endwith %}
                 {% endif %}
@@ -48,6 +49,7 @@
           {% endwith %}
         {% endif %}
       {% endfor %}
+
     </div>
     <div class="p-3">
       <button type="button"
