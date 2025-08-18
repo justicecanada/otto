@@ -4659,9 +4659,25 @@
         "fr": "",
         "fr_auto": "Fichier(s) en cours de traitement"
     },
+    "No pinned chats": {
+        "fr": "",
+        "fr_auto": "Pas de clavardage épinglé"
+    },
+    "Unpin": {
+        "fr": "",
+        "fr_auto": "Détacher"
+    },
+    "Pin": {
+        "fr": "",
+        "fr_auto": "Épingler"
+    },
     "Error generating response.": {
         "fr": "",
         "fr_auto": "Réponse génératrice d’erreurs."
+    },
+    "Pinned chats": {
+        "fr": "",
+        "fr_auto": "Clavardages épinglés"
     },
     "This preset is accessible to all users.": {
         "fr": "",
@@ -4726,5 +4742,9 @@
     "Maximum 2000 files / 300MB total": {
         "fr": "",
         "fr_auto": "Maximum de 2000 fichiers / 300 Mo au total"
+    },
+    "show app list": {
+        "fr": "",
+        "fr_auto": "Afficher la liste des applications"
     }
 }

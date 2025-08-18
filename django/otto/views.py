@@ -62,6 +62,7 @@ def health_check(request):
 
 def welcome(request):
     # Bilingual landing page with login button
+    request.session["from_welcome"] = True
     return render(request, "welcome.html", {"next_url": request.GET.get("next", "/")})
 
 
@@ -110,26 +111,23 @@ def get_categorized_features(user):
 
 
 def index(request):
-    return render(
-        request,
-        "index.html",
-        {
-            "hide_breadcrumbs": True,
-            "categorized_features": get_categorized_features(request.user),
-            "has_tour": True,
-            "force_tour": not request.user.homepage_tour_completed,
-            "tour_skippable": request.user.is_admin
-            or request.user.homepage_tour_completed,
-        },
-    )
+    # Determine if the tour should be forced
+    force_tour = not request.user.homepage_tour_completed
+    tour_skippable = request.user.is_admin or request.user.homepage_tour_completed
 
+    # If an existing user is logging in and doesn't need the tour, redirect to the AI assistant
+    if request.session.pop("from_welcome", False) and not force_tour:
+        return redirect("chat:new_chat")
 
-def topnav_search_inner(request):
-    return render(
-        request,
-        "components/search_inner.html",
-        {"categorized_features": get_categorized_features(request.user)},
-    )
+    # Otherwise, show the homepage (with or without the tour)
+    context = {
+        "hide_breadcrumbs": True,
+        "categorized_features": get_categorized_features(request.user),
+        "has_tour": True,
+        "force_tour": force_tour,
+        "tour_skippable": tour_skippable,
+    }
+    return render(request, "index.html", context)
 
 
 def frequently_asked_questions(request):

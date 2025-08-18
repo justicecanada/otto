@@ -61,6 +61,7 @@ app_name = "laws"
 @app_access_required(app_name)
 def index(request):
     context = {
+        "active_app": "laws",
         "hide_breadcrumbs": True,
         "form": LawSearchForm(),
         "last_updated": OttoStatus.objects.singleton().laws_last_refreshed,

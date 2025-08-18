@@ -705,7 +705,7 @@ def test_qa_response(client, all_apps_user):
 
     content = async_to_sync(final_response_helper)(response.streaming_content)
     content_str = content.decode("utf-8")
-    assert "Try selecting a different library" in content_str
+    assert "a different library" in content_str
 
 
 @pytest.mark.django_db
@@ -806,7 +806,7 @@ def test_rename_chat_title(client, all_apps_user):
             "chat:chat_list_item",
             kwargs={
                 "chat_id": chat.id,
-                "current_chat": "True",
+                "current_chat_id": str(chat.id),
             },
         )
     )
@@ -820,7 +820,7 @@ def test_rename_chat_title(client, all_apps_user):
             "chat:rename_chat",
             kwargs={
                 "chat_id": chat.id,
-                "current_chat": "True",
+                "current_chat_id": str(chat.id),
             },
         ),
         data={"title": new_title},
@@ -835,7 +835,7 @@ def test_rename_chat_title(client, all_apps_user):
             "chat:rename_chat",
             kwargs={
                 "chat_id": chat.id,
-                "current_chat": "True",
+                "current_chat_id": str(chat.id),
             },
         ),
         data={"title": invalid_title},
@@ -849,7 +849,7 @@ def test_rename_chat_title(client, all_apps_user):
             "chat:rename_chat",
             kwargs={
                 "chat_id": chat.id,
-                "current_chat": "True",
+                "current_chat_id": str(chat.id),
             },
         )
     )

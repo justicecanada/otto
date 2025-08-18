@@ -12,7 +12,6 @@ urlpatterns = [
     path("healthz/", views.health_check, name="health_check"),
     path("", views.index, name="index"),
     re_path(r"^upload/", include("django_file_form.urls")),
-    path("search/", views.topnav_search_inner, name="search_inner"),
     path("welcome/", views.welcome, name="welcome"),
     # AC-2: Entra Integration Helper App Configuration
     # AC-14: Login Page Accessibility

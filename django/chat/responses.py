@@ -530,7 +530,11 @@ def qa_response(chat, response_message, switch_mode=False):
         filter_documents = Document.objects.filter(data_source__in=data_sources)
     elif qa_scope == "documents":
         filter_documents = chat.options.qa_documents.all()
-    if qa_scope != "all" and not filter_documents.exists():
+    else:  # if qa_scope == "all"
+        filter_documents = Document.objects.filter(
+            data_source__library=chat.options.qa_library
+        )
+    if not filter_documents:
         response_str = _(
             "Sorry, I couldn't find any information about that. "
             "Try selecting more folders or documents, or try a different library."
@@ -544,11 +548,6 @@ def qa_response(chat, response_message, switch_mode=False):
                 switch_mode=switch_mode,
             ),
             content_type="text/event-stream",
-        )
-
-    if not filter_documents:
-        filter_documents = Document.objects.filter(
-            data_source__library=chat.options.qa_library
         )
 
     # Summarize mode
