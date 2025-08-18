@@ -15,6 +15,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.html import format_html
 from django.utils.translation import get_language
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_GET, require_POST
@@ -23,6 +24,7 @@ from rules.contrib.views import objectgetter
 from structlog import get_logger
 from structlog.contextvars import bind_contextvars
 
+from chat._views.pin_chat import pin_chat, unpin_chat
 from chat.forms import ChatOptionsForm, ChatRenameForm, PresetForm, UploadForm
 from chat.llm import OttoLLM
 from chat.models import (
@@ -758,23 +760,25 @@ def library_access(request, preset, library, action, old_library=None):
 
 
 @permission_required("chat.access_chat", objectgetter(Chat, "chat_id"))
-def chat_list_item(request, chat_id, current_chat=None):
+def chat_list_item(request, chat_id, current_chat_id):
     chat = get_object_or_404(Chat, id=chat_id)
-    chat.current_chat = bool(current_chat == "True")
+    chat.current_chat = chat.id == current_chat_id
+
     return render(
         request,
         "chat/components/chat_list_item.html",
         {
             "chat": chat,
+            "current_chat_id": current_chat_id,
             "section_index": label_section_index(chat.last_modification_date),
         },
     )
 
 
 @permission_required("chat.access_chat", objectgetter(Chat, "chat_id"))
-def rename_chat(request, chat_id, current_chat=None):
+def rename_chat(request, chat_id, current_chat_id):
     chat = get_object_or_404(Chat, id=chat_id)
-    chat.current_chat = bool(current_chat == "True")
+    chat.current_chat = chat_id == current_chat_id
 
     if request.method == "POST":
         chat_rename_form = ChatRenameForm(request.POST)
@@ -787,6 +791,7 @@ def rename_chat(request, chat_id, current_chat=None):
 
             context = {
                 "chat": chat,
+                "current_chat_id": current_chat_id,
                 "section_index": label_section_index(old_last_modification_date),
             }
             return render(request, "chat/components/chat_list_item.html", context)
@@ -797,6 +802,7 @@ def rename_chat(request, chat_id, current_chat=None):
                 {
                     "form": chat_rename_form,
                     "chat": chat,
+                    "current_chat_id": current_chat_id,
                     "section_index": label_section_index(chat.last_modification_date),
                 },
             )
@@ -808,6 +814,7 @@ def rename_chat(request, chat_id, current_chat=None):
         {
             "form": chat_rename_form,
             "chat": chat,
+            "current_chat_id": current_chat_id,
             "section_index": label_section_index(chat.last_modification_date),
         },
     )

@@ -893,15 +893,15 @@ def label_section_index(last_modification_date):
     last_modification_date = last_modification_date.date()
     todays_date = timezone.now().date()
     if last_modification_date > todays_date - timezone.timedelta(days=1):
-        return 0
-    elif last_modification_date > todays_date - timezone.timedelta(days=2):
         return 1
-    elif last_modification_date > todays_date - timezone.timedelta(days=7):
+    elif last_modification_date > todays_date - timezone.timedelta(days=2):
         return 2
-    elif last_modification_date > todays_date - timezone.timedelta(days=30):
+    elif last_modification_date > todays_date - timezone.timedelta(days=7):
         return 3
-    else:
+    elif last_modification_date > todays_date - timezone.timedelta(days=30):
         return 4
+    else:
+        return 5
 
 
 def get_chat_history_sections(user_chats):
@@ -909,6 +909,7 @@ def get_chat_history_sections(user_chats):
     Group the chat history into sections formatted as [{"label": "(string)", "chats": [list..]}]
     """
     chat_history_sections = [
+        {"label": _("Pinned chats"), "chats": []},
         {"label": _("Today"), "chats": []},
         {"label": _("Yesterday"), "chats": []},
         {"label": _("Last 7 days"), "chats": []},
@@ -917,6 +918,9 @@ def get_chat_history_sections(user_chats):
     ]
 
     for user_chat in user_chats:
+        if user_chat.pinned:
+            chat_history_sections[0]["chats"].append(user_chat)
+            continue
         section_index = label_section_index(user_chat.last_modification_date)
         chat_history_sections[section_index]["chats"].append(user_chat)
 

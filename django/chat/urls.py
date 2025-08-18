@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.conf.urls.static import static
 from django.urls import include, path
+from django.utils.html import format_html
 
 from . import responses, views
 
@@ -74,12 +75,12 @@ urlpatterns = [
         name="update_from_librarian",
     ),
     path(
-        "id/<str:chat_id>/rename/<str:current_chat>",
+        "id/<str:current_chat_id>/rename/<str:chat_id>/",
         views.rename_chat,
         name="rename_chat",
     ),
     path(
-        "id/<str:chat_id>/list_item/<str:current_chat>",
+        "id/<str:current_chat_id>/list_item/<str:chat_id>",
         views.chat_list_item,
         name="chat_list_item",
     ),
@@ -110,4 +111,14 @@ urlpatterns = [
     ),
     path("generate-prompt/", views.generate_prompt_view, name="generate_prompt_view"),
     path("id/<str:chat_id>/email_author/", views.email_author, name="email_author"),
+    path(
+        "id/<str:current_chat_id>/pin_chat/<str:chat_id>/",
+        views.pin_chat,
+        name="pin_chat",
+    ),
+    path(
+        "id/<str:current_chat_id>/unpin_chat/<str:chat_id>/",
+        views.unpin_chat,
+        name="unpin_chat",
+    ),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
