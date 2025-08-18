@@ -918,11 +918,11 @@ def get_chat_history_sections(user_chats):
     ]
 
     for user_chat in user_chats:
-        section_index = label_section_index(user_chat.last_modification_date)
-        chat_history_sections[section_index]["chats"].append(user_chat)
-        # if any chat is pinned, add a copy to the pinned chat section
         if user_chat.pinned:
             chat_history_sections[0]["chats"].append(user_chat)
+            continue
+        section_index = label_section_index(user_chat.last_modification_date)
+        chat_history_sections[section_index]["chats"].append(user_chat)
 
     return chat_history_sections
 
