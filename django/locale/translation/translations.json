@@ -4746,5 +4746,13 @@
     "show app list": {
         "fr": "",
         "fr_auto": "Afficher la liste des applications"
+    },
+    "Expand All": {
+        "fr": "",
+        "fr_auto": "Tout agrandir"
+    },
+    "Collapse All": {
+        "fr": "",
+        "fr_auto": "Tout réduire"
     }
 }
