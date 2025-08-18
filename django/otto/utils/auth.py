@@ -33,7 +33,6 @@ PUBLIC_PATHS = [
     "/azure_auth/logout",
     "/accounts/login/callback",
     "/welcome",
-    "/search",
     "/notifications",
     "/healthz",
     "/load_test",

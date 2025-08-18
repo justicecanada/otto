@@ -207,6 +207,86 @@ div.app-card-other:hover {
   padding-top: 0.25rem;
   padding-bottom: 0.25rem;
   height: 3rem;
+
+  .nav-item {
+    padding-top: 0.25rem;
+    padding-bottom: 0.25rem;
+  }
+
+  /* Default nav-link color: use muted (text-muted) to match other nav items. 
+     Fallback to Bootstrap secondary color if project variable missing. */
+  .nav-item .nav-link {
+    color: var(--text-muted, var(--bs-secondary-color));
+    background-color: transparent;
+  }
+
+  /* Keep light-theme consistent (still muted by default) */
+  [data-bs-theme="light"] #top-nav .nav-item .nav-link {
+    color: var(--text-muted, var(--bs-secondary-color));
+  }
+
+  /* Hover, focus, active/pressed states should use the primary text color and persist when active */
+  #top-nav .nav-item .nav-link:hover,
+  #top-nav .nav-item .nav-link:focus,
+  #top-nav .nav-item .nav-link:focus-visible,
+  #top-nav .nav-item .nav-link:active {
+    color: var(--otto-primary-text-color) !important;
+    background-color: transparent !important;
+    outline: none !important;
+    text-decoration: none;
+  }
+
+  /* Maintain primary text color for links that were clicked (persisting .active) */
+  .nav-item .nav-link.active {
+    color: var(--otto-primary-text-color) !important;
+    background-color: transparent !important;
+    outline: none !important;
+  }
+
+  /* Keep the existing hover outline but don't let it hide the link */
+  .nav-item:hover .nav-link:not(.active) {
+    outline: solid 1px var(--bs-border-color);
+  }
+
+  .dropdown-toggle::after {
+    position: relative;
+    top: 2px;
+  }
+}
+
+/* Responsive swap: show compact dropdown instead of full app tabs on small screens */
+@media (max-width: 1024px) {
+
+  /* Hide the full tab list when narrow */
+  #app-tabs-list {
+    display: none !important;
+  }
+
+  /* Show the compact dropdown */
+  #app-tabs-dropdown {
+    display: inline-block !important;
+  }
+}
+
+@media (min-width: 1025px) {
+
+  /* Default: show full tabs, hide compact dropdown */
+  #app-tabs-list {
+    display: flex !important;
+  }
+
+  #app-tabs-dropdown {
+    display: none !important;
+  }
+}
+
+.navbar .nav-link {
+  color: var(--nav-text-color);
+  transition: color 0.2s ease-in-out;
+}
+
+.navbar .nav-link:hover {
+  color: var(--nav-text-color-hover);
 }
 
 #top-nav-search-input input {
@@ -296,6 +376,14 @@ ul.navbar-nav :not(.btn-check)+.btn:active,
 ul.navbar-nav .btn:hover {
   background: transparent;
   border-color: transparent;
+}
+
+#cost-bar-outer {
+  position: absolute;
+  bottom: 0;
+  width: calc(100% - 0.75rem);
+  margin-left: 0.2rem;
+  z-index: 1;
 }
 
 li.notification {

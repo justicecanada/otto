@@ -78,6 +78,7 @@ def view_search(request, search_id):
     # For the initial page load, just render the form and let HTMX fetch results
     form_data = search_obj.get_form_data()
     context = {
+        "active_app": "laws",
         "form": LawSearchForm(initial=form_data),
         "hide_breadcrumbs": True,
         "query": search_obj.query,
