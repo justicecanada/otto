@@ -4746,5 +4746,13 @@
     "show app list": {
         "fr": "",
         "fr_auto": "Afficher la liste des applications"
+    },
+    "Invalid download request.": {
+        "fr": "",
+        "fr_auto": "Demande de téléchargement non valide."
+    },
+    "No files to download. Please process documents first.": {
+        "fr": "",
+        "fr_auto": "Aucun fichier à télécharger. Veuillez d’abord traiter les documents."
     }
 }
