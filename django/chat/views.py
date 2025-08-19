@@ -776,25 +776,6 @@ def chat_list_item(request, chat_id, current_chat_id):
 
 
 @permission_required("chat.access_chat", objectgetter(Chat, "chat_id"))
-def expand_all(request, chat_id, current_chat=None):
-    """
-    Expand all messages in a chat. If it's not the current chat, redirect to it.
-    """
-
-    # If this is not the current chat, redirect to it with expand_all parameter
-    if current_chat != "True":
-        redirect_url = reverse("chat:chat", args=[chat_id]) + "?expand_all=true"
-        # Use HX-Redirect header for HTMX requests
-        response = HttpResponse()
-        response["HX-Redirect"] = redirect_url
-        return response
-
-    # If this is the current chat, just return success response for HTMX
-    # The JavaScript will handle the actual expansion
-    return HttpResponse(status=200)
-
-
-@permission_required("chat.access_chat", objectgetter(Chat, "chat_id"))
 def rename_chat(request, chat_id, current_chat_id):
     chat = get_object_or_404(Chat, id=chat_id)
     chat.current_chat = chat_id == current_chat_id

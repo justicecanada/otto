@@ -85,11 +85,6 @@ urlpatterns = [
         name="chat_list_item",
     ),
     path(
-        "id/<str:chat_id>/expand_all/<str:current_chat>",
-        views.expand_all,
-        name="expand_all",
-    ),
-    path(
         "id/<str:chat_id>/options/presets/",
         views.get_presets,
         name="get_presets",

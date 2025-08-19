@@ -653,19 +653,6 @@ function collapseAllMessages(chat_id) {
   if (collapseBtn) collapseBtn.classList.add('d-none');
 }
 
-// Call expandAllMessages on page load if expand_all=true is in the URL
-document.addEventListener("DOMContentLoaded", function () {
-  const urlParams = new URLSearchParams(window.location.search);
-  if (urlParams.get('expand_all') === 'true') {
-    // Get chat_id from the URL path (e.g., /chat/id/12345/)
-    const pathParts = window.location.pathname.split('/');
-    const chatIdIndex = pathParts.indexOf('id') + 1;
-    if (chatIdIndex > 0 && chatIdIndex < pathParts.length) {
-      const chat_id = pathParts[chatIdIndex];
-      expandAllMessages(chat_id);
-    }
-  }
-});
 
 function nextSourceHighlight(message_id) {
   const highlights = document.querySelectorAll(`#sources-${message_id}-accordion mark`);

@@ -1388,23 +1388,3 @@ def test_email_chat_author(client, all_apps_user):
     assert response.status_code == 200
     assert "Otto" in response.content.decode()
     assert f"mailto:{user.email}" in response.content.decode()
-
-
-@pytest.mark.django_db
-def test_expand_all(client, all_apps_user):
-    user = all_apps_user()
-    client.force_login(user)
-    chat = Chat.objects.create(user=user)
-
-    # Test scenario 1: Not the current chat (should redirect)
-    response = client.get(reverse("chat:expand_all", args=[chat.id, "False"]))
-    assert response.status_code == 200
-    assert (
-        response["HX-Redirect"]
-        == reverse("chat:chat", args=[chat.id]) + "?expand_all=true"
-    )
-
-    # Test scenario 2: Current chat (should return success)
-    response = client.get(reverse("chat:expand_all", args=[chat.id, "True"]))
-    assert response.status_code == 200
-    assert "HX-Redirect" not in response
