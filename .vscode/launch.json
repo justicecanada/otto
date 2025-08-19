@@ -106,6 +106,18 @@
             "justMyCode": false
         },
         {
+            "name": "Django: Load Laws",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/django/manage.py",
+            "args": [
+                "load_laws_xml",
+                "--small",
+            ],
+            "django": true,
+            "justMyCode": false
+        },
+        {
             "name": "Python: Current File",
             "type": "debugpy",
             "request": "launch",

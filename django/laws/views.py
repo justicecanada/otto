@@ -71,7 +71,7 @@ def index(request):
 
 def source(request, source_id):
     source_id = urllib.parse.unquote_plus(source_id)
-    source_node = get_source_node(source_id)
+    source_node = get_source_node(source_id.replace("Constitution-", "Constitution "))
     # What language is the source_node?
     lang = "eng" if "eng" in source_node["metadata"]["doc_id"] else "fra"
     if lang == "eng":
@@ -92,10 +92,13 @@ def source(request, source_id):
             else None
         )
     law.url = get_law_url(law, lang)
+
+    url_suffix = f"{'FullText' if lang=='eng' else 'TexteComplet'}.html#{source_node['metadata']['lims_id']}"
     context = {
         "source_node": source_node,
         "other_lang_node": other_lang_node,
         "law": law,
+        "url_suffix": url_suffix,
     }
     if not source_node:
         return HttpResponse(_("Source not found."), status=404)
