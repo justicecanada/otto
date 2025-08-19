@@ -831,20 +831,31 @@ def download_chat(request, chat_id):
     doc = Document()
     doc.add_heading(f"Chat: {chat.title}", 0)
 
+    from docx.shared import RGBColor
+
     for message in messages:
         is_bot = message.is_bot
         cost = message.usd_cost
         date_created = message.date_created
 
         # Format metadata as header
-        metadata_header = f"[{'Bot' if is_bot else 'User'} | {date_created.strftime('%Y-%m-%d %H:%M:%S')}"
+        if is_bot:
+            header_text = f"Bot | {date_created.strftime('%Y-%m-%d %H:%M:%S')}"
+            header_color = RGBColor(0, 102, 204)  # blue
+        else:
+            header_text = f"User | {date_created.strftime('%Y-%m-%d %H:%M:%S')}"
+            header_color = RGBColor(0, 128, 0)  # green
         if cost:
-            metadata_header += f" | Cost: ${cost}"
-        metadata_header += "]"
+            header_text += f" | Cost: ${cost}"
 
-        # Create paragraph with metadata header and message text
-        paragraph_text = f"{metadata_header}\n\n{message.text}"
-        doc.add_paragraph(paragraph_text)
+        # Add styled header
+        header_para = doc.add_paragraph()
+        header_run = header_para.add_run(header_text)
+        header_run.bold = True
+        header_run.font.color.rgb = header_color
+
+        # Add message text
+        doc.add_paragraph(message.text)
 
         # Add some spacing between messages
         doc.add_paragraph("")
