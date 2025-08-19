@@ -825,6 +825,7 @@ def rename_chat(request, chat_id, current_chat_id):
     )
 
 
+@permission_required("chat.access_chat", objectgetter(Chat, "chat_id"))
 def download_chat(request, chat_id):
     chat = get_object_or_404(Chat, id=chat_id)
 
