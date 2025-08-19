@@ -1,3 +1,4 @@
+import io
 import json
 import os
 import re
@@ -20,6 +21,8 @@ from django.utils.translation import get_language
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_GET, require_POST
 
+from docx import Document
+from docxtpl import DocxTemplate
 from rules.contrib.views import objectgetter
 from structlog import get_logger
 from structlog.contextvars import bind_contextvars
@@ -818,6 +821,45 @@ def rename_chat(request, chat_id, current_chat_id):
             "section_index": label_section_index(chat.last_modification_date),
         },
     )
+
+
+def download_chat(request, chat_id):
+    chat = get_object_or_404(Chat, id=chat_id)
+
+    messages = chat.messages.all()
+
+    # Create a new Word document
+    doc = Document()
+    doc.add_heading(f"Chat: {chat.title}", 0)
+
+    for message in messages:
+        is_bot = message.is_bot
+        cost = message.usd_cost
+        date_created = message.date_created
+
+        # Format metadata as header
+        metadata_header = f"[{'Bot' if is_bot else 'User'} | {date_created.strftime('%Y-%m-%d %H:%M:%S')}"
+        if cost:
+            metadata_header += f" | Cost: ${cost}"
+        metadata_header += "]"
+
+        # Create paragraph with metadata header and message text
+        paragraph_text = f"{metadata_header}\n\n{message.text}"
+        doc.add_paragraph(paragraph_text)
+
+        # Add some spacing between messages
+        doc.add_paragraph("")
+
+    file_content = io.BytesIO()
+    doc.save(file_content)
+    file_content.seek(0)
+
+    response = HttpResponse(
+        file_content.getvalue(),
+        content_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    )
+    response["Content-Disposition"] = f"attachment; filename={chat.title}.docx"
+    return response
 
 
 @permission_required("chat.access_message", objectgetter(Message, "message_id"))
