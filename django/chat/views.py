@@ -22,7 +22,6 @@ from django.utils.translation import gettext as _
 from django.views.decorators.http import require_GET, require_POST
 
 from docx import Document
-from docxtpl import DocxTemplate
 from rules.contrib.views import objectgetter
 from structlog import get_logger
 from structlog.contextvars import bind_contextvars
