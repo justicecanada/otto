@@ -3,6 +3,7 @@ import json
 import os
 import re
 import uuid
+from decimal import Decimal
 
 from django.conf import settings
 from django.contrib import messages
@@ -22,6 +23,7 @@ from django.utils.translation import gettext as _
 from django.views.decorators.http import require_GET, require_POST
 
 from docx import Document
+from docx.shared import RGBColor
 from rules.contrib.views import objectgetter
 from structlog import get_logger
 from structlog.contextvars import bind_contextvars
@@ -831,12 +833,16 @@ def download_chat(request, chat_id):
     doc = Document()
     doc.add_heading(f"Chat: {chat.title}", 0)
 
-    from docx.shared import RGBColor
+    total_cost = Decimal("0.00")
 
     for message in messages:
         is_bot = message.is_bot
         cost = message.usd_cost
         date_created = message.date_created
+
+        # Add to total cost if available
+        if cost:
+            total_cost += cost
 
         # Format metadata as header
         if is_bot:
@@ -845,8 +851,6 @@ def download_chat(request, chat_id):
         else:
             header_text = f"User | {date_created.strftime('%Y-%m-%d %H:%M:%S')}"
             header_color = RGBColor(0, 128, 0)  # green
-        if cost:
-            header_text += f" | Cost: ${cost}"
 
         # Add styled header
         header_para = doc.add_paragraph()
@@ -856,6 +860,16 @@ def download_chat(request, chat_id):
 
         # Add message text
         doc.add_paragraph(message.text)
+
+        # Add message footer with cost info only if there's a cost
+        if cost:
+            footer_para = doc.add_paragraph()
+            footer_text = f"Cost: ${cost:.4f} USD"
+            footer_color = RGBColor(128, 128, 128)  # gray
+
+            footer_run = footer_para.add_run(footer_text)
+            footer_run.italic = True
+            footer_run.font.color.rgb = footer_color
 
         # Add some spacing between messages
         doc.add_paragraph("")
