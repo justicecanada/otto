@@ -44,6 +44,7 @@ from chat.utils import (
     bad_url,
     change_mode_to_chat_qa,
     copy_options,
+    create_chat_conversation_doc,
     fix_source_links,
     generate_prompt,
     get_chat_history_sections,
@@ -827,56 +828,7 @@ def rename_chat(request, chat_id, current_chat_id):
 def download_chat(request, chat_id):
     chat = get_object_or_404(Chat, id=chat_id)
 
-    messages = chat.messages.all()
-
-    # Create a new Word document
-    doc = Document()
-    doc.add_heading(f"Chat: {chat.title}", 0)
-
-    total_cost = Decimal("0.00")
-
-    for message in messages:
-        is_bot = message.is_bot
-        cost = message.usd_cost
-        date_created = message.date_created
-
-        # Add to total cost if available
-        if cost:
-            total_cost += cost
-
-        # Format metadata as header
-        if is_bot:
-            header_text = f"Bot | {date_created.strftime('%Y-%m-%d %H:%M:%S')}"
-            header_color = RGBColor(0, 102, 204)  # blue
-        else:
-            header_text = f"User | {date_created.strftime('%Y-%m-%d %H:%M:%S')}"
-            header_color = RGBColor(0, 128, 0)  # green
-
-        # Add styled header
-        header_para = doc.add_paragraph()
-        header_run = header_para.add_run(header_text)
-        header_run.bold = True
-        header_run.font.color.rgb = header_color
-
-        # Add message text
-        doc.add_paragraph(message.text)
-
-        # Add message footer with cost info only if there's a cost
-        if cost:
-            footer_para = doc.add_paragraph()
-            footer_text = f"Cost: ${cost:.4f} USD"
-            footer_color = RGBColor(128, 128, 128)  # gray
-
-            footer_run = footer_para.add_run(footer_text)
-            footer_run.italic = True
-            footer_run.font.color.rgb = footer_color
-
-        # Add some spacing between messages
-        doc.add_paragraph("")
-
-    file_content = io.BytesIO()
-    doc.save(file_content)
-    file_content.seek(0)
+    file_content = create_chat_conversation_doc(chat)
 
     response = HttpResponse(
         file_content.getvalue(),
