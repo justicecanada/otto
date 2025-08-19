@@ -285,7 +285,6 @@ def download_document(request, file_id, file_type):
         return response
 
 
-@app_access_required(app_name)
 def download_all_zip(request):
     access_key = AccessKey(user=request.user)
     try:
