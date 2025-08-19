@@ -1,3 +1,6 @@
+import io
+import zipfile
+
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
@@ -168,7 +171,7 @@ def submit_document(request):
 
 def poll_tasks(request, user_request_id):
     access_key = AccessKey(user=request.user)
-    user_request = UserRequest.objects.get(access_key, id=user_request_id)
+    user_request = UserRequest.objects.get(access_key=access_key, id=user_request_id)
     output_files = user_request.output_files.filter(access_key=access_key)
 
     for output_file in output_files:
@@ -242,10 +245,6 @@ def poll_tasks(request, user_request_id):
         context.update(
             {"poll_url": reverse("text_extractor:poll_tasks", args=[user_request.id])}
         )
-    # else:
-    #     "Download all" doesn't work in prod. Disabling for now.
-    #     TODO: Zipped download of all files
-    #     context.update({"show_download_all_button": True})
 
     # In an HTMX request, we just want the updated rows.
     if request.headers.get("HX-Request") == "true":
@@ -284,3 +283,51 @@ def download_document(request, file_id, file_type):
             f'attachment; filename="{output_file.file_name}.{file_type}"'
         )
         return response
+
+
+@app_access_required(app_name)
+def download_all_zip(request):
+    access_key = AccessKey(user=request.user)
+    try:
+        user_request = (
+            UserRequest.objects.filter(access_key=access_key)
+            .order_by("-created_at")
+            .first()
+        )
+        if not user_request:
+            raise UserRequest.DoesNotExist()
+    except UserRequest.DoesNotExist:
+        return render(
+            request,
+            "text_extractor/error_message.html",
+            {"error_message": _("Invalid download request.")},
+        )
+
+    output_files = user_request.output_files.filter(access_key=access_key)
+    if not output_files:
+        return render(
+            request,
+            "text_extractor/error_message.html",
+            {
+                "error_message": _(
+                    "No files to download. Please process documents first."
+                )
+            },
+        )
+
+    zip_buffer = io.BytesIO()
+    with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
+        for output_file in output_files:
+            if output_file.pdf_file:
+                with output_file.pdf_file.open("rb") as f:
+                    zip_file.writestr(f"{output_file.file_name}.pdf", f.read())
+            if output_file.txt_file:
+                with output_file.txt_file.open("rb") as f:
+                    zip_file.writestr(f"{output_file.file_name}.txt", f.read())
+
+    zip_buffer.seek(0)
+    response = HttpResponse(zip_buffer.getvalue(), content_type="application/zip")
+    response["Content-Disposition"] = (
+        'attachment; filename="otto_text_extractor_downloads.zip"'
+    )
+    return response

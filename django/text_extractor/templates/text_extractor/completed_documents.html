@@ -88,9 +88,7 @@
 {% elif swap %}
   <div id="warn-dont-leave-page" hx-swap-oob="true" class="d-none"></div>
 {% endif %}
-{% if show_download_all_button %}
-  <script>document.querySelector("#download-all-files").classList.remove("d-none");</script>
-{% endif %}
+
 {% if user_request_id %}
   <script>window.location.href = "{% url 'text_extractor:poll_tasks' user_request_id=user_request_id %}";</script>
 {% endif %}
