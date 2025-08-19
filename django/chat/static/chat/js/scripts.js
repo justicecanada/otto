@@ -50,7 +50,7 @@ function render_markdown(element) {
     }
     const parent = markdown_text.parentElement;
     if (to_parse) {
-      parent.innerHTML = md.render(to_parse);
+      parent.innerHTML = md.render(to_parse).replaceAll('&lt;br&gt;', '<br>');
       const current_dots = parent.parentElement.querySelector(".typing");
       // If dots=True on htmx_stream call and we just removed the dots at the beginning of stream,
       // add a new dots element after parent
