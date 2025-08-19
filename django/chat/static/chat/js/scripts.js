@@ -657,7 +657,6 @@ function collapseAllMessages(chat_id) {
 document.addEventListener("DOMContentLoaded", function () {
   const urlParams = new URLSearchParams(window.location.search);
   if (urlParams.get('expand_all') === 'true') {
-    console.log("window.location.pathname:", window.location.pathname);
     // Get chat_id from the URL path (e.g., /chat/id/12345/)
     const pathParts = window.location.pathname.split('/');
     const chatIdIndex = pathParts.indexOf('id') + 1;
