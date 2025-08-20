@@ -1,7 +1,9 @@
+import io
 import json
 import os
 import re
 import uuid
+from decimal import Decimal
 
 from django.conf import settings
 from django.contrib import messages
@@ -20,6 +22,8 @@ from django.utils.translation import get_language
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_GET, require_POST
 
+from docx import Document
+from docx.shared import RGBColor
 from rules.contrib.views import objectgetter
 from structlog import get_logger
 from structlog.contextvars import bind_contextvars
@@ -40,6 +44,7 @@ from chat.utils import (
     bad_url,
     change_mode_to_chat_qa,
     copy_options,
+    create_chat_conversation_doc,
     fix_source_links,
     generate_prompt,
     get_chat_history_sections,
@@ -818,6 +823,20 @@ def rename_chat(request, chat_id, current_chat_id):
             "section_index": label_section_index(chat.last_modification_date),
         },
     )
+
+
+@permission_required("chat.access_chat", objectgetter(Chat, "chat_id"))
+def download_chat(request, chat_id):
+    chat = get_object_or_404(Chat, id=chat_id)
+
+    file_content = create_chat_conversation_doc(chat)
+
+    response = HttpResponse(
+        file_content.getvalue(),
+        content_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    )
+    response["Content-Disposition"] = f"attachment; filename={chat.title}.docx"
+    return response
 
 
 @permission_required("chat.access_message", objectgetter(Message, "message_id"))

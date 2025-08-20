@@ -1,5 +1,6 @@
 import asyncio
 import html
+import io
 import json
 import re
 import sys
@@ -21,6 +22,8 @@ import markdown
 import tiktoken
 from asgiref.sync import sync_to_async
 from data_fetcher.util import get_request
+from docx import Document
+from docx.shared import RGBColor
 from llama_index.core import PromptTemplate
 from llama_index.core.llms import ChatMessage, MessageRole
 from llama_index.core.prompts import PromptType
@@ -1070,3 +1073,52 @@ def chat_to_history(chat):
         history.pop()
 
     return history
+
+
+def create_chat_conversation_doc(chat):
+    """
+    Create a Word document from a chat.
+    Returns a BytesIO object containing the document.
+    """
+    messages = chat.messages.all()
+
+    # Create a new Word document
+    doc = Document()
+    doc.add_heading(chat.title, 0)
+
+    for message in messages:
+        is_bot = message.is_bot
+        cost = message.usd_cost
+        date_created = message.date_created
+
+        if is_bot:
+            header_text = f"Bot | {date_created.strftime('%Y-%m-%d %H:%M:%S')}"
+            header_color = RGBColor(0, 102, 204)  # blue
+        else:
+            header_text = f"User | {date_created.strftime('%Y-%m-%d %H:%M:%S')}"
+            header_color = RGBColor(0, 128, 0)  # green
+
+        header_para = doc.add_paragraph()
+        header_run = header_para.add_run(header_text)
+        header_run.bold = True
+        header_run.font.color.rgb = header_color
+
+        doc.add_paragraph(message.text)
+
+        if cost:
+            footer_para = doc.add_paragraph()
+            footer_text = f"Cost: ${cost:.4f} USD"
+            footer_color = RGBColor(128, 128, 128)  # gray
+
+            footer_run = footer_para.add_run(footer_text)
+            footer_run.italic = True
+            footer_run.font.color.rgb = footer_color
+
+        # Adds some spacing between messages
+        doc.add_paragraph("")
+
+    file_content = io.BytesIO()
+    doc.save(file_content)
+    file_content.seek(0)
+
+    return file_content
