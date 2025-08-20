@@ -1,5 +1,6 @@
 import asyncio
 import json
+import re
 import uuid
 
 from django.core.cache import cache
@@ -48,8 +49,12 @@ def get_other_lang_node(node_id):
     lang = "eng" if "eng" in node_id else "fra"
     other_lang_node_id = (
         node_id.replace("eng", "fra")
+        .replace("_SCHEDULE ", "_ANNEXE ")
+        .replace("_FORM ", "_FORMULE ")
         if lang == "eng"
         else node_id.replace("fra", "eng")
+        .replace("_ANNEXE ", "_SCHEDULE ")
+        .replace("_FORMULE ", "_FORM ")
     )
     return get_source_node(other_lang_node_id)
 
