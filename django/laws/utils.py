@@ -150,3 +150,11 @@ async def htmx_sse_error(e="", query_uuid=None):
         f"data: <div hx-swap-oob='true' id='answer-sse'>"
         f"<div>{error_message}</div></div>\n\n"
     )
+
+
+def get_display_title(metadata):
+    title = metadata["display_metadata"].split("\n")[0]
+    if metadata["lang"] == "fra":
+        title = title.replace("Subsection", "Paragraphe").replace("Section", "Article")
+
+    return title

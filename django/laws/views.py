@@ -30,6 +30,7 @@ from .prompts import (
 )
 from .search_history.models import LawSearch
 from .utils import (
+    get_display_title,
     get_law_url,
     get_other_lang_node,
     get_source_node,
@@ -83,7 +84,7 @@ def source(request, source_id):
     if other_lang_node is None:
         nodes = [source_node]
     for node in nodes:
-        node["title"] = node["metadata"]["display_metadata"].split("\n")[0]
+        node["title"] = get_display_title(node["metadata"])
         node["html"] = md.convert(node["text"])
         node["headings"] = node["metadata"].get("headings", None)
         node["chunk"] = (
@@ -654,6 +655,7 @@ def download_results(request, search_id):
 
 
 def sources_to_html(sources):
+
     return [
         {
             "node_id": (
@@ -661,7 +663,7 @@ def sources_to_html(sources):
                 if "_schedule_" in s.node.node_id
                 else urllib.parse.quote_plus(s.node.node_id).replace("+", "-")
             ),
-            "title": s.node.metadata["display_metadata"].split("\n")[0],
+            "title": get_display_title(s.node.metadata),
             "chunk": (
                 s.node.metadata["chunk"]
                 if not s.node.metadata["chunk"].endswith("/1")
