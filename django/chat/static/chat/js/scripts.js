@@ -636,6 +636,16 @@ function expandAllSources(message_id, force_expand = false) {
   }
 }
 
+// Show "Expand All" only if there's something truncated, right before the menu opens
+document.addEventListener('show.bs.dropdown', (e) => {
+  const id = e.target.id?.split('dropdownMenuButton-')[1];
+  if (!id) return;
+  const hasTruncated = !!document.querySelector('.message-outer.truncate:not(.show-all)');
+  const expandAllBtn = document.getElementById(`expand-all-btn-${id}`);
+  if (expandAllBtn) {
+    expandAllBtn.classList.toggle('d-none', !hasTruncated);
+  }
+});
 
 function expandAllMessages(chat_id) {
   // Find all truncated messages that haven't been expanded yet
