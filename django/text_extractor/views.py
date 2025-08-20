@@ -234,9 +234,13 @@ def poll_tasks(request, user_request_id):
                 output_file.txt_size = file_size_to_string(output_file.txt_file.size)
             if output_file.pdf_file:
                 output_file.pdf_size = file_size_to_string(output_file.pdf_file.size)
-
+    statuses = [f.status for f in output_files]
+    show_download_all_button = len(output_files) > 0 and all(
+        s in ("SUCCESS", "FAILURE") for s in statuses
+    )
     context = {
         "output_files": output_files,
+        "show_download_all_button": show_download_all_button,
     }
 
     if any(
@@ -260,6 +264,7 @@ def poll_tasks(request, user_request_id):
             "show_output": True,
             "refresh_on_load": False,
             "hide_breadcrumbs": True,
+            "show_download_all_button": show_download_all_button,
         }
     )
     return render(request, "text_extractor/ocr.html", context)

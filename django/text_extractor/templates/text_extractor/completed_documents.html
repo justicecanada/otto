@@ -89,6 +89,21 @@
   <div id="warn-dont-leave-page" hx-swap-oob="true" class="d-none"></div>
 {% endif %}
 
+{# OOB update to toggle the header "Download all" button #}
+<span id="download-all-files-btn"
+      hx-swap-oob="true"
+      class="d-inline-flex align-items-center gap-2">
+  {% trans "Downloads" %}
+  {% if show_download_all_button %}
+    <a href="{% url 'text_extractor:download_all_zip' %}"
+       class="btn btn-sm p-0 m-0 text-decoration-none"
+       title="{% trans 'Download all files' %}"
+       aria-label="{% trans 'Download all files' %}">
+      <i class="bi bi-download align-baseline"></i>
+    </a>
+  {% endif %}
+</span>
+
 {% if user_request_id %}
   <script>window.location.href = "{% url 'text_extractor:poll_tasks' user_request_id=user_request_id %}";</script>
 {% endif %}
