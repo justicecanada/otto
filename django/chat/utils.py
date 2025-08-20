@@ -1107,7 +1107,7 @@ def create_chat_conversation_doc(chat):
 
         if cost:
             footer_para = doc.add_paragraph()
-            footer_text = f"${cost:.4f}"
+            footer_text = display_cad_cost(cost)
             footer_color = RGBColor(128, 128, 128)  # gray
 
             footer_run = footer_para.add_run(footer_text)
