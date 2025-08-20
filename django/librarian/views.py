@@ -79,6 +79,8 @@ def modal_view(request, item_type=None, item_id=None, parent_id=None):
     has_error = False
     total_cost = None
     total_chunks = None
+    failed_count = None
+    blocked_count = None
 
     if item_type == "document":
         if request.method == "POST":
@@ -319,9 +321,18 @@ def modal_view(request, item_type=None, item_id=None, parent_id=None):
                 .get("total")
                 or 0
             )
+            # Failed and blocked counts
+            failed_count = Document.objects.filter(
+                data_source_id=selected_data_source.id, status="ERROR"
+            ).count()
+            blocked_count = Document.objects.filter(
+                data_source_id=selected_data_source.id, status="BLOCKED"
+            ).count()
     except Exception:
         total_cost = None
         total_chunks = None
+        failed_count = None
+        blocked_count = None
 
     context = {
         "editable_libraries": editable_libraries,
@@ -341,6 +352,8 @@ def modal_view(request, item_type=None, item_id=None, parent_id=None):
         "upload_form": UploadForm(prefix="librarian"),
         "total_cost": total_cost,
         "total_chunks": total_chunks,
+        "failed_count": failed_count or 0,
+        "blocked_count": blocked_count or 0,
     }
     return render(request, "librarian/modal_inner.html", context)
 
@@ -371,9 +384,13 @@ def poll_status(request, data_source_id, document_id=None):
         else:
             total_cost = display_cad_cost(total_usd)
         total_chunks = documents.aggregate(total=Sum("num_chunks")).get("total") or 0
+        failed_count = documents.filter(status="ERROR").count()
+        blocked_count = documents.filter(status="BLOCKED").count()
     except Exception:
         total_cost = None
         total_chunks = None
+        failed_count = None
+        blocked_count = None
     return render(
         request,
         "librarian/components/poll_update.html",
@@ -387,6 +404,8 @@ def poll_status(request, data_source_id, document_id=None):
             ),
             "total_cost": total_cost,
             "total_chunks": total_chunks,
+            "failed_count": failed_count or 0,
+            "blocked_count": blocked_count or 0,
         },
     )
 

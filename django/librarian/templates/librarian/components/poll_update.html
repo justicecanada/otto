@@ -17,4 +17,10 @@ Template for updating document list items and, optionally, selected document sta
 {% if total_cost %}<span id="librarian-total-cost" hx-swap-oob="true">{{ total_cost }}</span>{% endif %}
 {% if total_chunks is not None %}
   <span id="librarian-total-chunks" hx-swap-oob="true">{{ total_chunks }}</span>
+  {% if failed_count is not None %}
+    <span id="librarian-failed-count" hx-swap-oob="true">{{ failed_count }}</span>
+  {% endif %}
+  {% if blocked_count is not None %}
+    <span id="librarian-blocked-count" hx-swap-oob="true">{{ blocked_count }}</span>
+  {% endif %}
 {% endif %}
