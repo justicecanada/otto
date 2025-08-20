@@ -13,6 +13,10 @@ RUN apt-get update \
 RUN echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list \
     && apt-get update
 
+# Install ffmpeg
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends ffmpeg
+
 # Install additional packages
 RUN apt-get install -y --no-install-recommends gettext postgresql-client poppler-utils pgbouncer \
     && apt-get clean \

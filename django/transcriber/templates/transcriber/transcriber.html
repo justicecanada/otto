@@ -1,0 +1,679 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block page_title %}
+  {% trans "Transcriber - Otto" %}
+{% endblock %}
+
+{% block page_css %}
+  <link rel="stylesheet" href="{% static 'transcriber/style.css' %}">
+{% endblock %}
+
+{% block content_container %}
+  <div class="container py-3 px-0">
+    <h2 class="my-2">
+      <a href="{% url 'transcriber:index' %}"
+         class="text-decoration-none text-body">{% trans "Interactive Media Transcription" %}</a>
+    </h2>
+    <p>
+      This is a proof-of-concept for an interactive media transcription tool. The goal is to integrate this functionality seamlessly into Otto, the platform of custom data and AI tools for Justice Canada.
+    </p>
+    <p>
+      Upload an audio or video file, and the tool will transcribe it for you. You can also load an existing transcript file, clean it up, generate notes, translate it into different languages, and even ask questions of it to get quick AI-generated answers.
+    </p>
+    <p>To get started, click the "Load Media" button to upload an audio or video file.</p>
+    <!-- Translation Modal -->
+    <div id="translationModal"
+         class="modal"
+         style="display: none;
+                position: fixed;
+                z-index: 1000;
+                left: 0;
+                top: 0;
+                width: 100%;
+                height: 100%;
+                overflow: auto;
+                background-color: rgba(0,0,0,0.4)">
+      <div class="modal-content"
+           style="background-color: #fefefe;
+                  margin: 15% auto;
+                  padding: 20px;
+                  border: 1px solid #888;
+                  width: 50%;
+                  border-radius: 8px">
+        <span class="close"
+              id="closeTranslationModal"
+              style="color: #aaa;
+                     float: right;
+                     font-size: 28px;
+                     font-weight: bold;
+                     cursor: pointer">&times;</span>
+        <h2>Translate Transcript</h2>
+        <p>You are about to harmonize the transcript into a single language. Please select the target language:</p>
+        <div class="language-options"
+             style="display: flex;
+                    flex-direction: column;
+                    gap: 10px;
+                    margin: 20px 0">
+          <button class="language-option action-button" data-lang="en">{% trans "English" %}</button>
+          <button class="language-option action-button" data-lang="fr">{% trans "French" %}</button>
+          {# <button class="language-option action-button" data-lang="iu">{% trans "Inuktitut" %}</button> #}
+        </div>
+        <div id="translationStatus" style="margin-top: 20px; display: none;">
+          <p>Translating transcript... Please wait.</p>
+          <div style="width: 100%;
+                      height: 10px;
+                      background-color: #eee;
+                      border-radius: 5px">
+            <div id="translationProgress"
+                 style="width: 0%;
+                        height: 100%;
+                        background-color: #3498db;
+                        border-radius: 5px;
+                        transition: width 0.3s"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="error-message" id="errorMessage"></div>
+    <div id="status" class="status">{% trans "Upload an audio or video file to begin" %}</div>
+
+    <div class="action-buttons">
+      <button id="addUrlButton"
+              class="action-button"
+              onclick="document.getElementById('urlForm').classList.remove('d-none');">
+        {% trans "Download ParlVU Media" %}
+      </button>
+      <button id="loadMediaButton" class="action-button">{% trans "Load Media" %}</button>
+      <button id="transcribeButton" class="action-button" disabled>{% trans "Transcribe" %}</button>
+      <button id="loadTranscriptButton" class="action-button">{% trans "Load Transcript" %}</button>
+      <button id="saveTranscriptButton" class="action-button" disabled>{% trans "Save Transcript" %}</button>
+      <button id="copyButton" class="action-button" disabled>{% trans "Copy to Clipboard" %}</button>
+    </div>
+    <div class="mb-3 mt-1 p-3 border rounded d-none" id="urlForm">
+      {% include "transcriber/components/url_input_form.html" %}
+    </div>
+
+    <div id="spinner" class="spinner pt-2 pb-3" aria-hidden="true">
+      <span class="spinner-border text-primary mx-4" aria-hidden="true"></span>
+      <div id="spinner-status" aria-hidden="true">{% trans "Downloading media..." %}</div>
+    </div>
+
+    <div class="action-buttons">
+      <button id="cleanupButton" class="action-button" disabled>{% trans "Clean Up" %}</button>
+      <button id="translateButton" class="action-button" disabled>{% trans "Translate" %}</button>
+      <button id="notesButton" class="action-button" disabled>{% trans "Generate Notes" %}</button>
+      <button id="libraryButton"
+              class="action-button"
+              disabled
+              hx-post="{% url 'transcriber:add_to_library' %}"
+              hx-vals="js:{'transcript_file': generateTranscriptText(), 'file_name': currentTranscriptName.value, 'transcript_uuid': transcript_uuid.value}"
+              hx-target="#status"
+              hx-swap="innerHTML"
+              hx-on::after-request="if (event.detail.successful) {qaButton.disabled = false;}">
+        {% trans "Save transcript to Library" %}
+      </button>
+      <button id="qaButton" class="action-button" disabled>{% trans "Open Q&A" %}</button>
+    </div>
+
+    <label for="currentTranscriptName"
+           style="display: block;
+                  margin-top: 20px;
+                  font-weight: bold">{% trans "File name for current transcript:" %}</label>
+    <input type="text"
+           id="currentTranscriptName"
+           placeholder="Enter transcript name"
+           style="width: 50%">
+
+    <input type="hidden" id="transcript_uuid">
+    <form id="fileInputForm">
+      <input type="file" id="fileInput">
+    </form>
+
+    {% csrf_token %}
+
+    <div class="media-container hidden" id="mediaContainer">
+      <!-- Media player will be inserted here based on file type -->
+    </div>
+
+    <div id="notesContainer" style="display:none; margin-top:30px;"></div>
+
+    <div class="transcript" id="transcript"></div>
+
+  </div>
+
+  <script src="{% static 'thirdparty/jquery3.7.1.min.js' %}"
+          crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js"></script>
+
+  <script>
+
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    let cookie = cookies[i].trim();
+                    if (cookie.startsWith(name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        // DOM Elements
+        const mediaContainer = document.getElementById('mediaContainer');
+        const transcriptContainer = document.getElementById('transcript');
+        const statusDiv = document.getElementById('status');
+        const fileInput = document.getElementById('fileInput');
+
+        // Buttons
+        const loadMediaButton = document.getElementById('loadMediaButton');
+        const transcribeButton = document.getElementById('transcribeButton');
+        const loadTranscriptButton = document.getElementById('loadTranscriptButton');
+        const saveTranscriptButton = document.getElementById('saveTranscriptButton');
+        const copyButton = document.getElementById('copyButton');
+
+        const cleanupButton = document.getElementById('cleanupButton');
+        const notesButton = document.getElementById('notesButton');
+        const translateButton = document.getElementById('translateButton');
+        // const qaButton = document.getElementById('qaButton');
+        const libraryButton = document.getElementById('libraryButton');
+
+        let currentMediaFile = null;
+        let currentMediaType = null;
+        let currentMediaPlayer = null;
+        let currentInputType = '';
+
+        const csrfToken = getCookie('csrftoken');
+
+        function displayNotes(notesMarkdown) {
+            const notesContainer = document.getElementById('notesContainer');
+            // Convert markdown to HTML and sanitize
+            const safeMarkdown = notesMarkdown.replace(/\[/g, '\\[').replace(/\]/g, '\\]');
+            var html_raw = DOMPurify.sanitize(marked.parse(safeMarkdown));
+            const html = html_raw.replace(/\[([0-9:]+)\]/g, "<span class='timestamp' data-time=$1>[$1]</span>");
+            notesContainer.innerHTML = html;
+            notesContainer.querySelectorAll('.timestamp').forEach(el => {
+                el.addEventListener('click', handleTimestampClick)
+            })
+            notesContainer.style.display = 'block';
+        }
+
+
+        // Button event listeners
+        loadMediaButton.addEventListener('click', function () {
+            currentInputType = 'media';
+            fileInput.accept = "audio/*,video/*";
+            fileInput.click();
+        });
+
+        transcribeButton.addEventListener('click', function () {
+            if (!currentMediaFile) {
+                showError('Please load a media file first');
+                return;
+            }
+
+            statusDiv.textContent = 'Transcribing... This may take a while.';
+
+            const formData = new FormData();
+            formData.append('file', currentMediaFile);
+            
+            $.ajax({
+              url: '{% url 'transcriber:upload' %}',
+              type: 'POST',
+              data: formData,
+              headers: {
+                'X-CSRFToken': csrfToken // Include CSRF token in headers
+              },
+              processData: false,
+              contentType: false,
+              success: function(response) {
+                try {
+                    
+                    if (response.transcript && response.transcript.length > 0) {
+                        displayTranscript(response.transcript);
+                        currentTranscriptName.value = response.transcript_path.split(".txt")[0];
+                        statusDiv.textContent = `Transcription complete. File saved to: ${response.transcript_path}`;
+                        cleanupButton.disabled = false;
+                        saveTranscriptButton.disabled = false;
+                        copyButton.disabled = false;
+                        notesButton.disabled = false;
+                        translateButton.disabled = false;
+                        libraryButton.disabled = false;
+                    } else {
+                        statusDiv.textContent = 'No transcription results were returned.';
+                    }
+                } catch (error) {
+                    showError(`Error processing transcription: ${error.message}`);
+                }
+              },
+              error: function(xhr, status, error) {
+                console.log(xhr.responseText);
+                console.log(error);
+                showError(`Error: ${xhr.responseText || error}`);
+              }
+            })
+        });
+
+        loadTranscriptButton.addEventListener('click', function () {
+            currentInputType = 'transcript';
+            fileInput.accept = ".txt";
+            fileInput.click();
+            document.getElementById('transcript_uuid').value = '';
+        });
+
+        saveTranscriptButton.addEventListener('click', function () {
+            const text = generateTranscriptText();
+            const blob = new Blob([text], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = currentTranscriptName.value || 'transcript.txt';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            statusDiv.textContent = 'Transcript saved!';
+            setTimeout(() => statusDiv.textContent = '', 3000);
+        });
+
+        copyButton.addEventListener('click', async function () {
+            const text = generateTranscriptText();
+            try {
+                await navigator.clipboard.writeText(text);
+                statusDiv.textContent = 'Transcript copied to clipboard!';
+                setTimeout(() => statusDiv.textContent = '', 3000);
+            } catch (err) {
+                showError('Failed to copy transcript: ' + err.message);
+            }
+        });
+
+        // File input handling
+        fileInput.addEventListener('change', function (e) {
+            if (!fileInput.files.length) return;
+
+            const file = fileInput.files[0];
+
+            if (currentInputType === 'media') {
+                // Handle media file
+                currentMediaFile = file;
+                currentMediaType = file.type.startsWith('video/') ? 'video' : 'audio';
+
+                // Create appropriate media player
+                createMediaPlayer(file);
+
+                statusDiv.textContent = `${currentMediaType.charAt(0).toUpperCase() + currentMediaType.slice(1)} loaded: ${file.name}`;
+                transcribeButton.disabled = false;
+
+                // Show media container
+                mediaContainer.classList.remove('hidden');
+
+            } else if (currentInputType === 'transcript') {
+                // Handle transcript file
+                statusDiv.textContent = 'Loading transcript...';
+                currentTranscriptName.value = file.name.split(".txt")[0];
+
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    try {
+                        parseTranscript(e.target.result);
+                        statusDiv.textContent = `Transcript loaded: ${file.name}`;
+                        cleanupButton.disabled = false;
+                        saveTranscriptButton.disabled = false;
+                        copyButton.disabled = false;
+                        notesButton.disabled = false;
+                        translateButton.disabled = false;
+                        libraryButton.disabled = false;
+
+                        // Try to find matching media file
+                        const baseName = file.name.replace(/\.txt$/, "");
+                        // This would need backend support to find media file
+
+                    } catch (error) {
+                        showError(`Error parsing transcript: ${error.message}`);
+                    }
+                };
+
+                reader.onerror = function () {
+                    showError('Failed to read the file');
+                };
+
+                reader.readAsText(file);
+            }
+
+            document.getElementById('fileInputForm').reset();
+        });
+    
+        cleanupButton.addEventListener('click', function () {
+            const transcriptText = generateTranscriptText();
+            if (!transcriptText) {
+                showError('No transcript loaded');
+                return;
+            }
+
+            statusDiv.textContent = 'Cleaning transcript...';
+
+            const data = JSON.stringify({
+                transcript_text: transcriptText, // Use the text, not the filename
+            });
+
+            $.ajax({
+              url: '{% url 'transcriber:handle_cleanup' %}',
+              type: 'POST',
+              contentType: 'application/json',
+              data: data,
+              headers: {
+                'X-CSRFToken': csrfToken // Include CSRF token in headers
+              },
+              processData: false,
+              contentType: false,
+              success: function(response) {
+                try {
+                    
+                    if (response.cleaned_transcript) {
+                        transcriptContainer.innerHTML = response.cleaned_transcript; // Replace transcript in browser
+                        transcriptContainer.querySelectorAll('.timestamp').forEach(el => {
+                          el.addEventListener('click', handleTimestampClick)
+                        })
+                        statusDiv.textContent = 'Transcript cleaned successfully';
+                        currentTranscriptName.value = `${currentTranscriptName.value}_cleaned`;
+                    } else {
+                        showError('Cleaning failed');
+                    }
+                } catch (error) {
+                    showError(`Error processing cleanup: ${error.message}`);
+                }
+              },
+              error: function(xhr, status, error) {
+                showError(`Error: ${xhr.responseText || error}`);
+              }
+            })
+        });
+
+        notesButton.addEventListener('click', function () {
+          // Get the current transcript text from the DOM
+          const transcriptText = generateTranscriptText(); // This function already exists
+
+          statusDiv.textContent = 'Generating meeting notes...';
+
+          const data = JSON.stringify({
+              cleaned_transcript: transcriptText, // Use the cleaned transcript text
+          });
+
+          $.ajax({
+              url: '{% url 'transcriber:generate_notes' %}',
+              type: 'POST',
+              contentType: 'application/json',
+              data: data,
+              headers: {
+                'X-CSRFToken': csrfToken // Include CSRF token in headers
+              },
+              processData: false,
+              contentType: false,
+              success: function(response) {
+                try {
+                if (response.notes) {
+                  displayNotes(response.notes); // Show notes in the UI
+                  statusDiv.textContent = 'Notes generated successfully';
+                } else {
+                  showError('Notes generation failed');
+                }
+              } catch (error) {
+                showError(`Error processing notes: ${error.message}`);
+              }
+              },
+              error: function(xhr, status, error) {
+                showError(`Error: ${xhr.responseText || error}`);
+              }
+            })
+        });
+
+        function createMediaPlayer(file) {
+            // Clear previous media player
+            mediaContainer.innerHTML = '';
+
+            // Create URL for the file
+            const fileURL = URL.createObjectURL(file);
+
+            // Create appropriate player element
+            if (file.type.startsWith('video/')) {
+                const videoElement = document.createElement('video');
+                videoElement.src = fileURL;
+                videoElement.controls = true;
+                mediaContainer.appendChild(videoElement);
+                currentMediaPlayer = videoElement;
+            } else {
+                const audioElement = document.createElement('audio');
+                audioElement.src = fileURL;
+                audioElement.controls = true;
+                mediaContainer.appendChild(audioElement);
+                currentMediaPlayer = audioElement;
+            }
+        }
+
+        function displayTranscript(transcript) {
+            transcriptContainer.innerHTML = '';
+
+            transcript.forEach(entry => {
+                createTranscriptLine(entry.timestamp, entry.speaker, entry.text);
+            });
+        }
+
+        function parseTranscript(text) {
+            transcriptContainer.innerHTML = '';
+
+            // Split by double newlines which typically separate entries
+            const entries = text.split(/\n\n(?!\n)/);
+
+            entries.forEach(entry => {
+                const lines = entry.split('\n');
+                lines.forEach(function(entry, index){lines[index] = entry.trim()})
+                if (lines.length >= 2) {
+                    // Extract timestamp and speaker from first line
+                    const headerMatch = lines[0].match(/\[([0-9:]+)\]:\s*(.*)/);
+
+                    if (headerMatch) {
+                        const timestamp = headerMatch[1];
+                        const speaker = headerMatch[2];
+                        const text = lines.slice(1).join('\n');
+
+                        createTranscriptLine(timestamp, speaker, text);
+                    }
+                }
+            });
+        }
+
+        function createTranscriptLine(timestamp, speaker, text) {
+            const lineDiv = document.createElement('div');
+            lineDiv.className = 'transcript-line';
+
+            // Timestamp
+            const timeSpan = document.createElement('span');
+            timeSpan.className = 'timestamp';
+            timeSpan.textContent = `[${timestamp}]`;
+            timeSpan.dataset.time = timestamp;
+            timeSpan.addEventListener('click', handleTimestampClick);
+
+            // Speaker
+            const speakerSpan = document.createElement('span');
+            speakerSpan.className = 'speaker';
+            speakerSpan.contentEditable = true;
+            speakerSpan.textContent = speaker;
+            speakerSpan.dataset.originalName = speaker;
+            speakerSpan.addEventListener('blur', handleSpeakerEdit);
+
+            // Text
+            const textSpan = document.createElement('span');
+            textSpan.className = 'text';
+            textSpan.contentEditable = true;
+            textSpan.textContent = text;
+
+            lineDiv.appendChild(timeSpan);
+            lineDiv.appendChild(speakerSpan);
+            lineDiv.appendChild(textSpan);
+            transcriptContainer.appendChild(lineDiv);
+        }
+
+        function handleTimestampClick(e) {
+            if (!currentMediaPlayer) {
+                showError('No media file loaded');
+                return;
+            }
+
+            const timeString = e.target.dataset.time;
+            const parts = timeString.split(':');
+            const seconds = (+parts[0]) * 3600 + (+parts[1]) * 60 + (+parts[2]);
+
+            currentMediaPlayer.currentTime = seconds;
+            currentMediaPlayer.play();
+        }
+
+        function handleSpeakerEdit(e) {
+            const newName = e.target.textContent.trim();
+            const oldName = e.target.dataset.originalName;
+
+            if (newName !== oldName) {
+                const updateAll = confirm(`Update all instances of "${oldName}" to "${newName}"?`);
+                if (updateAll) {
+                    document.querySelectorAll('.speaker').forEach(speaker => {
+                        if (speaker.dataset.originalName === oldName) {
+                            speaker.textContent = newName;
+                            speaker.dataset.originalName = newName;
+                        }
+                    });
+                }
+                e.target.dataset.originalName = newName;
+            }
+        }
+
+        function generateTranscriptText() {
+            const lines = [];
+            document.querySelectorAll('.transcript-line').forEach(lineDiv => {
+                const timestamp = lineDiv.querySelector('.timestamp').dataset.time;
+                const speaker = lineDiv.querySelector('.speaker').textContent.trim();
+                const text = lineDiv.querySelector('.text').textContent.trim();
+                if (text){
+                  lines.push(`[${timestamp}]: ${speaker}\n${text}`);
+                }
+            });
+            return lines.join('\n\n');
+        }
+
+        function showError(message) {
+            statusDiv.textContent = message;
+            statusDiv.style.display = 'block';
+            setTimeout(() => {
+                statusDiv.innerHTML = '';
+            }, 5000);
+        }
+
+        function hideError() {
+            statusDiv.innerHTML = '';
+        }
+  </script>
+
+  <script>
+    // Translation Modal Functionality
+    const translationModal = document.getElementById('translationModal');
+    const closeTranslationModal = document.getElementById('closeTranslationModal');
+    const translationStatus = document.getElementById('translationStatus');
+    const translationProgress = document.getElementById('translationProgress');
+
+    // Open modal when translate button is clicked
+    translateButton.addEventListener('click', function () {
+        translationModal.style.display = 'block';
+        translationStatus.style.display = 'none';
+        translationProgress.style.width = '0%';
+    });
+
+    // Close modal when X is clicked
+    closeTranslationModal.addEventListener('click', function () {
+        translationModal.style.display = 'none';
+    });
+
+    // Close modal when clicking outside of it
+    window.addEventListener('click', function (event) {
+        if (event.target === translationModal) {
+            translationModal.style.display = 'none';
+        }
+    });
+
+    // Add event listeners to language option buttons
+    document.querySelectorAll('.language-option').forEach(button => {
+        button.addEventListener('click', function () {
+            const targetLanguage = this.getAttribute('data-lang');
+            translateTranscript(targetLanguage);
+        });
+    });
+
+    function translateTranscript(targetLanguage) {
+      // Show translation status
+      translationStatus.style.display = 'block';
+      translationProgress.style.width = '10%';
+
+      // Get the current transcript text
+      const transcriptText = generateTranscriptText();
+
+      var data = JSON.stringify({
+          transcript_text: transcriptText,
+          target_language: targetLanguage,
+      });
+
+      $.ajax({
+              url: '{% url 'transcriber:handle_translation' %}',
+              type: 'POST',
+              contentType: 'application/json',
+              data: data,
+              headers: {
+                'X-CSRFToken': csrfToken // Include CSRF token in headers
+              },
+              processData: false,
+              contentType: false,
+              success: function(response) {
+                try {
+          translationProgress.style.width = '50%';
+
+          translationProgress.style.width = '90%';
+          if (response.translated_transcript) {
+            // Replace transcript with translated version
+            parseTranscript(response.translated_transcript);
+
+            // Update status message
+            statusDiv.textContent = `Transcript translated to ${getLanguageName(targetLanguage)}`;
+            currentTranscriptName.value = `${currentTranscriptName.value}_${targetLanguage}`;
+            // Close the modal
+            setTimeout(() => {
+                translationModal.style.display = 'none';
+                translationProgress.style.width = '100%';
+            }, 500);
+          } else {
+            showError('Translation failed: ' + (data.error || 'Unknown error'));
+            translationModal.style.display = 'none';
+          }
+        } catch (error) {
+          showError(`Translation error: ${error.message}`);
+          translationModal.style.display = 'none';
+        }
+              },
+              error: function(xhr, status, error) {
+                showError(`Error: ${xhr.responseText || error}`);
+              }
+            })
+    }
+
+    function getLanguageName(langCode) {
+        const languages = {
+            'en': 'English',
+            'fr': 'French',
+            'iu': 'Inuktitut'
+        };
+        return languages[langCode] || langCode;
+    }        
+  </script>
+{% endblock %}

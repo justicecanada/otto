@@ -1,6 +1,9 @@
 *.pyc
 *.mo
 *.po
+*.mp4
+*.mp3
+*.wav
 */__pycache__/*
 django/db.sqlite3
 django/celerybeat-schedule
