@@ -4758,5 +4758,9 @@
     "Download": {
         "fr": "",
         "fr_auto": "Télécharger"
+    },
+    "Copy link": {
+        "fr": "",
+        "fr_auto": "Copier le lien"
     }
 }
