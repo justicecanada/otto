@@ -428,6 +428,21 @@ function copyMessage(btn) {
   }, 2200);
 }
 
+function copyChatURL(event, btn) {
+  if (event.detail.xhr.status === 200) {
+    const response = JSON.parse(event.detail.xhr.responseText);
+    if (response.chat_url) {
+      navigator.clipboard.writeText(response.chat_url);
+      btn.blur();
+      btn.classList.add("clicked");
+      setTimeout(function () {
+        btn.classList.remove("clicked");
+      }, 2200);
+      console.log("Chat URL copied to clipboard:", response.chat_url);
+    }
+  }
+}
+
 function copyCode(btn) {
   let message = btn.closest("pre").querySelector("code");
   let codeText = message.innerText;

@@ -55,6 +55,17 @@
         </button>
       {% endif %}
       <button type="button"
+              id="share-chat-{{ chat.id }}"
+              class="d-flex align-items-center px-3 py-2 chat-share dropdown-item"
+              data-section-number="{{ section_index }}"
+              hx-get="{% url 'chat:share_chat' chat_id=chat.id %}"
+              hx-on::after-request="copyChatURL(event, this)"
+              hx-swap="none"
+              role="menuitem">
+        <i class="bi bi-link"></i><i class="bi bi-check-lg"></i>
+        <span class="ms-2">{% trans 'Copy link' %}</span>
+      </button>
+      <button type="button"
               id="delete-chat-{{ chat.id }}"
               class="d-flex align-items-center px-3 py-2 chat-delete dropdown-item"
               data-section-number="{{ section_index }}"
