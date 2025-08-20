@@ -80,6 +80,11 @@ urlpatterns = [
         name="rename_chat",
     ),
     path(
+        "id/<str:chat_id>/share/",
+        views.share_chat,
+        name="share_chat",
+    ),
+    path(
         "id/<str:chat_id>/download/",
         views.download_chat,
         name="download_chat",

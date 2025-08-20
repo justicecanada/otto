@@ -174,7 +174,7 @@ a.mode-link:hover {
   width: 20px;
 }
 
-.message-text > *:not(:last-child) + .typing {
+.message-text>*:not(:last-child)+.typing {
   margin-top: 25px;
 }
 
@@ -404,7 +404,7 @@ left-sidebar button.pin-button:focus {
   background-color: transparent !important;
 }
 
-[data-bs-theme="dark"] .list-group-item + .list-group-item {
+[data-bs-theme="dark"] .list-group-item+.list-group-item {
   background-color: var(----app-primary-bg);
 }
 
@@ -851,6 +851,22 @@ div#prompt-form-container {
   display: inline-block;
 }
 
+/* Share button icon switching */
+.chat-share i:not(:first-child) {
+  /* Hide checkmark icon by default */
+  display: none !important;
+}
+
+.chat-share.clicked i:first-child {
+  /* Hide link icon when clicked */
+  display: none !important;
+}
+
+.chat-share.clicked i:not(:first-child) {
+  /* Show checkmark icon when clicked */
+  display: inline-block !important;
+}
+
 .message-outer button:not(.accordion-button) {
   font-size: 0.9rem;
 }
@@ -996,7 +1012,7 @@ div#chat-toolbar {
     z-index: 0;
   }
 
-  &:focus-visible > i {
+  &:focus-visible>i {
     display: block !important;
   }
 }
@@ -1029,7 +1045,7 @@ div#chat-toolbar {
     background-color: var(--bs-light);
   }
 
-  &:focus-visible > i {
+  &:focus-visible>i {
     display: block !important;
   }
 }
@@ -1190,7 +1206,7 @@ div.message-text pre {
   --bs-modal-width: calc(min(100vw - 4rem, 1430px));
 }
 
-#editLibrariesInner div.modal-body > div.row > div {
+#editLibrariesInner div.modal-body>div.row>div {
   min-height: 450px;
 }
 
@@ -1242,7 +1258,7 @@ ul.errorlist {
   word-break: break-word;
 }
 
-#editLibrariesInner .modal-body > .row > div {
+#editLibrariesInner .modal-body>.row>div {
   max-height: calc(100vh - 10rem);
   overflow-y: auto;
 }

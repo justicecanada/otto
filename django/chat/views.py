@@ -826,6 +826,15 @@ def rename_chat(request, chat_id, current_chat_id):
 
 
 @permission_required("chat.access_chat", objectgetter(Chat, "chat_id"))
+def share_chat(request, chat_id):
+    chat = get_object_or_404(Chat, id=chat_id)
+
+    shareable_url = request.build_absolute_uri(reverse("chat:chat", args=[chat.id]))
+
+    return JsonResponse({"success": True, "chat_url": shareable_url})
+
+
+@permission_required("chat.access_chat", objectgetter(Chat, "chat_id"))
 def download_chat(request, chat_id):
     chat = get_object_or_404(Chat, id=chat_id)
 
