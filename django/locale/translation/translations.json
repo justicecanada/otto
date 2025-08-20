@@ -4750,5 +4750,13 @@
     "chunk(s)": {
         "fr": "",
         "fr_auto": "Bloc(s)"
+    },
+    "failed": {
+        "fr": "",
+        "fr_auto": "Échec"
+    },
+    "stopped": {
+        "fr": "",
+        "fr_auto": "arrêté"
     }
 }
