@@ -4746,5 +4746,9 @@
     "show app list": {
         "fr": "",
         "fr_auto": "Afficher la liste des applications"
+    },
+    "chunk(s)": {
+        "fr": "",
+        "fr_auto": "Bloc(s)"
     }
 }
