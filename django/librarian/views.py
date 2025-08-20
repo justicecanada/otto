@@ -2,6 +2,7 @@ import os
 from dataclasses import dataclass
 
 from django.contrib import messages
+from django.db.models import Sum
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
@@ -14,7 +15,7 @@ from structlog.contextvars import bind_contextvars
 
 from chat.forms import UploadForm
 from librarian.utils.process_engine import generate_hash
-from otto.utils.common import generate_mailto
+from otto.utils.common import display_cad_cost, generate_mailto
 from otto.utils.decorators import budget_required, permission_required
 
 from .forms import (
@@ -76,6 +77,8 @@ def modal_view(request, item_type=None, item_id=None, parent_id=None):
     show_document_status = False
     focus_el = None
     has_error = False
+    total_cost = None
+    total_chunks = None
 
     if item_type == "document":
         if request.method == "POST":
@@ -295,6 +298,31 @@ def modal_view(request, item_type=None, item_id=None, parent_id=None):
     # Create view-only libraries list (viewable but not editable)
     view_only_libraries = [lib for lib in libraries if lib not in editable_libraries]
 
+    # Compute totals for the selected data source
+    try:
+        if selected_data_source and getattr(selected_data_source, "id", None):
+            total_usd = (
+                Document.objects.filter(data_source_id=selected_data_source.id)
+                .aggregate(total=Sum("usd_cost"))
+                .get("total")
+                or 0
+            )
+            # Show $0.00 when there is no cost yet; otherwise format normally
+            if not total_usd or float(total_usd) == 0.0:
+                total_cost = "$0.00"
+            else:
+                total_cost = display_cad_cost(total_usd)
+            # Sum total chunks (ignore nulls); default to 0
+            total_chunks = (
+                Document.objects.filter(data_source_id=selected_data_source.id)
+                .aggregate(total=Sum("num_chunks"))
+                .get("total")
+                or 0
+            )
+    except Exception:
+        total_cost = None
+        total_chunks = None
+
     context = {
         "editable_libraries": editable_libraries,
         "view_only_libraries": view_only_libraries,
@@ -311,6 +339,8 @@ def modal_view(request, item_type=None, item_id=None, parent_id=None):
         "poll_response": "poll" in request.GET,
         "has_error": has_error,
         "upload_form": UploadForm(prefix="librarian"),
+        "total_cost": total_cost,
+        "total_chunks": total_chunks,
     }
     return render(request, "librarian/modal_inner.html", context)
 
@@ -332,6 +362,18 @@ def poll_status(request, data_source_id, document_id=None):
     poll_url = request.path if poll else None
 
     document = Document.objects.get(id=document_id) if document_id else None
+
+    # Compute totals during polling so header can update live
+    try:
+        total_usd = documents.aggregate(total=Sum("usd_cost")).get("total") or 0
+        if not total_usd or float(total_usd) == 0.0:
+            total_cost = "$0.00"
+        else:
+            total_cost = display_cad_cost(total_usd)
+        total_chunks = documents.aggregate(total=Sum("num_chunks")).get("total") or 0
+    except Exception:
+        total_cost = None
+        total_chunks = None
     return render(
         request,
         "librarian/components/poll_update.html",
@@ -343,6 +385,8 @@ def poll_status(request, data_source_id, document_id=None):
             "selected_library": Library.objects.get(
                 id=DataSource.objects.get(id=data_source_id).library_id
             ),
+            "total_cost": total_cost,
+            "total_chunks": total_chunks,
         },
     )
 

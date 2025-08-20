@@ -12,3 +12,9 @@ Template for updating document list items and, optionally, selected document sta
 
 {# Morphed into document list #}
 {% include "librarian/components/document_list_inner.html" %}
+
+{# Update total cost in header out-of-band so it changes even when only the list morphs #}
+{% if total_cost %}<span id="librarian-total-cost" hx-swap-oob="true">{{ total_cost }}</span>{% endif %}
+{% if total_chunks is not None %}
+  <span id="librarian-total-chunks" hx-swap-oob="true">{{ total_chunks }}</span>
+{% endif %}

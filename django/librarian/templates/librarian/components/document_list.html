@@ -2,10 +2,23 @@
 {% load rules %}
 
 <div id="librarian-documents" {% if swap %}hx-swap-oob="true"{% endif %}>
-  <h6 id="documents-label">
-    {% trans "Documents" %}
-    {% if selected_data_source and selected_data_source.id %}({{ documents|length }}){% endif %}
-  </h6>
+  <div class="d-flex justify-content-between align-items-baseline">
+    <h6 id="documents-label">
+      {% trans "Documents" %}
+
+      {% if selected_data_source and selected_data_source.id %}
+        ({{ documents|length }})
+      </h6>
+      <div class="small text-muted text-end">
+        <span id="librarian-total-cost">{{ total_cost|default:"$0.00" }}</span>
+        /
+        <span id="librarian-total-chunks">{{ total_chunks|default:0 }}  {% trans "chunk(s)" %}</span>
+      </div>
+    {% endif %}
+  </div>
+  <!--  <div class="text-end">
+   
+  </div>-->
   {% if not selected_data_source or not selected_data_source.id %}
     <div class="text-center">
       <em class="small">{% trans "Select a folder to view documents." %}</em>
