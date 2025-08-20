@@ -15,6 +15,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.html import format_html
 from django.utils.translation import get_language
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_GET, require_POST
@@ -23,6 +24,7 @@ from rules.contrib.views import objectgetter
 from structlog import get_logger
 from structlog.contextvars import bind_contextvars
 
+from chat._views.pin_chat import pin_chat, unpin_chat
 from chat.forms import ChatOptionsForm, ChatRenameForm, PresetForm, UploadForm
 from chat.htmx_stream import wrap_llm_response
 from chat.llm import OttoLLM
@@ -49,7 +51,6 @@ from chat.utils import (
 )
 from librarian.forms import LibraryUsersForm
 from librarian.models import Library
-from otto.models import SecurityLabel
 from otto.rules import can_edit_library
 from otto.utils.common import check_url_allowed, generate_mailto
 from otto.utils.decorators import (
@@ -196,7 +197,6 @@ def chat(request, chat_id):
     # The current chat is always shown, even if it's empty.
     user_chats = (
         Chat.objects.filter(user=request.user, messages__isnull=False)
-        .prefetch_related("security_label")
         .exclude(pk=chat.id)
         .union(Chat.objects.filter(pk=chat.id))
         .order_by("-last_modification_date")
@@ -211,9 +211,6 @@ def chat(request, chat_id):
             user_chat.title = title_chat(user_chat.id, llm=llm)
             if not user_chat.current_chat:
                 user_chat.save()
-        if not user_chat.security_label:
-            user_chat.security_label_id = SecurityLabel.default_security_label().id
-            user_chat.save()
     if llm:
         llm.create_costs()
 
@@ -245,6 +242,7 @@ def chat(request, chat_id):
     form = ChatOptionsForm(instance=chat.options, user=request.user)
 
     context = {
+        "active_app": "chat",
         "chat": chat,
         "options_form": form,
         "prompt": chat.options.prompt,
@@ -252,7 +250,6 @@ def chat(request, chat_id):
         "hide_breadcrumbs": True,
         "user_chats": user_chats,
         "mode": mode,
-        "security_labels": SecurityLabel.objects.all(),
         "chat_history_sections": get_chat_history_sections(user_chats),
         "has_tour": True,
         "tour_name": _("AI Assistant"),
@@ -768,23 +765,25 @@ def library_access(request, preset, library, action, old_library=None):
 
 
 @permission_required("chat.access_chat", objectgetter(Chat, "chat_id"))
-def chat_list_item(request, chat_id, current_chat=None):
+def chat_list_item(request, chat_id, current_chat_id):
     chat = get_object_or_404(Chat, id=chat_id)
-    chat.current_chat = bool(current_chat == "True")
+    chat.current_chat = chat.id == current_chat_id
+
     return render(
         request,
         "chat/components/chat_list_item.html",
         {
             "chat": chat,
+            "current_chat_id": current_chat_id,
             "section_index": label_section_index(chat.last_modification_date),
         },
     )
 
 
 @permission_required("chat.access_chat", objectgetter(Chat, "chat_id"))
-def rename_chat(request, chat_id, current_chat=None):
+def rename_chat(request, chat_id, current_chat_id):
     chat = get_object_or_404(Chat, id=chat_id)
-    chat.current_chat = bool(current_chat == "True")
+    chat.current_chat = chat_id == current_chat_id
 
     if request.method == "POST":
         chat_rename_form = ChatRenameForm(request.POST)
@@ -797,7 +796,7 @@ def rename_chat(request, chat_id, current_chat=None):
 
             context = {
                 "chat": chat,
-                "security_labels": SecurityLabel.objects.all(),
+                "current_chat_id": current_chat_id,
                 "section_index": label_section_index(old_last_modification_date),
             }
             return render(request, "chat/components/chat_list_item.html", context)
@@ -808,6 +807,7 @@ def rename_chat(request, chat_id, current_chat=None):
                 {
                     "form": chat_rename_form,
                     "chat": chat,
+                    "current_chat_id": current_chat_id,
                     "section_index": label_section_index(chat.last_modification_date),
                 },
             )
@@ -819,26 +819,9 @@ def rename_chat(request, chat_id, current_chat=None):
         {
             "form": chat_rename_form,
             "chat": chat,
+            "current_chat_id": current_chat_id,
             "section_index": label_section_index(chat.last_modification_date),
         },
-    )
-
-
-# AC-16 & AC-16(2): Allows for the modification of security labels associated with chat sessions
-@permission_required("chat.access_chat", objectgetter(Chat, "chat_id"))
-def set_security_label(request, chat_id, security_label_id):
-    logger.info(
-        "Setting security label for chat.",
-        chat_id=chat_id,
-        security_label_id=security_label_id,
-    )
-    chat = Chat.objects.get(id=chat_id)
-    chat.security_label_id = security_label_id
-    chat.save()
-    return render(
-        request,
-        "chat/components/chat_security_label.html",
-        {"chat": chat, "security_labels": SecurityLabel.objects.all()},
     )
 
 

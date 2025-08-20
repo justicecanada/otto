@@ -80,8 +80,10 @@
             {{ otto_version|safe }}
           </div>
 
+          {% include 'components/app_tabs.html' %}
+
           {% if request.user.is_authenticated %}
-            {% include 'components/search.html' %}
+            {# {% include 'components/search.html' %} #}
             <div class="collapse navbar-collapse flex-fill-lg justify-content-end">
               <ul class="navbar-nav position-relative" id="top-right-nav">
                 {% include 'components/user_menu.html' %}

@@ -51,7 +51,7 @@ function render_markdown(element) {
     // Save agent-steps for re-insertion
     const agent_steps = parent.querySelector(".agent-steps");
     if (to_parse) {
-      parent.innerHTML = md.render(to_parse);
+      parent.innerHTML = md.render(to_parse).replaceAll('&lt;br&gt;', '<br>');
       const current_dots = parent.parentElement.querySelector(".typing");
       // If dots=True on htmx_stream call and we just removed the dots at the beginning of stream,
       // add a new dots element after parent

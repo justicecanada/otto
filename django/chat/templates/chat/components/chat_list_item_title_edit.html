@@ -1,6 +1,6 @@
 {% load i18n %}
 
-<form hx-post="{% url 'chat:rename_chat' chat_id=chat.id current_chat=chat.current_chat %}"
+<form hx-post="{% url 'chat:rename_chat' current_chat_id=current_chat_id chat_id=chat.id %}"
       hx-target="closest li"
       hx-swap="outerHTML"
       hx-trigger="keyup[key=='Enter']"
@@ -10,10 +10,10 @@
         <label for="{{ form.title.id_for_label }}" class="visually-hidden">{% trans "Edit chat title" %}</label>
         {{ form.title }}
     </div>
- 
+
     <button type="button"
             class="btn btn-sm btn-light me-0 ps-2 col-auto d-none cancel-chat-rename-btn"
-            hx-get="{% url 'chat:chat_list_item' chat_id=chat.id current_chat=chat.current_chat %}"
+            hx-get="{% url 'chat:chat_list_item' current_chat_id=current_chat_id chat_id=chat.id %}"
             hx-swap="outerHTML"
             hx-target="closest li">
         <i class="bi bi-x-lg"></i><span class="visually-hidden">{% trans "Cancel" %}</span>

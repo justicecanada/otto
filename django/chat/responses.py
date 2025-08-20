@@ -372,7 +372,7 @@ def translate_response(chat, response_message):
         "What size is the file?\nPlease answer in bytes."
         "\n---\nTranslation: Quelle est la taille du fichier?\nVeuillez répondre en octets.\n"
         f"Translate the following text to {target_language} (Canada):\n"
-        f"{user_message.text}"
+        f"<content_to_translate>\n{user_message.text}\n</content_to_translate>"
         "\n---\nTranslation: "
     )
 
@@ -526,7 +526,11 @@ def qa_response(chat, response_message):
         filter_documents = Document.objects.filter(data_source__in=data_sources)
     elif qa_scope == "documents":
         filter_documents = chat.options.qa_documents.all()
-    if qa_scope != "all" and not filter_documents.exists():
+    else:  # if qa_scope == "all"
+        filter_documents = Document.objects.filter(
+            data_source__library=chat.options.qa_library
+        )
+    if not filter_documents:
         response_str = _(
             "Sorry, I couldn't find any information about that. "
             "Try selecting more folders or documents, or try a different library."
@@ -539,11 +543,6 @@ def qa_response(chat, response_message):
                 response_str=response_str,
             ),
             content_type="text/event-stream",
-        )
-
-    if not filter_documents:
-        filter_documents = Document.objects.filter(
-            data_source__library=chat.options.qa_library
         )
 
     # Summarize mode

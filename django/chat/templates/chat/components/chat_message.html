@@ -78,7 +78,7 @@
 </div>
 
 {% if swap_oob %}
-  {# Update chat title, security label and user costs widget #}
+  {# Update chat title and user costs widget #}
   {% if message.chat.title %}
     <span class="chat-title fw-semibold"
           id="current-chat-title"
@@ -87,7 +87,5 @@
       {{ message.chat.title }}
     </span>
   {% endif %}
-  {% if security_labels %}
-    {% include "chat/components/chat_security_label.html" with chat=message.chat %}
-  {% endif %}
+
 {% endif %}

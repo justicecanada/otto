@@ -174,7 +174,7 @@ a.mode-link:hover {
   width: 20px;
 }
 
-.message-text>*:not(:last-child)+.typing {
+.message-text > *:not(:last-child) + .typing {
   margin-top: 25px;
 }
 
@@ -265,7 +265,6 @@ pre .copy-button:focus {
   position: absolute;
 }
 
-
 #left-sidebar button.options {
   position: absolute;
   top: 0.1rem;
@@ -331,6 +330,15 @@ pre .copy-button:focus {
   opacity: 1 !important;
 }
 
+/* Show: only the very first chat item in the main list, and on hover/focus/current */
+.chat-list-item.current button.pin-button,
+#left-sidebar li:hover .pin-button,
+#left-sidebar li:focus button.pin-button,
+left-sidebar button.pin-button:focus {
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+}
 
 /* Prevent the icons from shifting around when loading */
 #left-sidebar i.bi,
@@ -396,7 +404,7 @@ pre .copy-button:focus {
   background-color: transparent !important;
 }
 
-[data-bs-theme="dark"] .list-group-item+.list-group-item {
+[data-bs-theme="dark"] .list-group-item + .list-group-item {
   background-color: var(----app-primary-bg);
 }
 
@@ -1086,7 +1094,7 @@ div#chat-toolbar {
     z-index: 0;
   }
 
-  &:focus-visible>i {
+  &:focus-visible > i {
     display: block !important;
   }
 }
@@ -1119,7 +1127,7 @@ div#chat-toolbar {
     background-color: var(--bs-light);
   }
 
-  &:focus-visible>i {
+  &:focus-visible > i {
     display: block !important;
   }
 }
@@ -1297,7 +1305,7 @@ div.message-text pre {
   --bs-modal-width: calc(min(100vw - 4rem, 1430px));
 }
 
-#editLibrariesInner div.modal-body>div.row>div {
+#editLibrariesInner div.modal-body > div.row > div {
   min-height: 450px;
 }
 
@@ -1349,7 +1357,7 @@ ul.errorlist {
   word-break: break-word;
 }
 
-#editLibrariesInner .modal-body>.row>div {
+#editLibrariesInner .modal-body > .row > div {
   max-height: calc(100vh - 10rem);
   overflow-y: auto;
 }

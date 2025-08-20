@@ -5622,5 +5622,109 @@
     "law_search": {
         "fr": "recherche_de_législation",
         "fr_auto": "law_search"
+    },
+    "Download all files": {
+        "fr": "",
+        "fr_auto": "Télécharger tous les fichiers"
+    },
+    "Error ID:": {
+        "fr": "",
+        "fr_auto": "ID d’erreur :"
+    },
+    "to": {
+        "fr": "",
+        "fr_auto": "à"
+    },
+    "file(s) still processing": {
+        "fr": "",
+        "fr_auto": "Fichier(s) en cours de traitement"
+    },
+    "No pinned chats": {
+        "fr": "",
+        "fr_auto": "Pas de clavardage épinglé"
+    },
+    "Unpin": {
+        "fr": "",
+        "fr_auto": "Détacher"
+    },
+    "Pin": {
+        "fr": "",
+        "fr_auto": "Épingler"
+    },
+    "Error generating response.": {
+        "fr": "",
+        "fr_auto": "Réponse génératrice d’erreurs."
+    },
+    "Pinned chats": {
+        "fr": "",
+        "fr_auto": "Clavardages épinglés"
+    },
+    "This preset is accessible to all users.": {
+        "fr": "",
+        "fr_auto": "Ce préréglage est accessible à tous les utilisateurs."
+    },
+    "By saving it, you have made the attached Q&A library": {
+        "fr": "",
+        "fr_auto": "En l’enregistrant, vous avez créé la bibliothèque de questions et réponses ci-jointe"
+    },
+    "publicly viewable.": {
+        "fr": "",
+        "fr_auto": "Visible publiquement."
+    },
+    "The following users have been granted access to the Q&A library": {
+        "fr": "",
+        "fr_auto": "Les utilisateurs suivants ont eu accès à la bibliothèque de questions et réponses"
+    },
+    "Other users may not be able to see the attached Q&A library": {
+        "fr": "",
+        "fr_auto": "D’autres utilisateurs peuvent ne pas voir la bibliothèque de questions et réponses jointe"
+    },
+    "unless a library administrator has granted them access.": {
+        "fr": "",
+        "fr_auto": "à moins qu’un administrateur de bibliothèque ne leur ait accordé l’accès."
+    },
+    "Note: This action does NOT change permissions for the previously attached Q&A library": {
+        "fr": "",
+        "fr_auto": "Remarque : Cette action ne modifie PAS les autorisations de la bibliothèque de questions et réponses précédemment attachée"
+    },
+    "Error ID": {
+        "fr": "",
+        "fr_auto": "ID d’erreur"
+    },
+    "done": {
+        "fr": "",
+        "fr_auto": "Fait"
+    },
+    "MB": {
+        "fr": "",
+        "fr_auto": "MB"
+    },
+    "KB": {
+        "fr": "",
+        "fr_auto": "KB"
+    },
+    "bytes": {
+        "fr": "",
+        "fr_auto": "octets"
+    },
+    "Azure Form Recognizer finished OCR text.": {
+        "fr": "",
+        "fr_auto": "Azure Form Recognizer a terminé le texte OCR."
+    },
+    "Azure Form Recognizer finished OCR text. Number of pages:": {
+        "fr": "",
+        "fr_auto": "Azure Form Recognizer a terminé le texte OCR. Nombre de pages :"
+    },
+    "Error ID: {error_id} - {message}": {
+        "fr": "",
+        "fr_auto": "ID d’erreur : {error_id} - {message}"
+    },
+    "Maximum 2000 files / 300MB total": {
+        "fr": "",
+        "fr_auto": "Maximum de 2000 fichiers / 300 Mo au total"
+    },
+    "show app list": {
+        "fr": "",
+        "fr_auto": "Afficher la liste des applications"
     }
 }
