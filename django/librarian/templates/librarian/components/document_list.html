@@ -2,7 +2,10 @@
 {% load rules %}
 
 <div id="librarian-documents" {% if swap %}hx-swap-oob="true"{% endif %}>
-  <h6 id="documents-label">{% trans "Documents" %}</h6>
+  <h6 id="documents-label">
+    {% trans "Documents" %}
+    {% if selected_data_source and selected_data_source.id %}({{ documents|length }}){% endif %}
+  </h6>
   {% if not selected_data_source or not selected_data_source.id %}
     <div class="text-center">
       <em class="small">{% trans "Select a folder to view documents." %}</em>
