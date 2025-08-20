@@ -435,10 +435,11 @@ function copyChatURL(event, btn) {
       navigator.clipboard.writeText(response.chat_url);
       btn.blur();
       btn.classList.add("clicked");
+      dropdown = btn.closest('.dropdown-menu');
       setTimeout(function () {
         btn.classList.remove("clicked");
-      }, 2200);
-      console.log("Chat URL copied to clipboard:", response.chat_url);
+        dropdown.classList.remove('show');
+      }, 600);
     }
   }
 }

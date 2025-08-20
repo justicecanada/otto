@@ -61,6 +61,7 @@
               hx-get="{% url 'chat:share_chat' chat_id=chat.id %}"
               hx-on::after-request="copyChatURL(event, this)"
               hx-swap="none"
+              onclick="event.stopPropagation();"
               role="menuitem">
         <i class="bi bi-link"></i><i class="bi bi-check-lg"></i>
         <span class="ms-2">{% trans 'Copy link' %}</span>
