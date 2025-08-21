@@ -2140,7 +2140,7 @@
         "fr_auto": "Tableau de bord des commentaires"
     },
     "Terms of use": {
-        "fr": "",
+        "fr": "Conditions d’utilisation",
         "fr_auto": "Conditions d’utilisation"
     },
     "Logout": {
@@ -2656,7 +2656,7 @@
         "fr_auto": "Plus ancien"
     },
     "Done": {
-        "fr": "",
+        "fr": "Terminer",
         "fr_auto": "Fait"
     },
     "Start a new chat at any time.": {
@@ -2807,9 +2807,9 @@
         "fr": "",
         "fr_auto": "Menu utilisateur"
     },
-    "Click your name to see your monthly Otto usage, access the Terms of Use, or Logout.": {
-        "fr": "",
-        "fr_auto": "Cliquez sur votre nom pour voir votre utilisation mensuelle d’Otto, accéder aux conditions d’utilisation ou se déconnecter."
+    "Click your name to see your monthly Otto usage or Logout.": {
+        "fr": "Cliquez sur votre nom pour voir votre utilisation mensuelle d’Otto ou vous déconnecter.",
+        "fr_auto": "Cliquez sur votre nom pour voir votre utilisation mensuelle d’Otto ou vous déconnecter."
     },
     "This meter gradually fills up as you use Otto. It represents your monthly personal budget. If you reach your limit, you will no longer be able to use Otto and will have to contact the Business Analytics Center for a temporary exemption.": {
         "fr": "",
@@ -4746,5 +4746,9 @@
     "show app list": {
         "fr": "",
         "fr_auto": "Afficher la liste des applications"
+    },
+    "Click the question mark icon to view this tour again, open the user guide, access the Terms of Use, or get help from the Otto team.": {
+        "fr": "Cliquez sur l’icône en forme de point d’interrogation pour revoir cette visite, ouvrir le guide de l’utilisateur, accéder aux conditions d’utilisation ou obtenir de l’aide de l’équipe d’Otto.",
+        "fr_auto": "Cliquez sur l’icône en forme de point d’interrogation pour revoir cette visite, ouvrir le guide de l’utilisateur, accéder aux conditions d’utilisation ou obtenir de l’aide de l’équipe d’Otto."
     }
 }
