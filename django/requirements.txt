@@ -80,4 +80,4 @@ django-celery-beat==2.7.0
 extract_msg==0.54.1
 
 # AGPL-licensed
-pymupdf4llm==1.26.3
+pymupdf4llm==0.0.27
