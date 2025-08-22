@@ -49,18 +49,20 @@ def check_page_numbers_for_example(md, md_chunks):
 
 
 def test_extract_pdf():
-    # Load a PDF file in "fast" mode (pypdfium)
+    # Load a PDF file in "fast" mode (pymupdf)
     with open(os.path.join(this_dir, "test_files/example.pdf"), "rb") as f:
         content = f.read()
-        md, md_chunks = extract_markdown(content, "PDF", pdf_method="default")
+        extraction_result = extract_markdown(content, "PDF", pdf_method="default")
+        md, md_chunks = extraction_result.markdown, extraction_result.chunks
         check_page_numbers_for_example(md, md_chunks)
 
-    # Load a PDF file in "fast" mode (pypdfium) with a chunk size of 256
+    # Load a PDF file in "fast" mode (pymupdf) with a chunk size of 256
     with open(os.path.join(this_dir, "test_files/example.pdf"), "rb") as f:
         content = f.read()
-        md, md_chunks = extract_markdown(
+        extraction_result = extract_markdown(
             content, "PDF", pdf_method="default", chunk_size=256
         )
+        md, md_chunks = extraction_result.markdown, extraction_result.chunks
         check_page_numbers_for_example(md, md_chunks)
 
 
@@ -70,7 +72,8 @@ def test_extract_pdf_azure_read():
     cost_count = Cost.objects.count()
     with open(os.path.join(this_dir, "test_files/example.pdf"), "rb") as f:
         content = f.read()
-        md, md_chunks = extract_markdown(content, "PDF", pdf_method="azure_read")
+        extraction_result = extract_markdown(content, "PDF", pdf_method="azure_read")
+        md, md_chunks = extraction_result.markdown, extraction_result.chunks
         check_page_numbers_for_example(md, md_chunks)
     assert Cost.objects.count() == cost_count + 1
 
@@ -81,7 +84,8 @@ def test_extract_pdf_azure_layout():
     cost_count = Cost.objects.count()
     with open(os.path.join(this_dir, "test_files/example.pdf"), "rb") as f:
         content = f.read()
-        md, md_chunks = extract_markdown(content, "PDF", pdf_method="azure_layout")
+        extraction_result = extract_markdown(content, "PDF", pdf_method="azure_layout")
+        md, md_chunks = extraction_result.markdown, extraction_result.chunks
         check_page_numbers_for_example(md, md_chunks)
     assert Cost.objects.count() == cost_count + 1
 
@@ -90,7 +94,8 @@ def test_extract_pptx():
     # Load a PPTX file
     with open(os.path.join(this_dir, "test_files/example.pptx"), "rb") as f:
         content = f.read()
-        md, md_chunks = extract_markdown(content, "POWERPOINT")
+        extraction_result = extract_markdown(content, "POWERPOINT")
+        md, md_chunks = extraction_result.markdown, extraction_result.chunks
         logger.debug(md)
         # The powerpoint has the same slide numbers etc. as the PDF
         check_page_numbers_for_example(md, md_chunks)
@@ -100,7 +105,8 @@ def test_extract_docx():
     # Load a DOCX file
     with open(os.path.join(this_dir, "test_files/example.docx"), "rb") as f:
         content = f.read()
-        md, md_chunks = extract_markdown(content, "WORD")
+        extraction_result = extract_markdown(content, "WORD")
+        md, md_chunks = extraction_result.markdown, extraction_result.chunks
         # This doesn't have page numbers, but it should still have md and md_chunks
         assert len(md) > 0
         assert len(md_chunks) > 0
@@ -129,7 +135,8 @@ def test_extract_text():
     # Load a text file
     with open(os.path.join(this_dir, "test_files/example.txt"), "rb") as f:
         content = f.read()
-        md, md_chunks = extract_markdown(content, "TEXT")
+        extraction_result = extract_markdown(content, "TEXT")
+        md, md_chunks = extraction_result.markdown, extraction_result.chunks
         # This doesn't have page numbers, but it should still have md and md_chunks
         assert len(md) > 0
         assert len(md_chunks) > 0
@@ -164,9 +171,11 @@ def test_extract_outlook_msg(client, all_apps_user):
     # Load an Outlook MSG file
     with open(os.path.join(this_dir, "test_files/elephants.msg"), "rb") as f:
         content = f.read()
-        md, md_chunks = extract_markdown(
+        extraction_result = extract_markdown(
             content, "OUTLOOK_MSG", root_document_id=document_id
         )
+        md, md_chunks = extraction_result.markdown, extraction_result.chunks
+
         assert not "<page_1>" in md
         assert len(md) > 0
         assert len(md_chunks) > 0
@@ -195,7 +204,11 @@ def test_extract_eml(client, all_apps_user):
     # Load an EML file
     with open(os.path.join(this_dir, "test_files/attachment_message.eml"), "rb") as f:
         content = f.read()
-        md, md_chunks = extract_markdown(content, "EML", root_document_id=document_id)
+        extraction_result = extract_markdown(
+            content, "EML", root_document_id=document_id
+        )
+        md, md_chunks = extraction_result.markdown, extraction_result.chunks
+
         assert not "<page_1>" in md
         assert len(md) > 0
         assert len(md_chunks) > 0
@@ -208,7 +221,9 @@ def test_extract_png():
     # Load a PNG file
     with open(os.path.join(this_dir, "test_files/ocr-test.png"), "rb") as f:
         content = f.read()
-        md, md_chunks = extract_markdown(content, "IMAGE")
+        extraction_result = extract_markdown(content, "IMAGE")
+        md, md_chunks = extraction_result.markdown, extraction_result.chunks
+
         assert len(md) > 0
         assert len(md_chunks) == 1
         assert "Elephant" in md
@@ -237,7 +252,11 @@ def test_extract_zip(client, all_apps_user):
     # Load a ZIP file
     with open(os.path.join(this_dir, "test_files/example.zip"), "rb") as f:
         content = f.read()
-        md, md_chunks = extract_markdown(content, "ZIP", root_document_id=document_id)
+        extraction_result = extract_markdown(
+            content, "ZIP", root_document_id=document_id
+        )
+        md, md_chunks = extraction_result.markdown, extraction_result.chunks
+
         assert len(md) > 0
         assert len(md_chunks) > 0
         assert "example.txt" in md
@@ -294,7 +313,8 @@ def test_extract_csv():
         [f"Row{i}Col1,Row{i}Col2,Row{i}Col3" for i in range(1, 301)]
     )
 
-    md, md_chunks = extract_markdown(csv_content.encode("utf-8"), "CSV")
+    extraction_result = extract_markdown(csv_content.encode("utf-8"), "CSV")
+    md, md_chunks = extraction_result.markdown, extraction_result.chunks
 
     # Check that the markdown table is correctly output
     assert len(md) > 0
@@ -333,7 +353,9 @@ def test_extract_excel():
     with open(excel_path, "rb") as f:
         content = f.read()
 
-    md, md_chunks = extract_markdown(content, "EXCEL")
+    extraction_result = extract_markdown(content, "EXCEL")
+    md, md_chunks = extraction_result.markdown, extraction_result.chunks
+
     assert len(md) > 0
     assert len(md_chunks) > 1
     for sheet_name in sheets:

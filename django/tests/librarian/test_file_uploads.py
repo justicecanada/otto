@@ -13,7 +13,7 @@ from librarian.utils.process_engine import (
     csv_to_markdown,
     docx_to_markdown,
     excel_to_markdown,
-    pdf_to_text_pdfium,
+    pdf_to_text_pymupdf,
     pptx_to_markdown,
 )
 
@@ -74,7 +74,7 @@ def test_csv_to_markdown_corrupted():
 
 def test_pdf_to_text_corrupted():
     with pytest.raises(Exception) as exc_info:
-        pdf_to_text_pdfium(b"corrupted content")
+        pdf_to_text_pymupdf(b"corrupted content")
     assert "Corrupt PDF file" in str(exc_info.value)
 
 

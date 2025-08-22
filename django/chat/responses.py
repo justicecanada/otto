@@ -12,6 +12,7 @@ from django.utils.translation import gettext as _
 from asgiref.sync import sync_to_async
 from data_fetcher.util import get_request
 from llama_index.core.vector_stores.types import MetadataFilter, MetadataFilters
+from memory_profiler import profile
 from rules.contrib.views import objectgetter
 from structlog import get_logger
 from structlog.contextvars import bind_contextvars
@@ -37,7 +38,7 @@ from chat.utils import (
 )
 from librarian.models import DataSource, Document, Library
 from otto.models import Cost
-from otto.utils.common import cad_cost
+from otto.utils.common import cad_cost, log_mem
 from otto.utils.decorators import permission_required
 
 logger = get_logger(__name__)
@@ -190,6 +191,7 @@ def summarize_response(chat, response_message):
     Summarize the user's input text (or URL) and stream the response.
     If the summarization technique does not support streaming, send final response only.
     """
+    log_mem("start summarize_response")
     user_message = response_message.parent
     files = user_message.sorted_files if user_message is not None else []
     summarize_prompt = chat.options.summarize_prompt
@@ -199,28 +201,167 @@ def summarize_response(chat, response_message):
     error_str = ""
 
     if len(files) > 0:
+        from structlog.contextvars import get_contextvars
+
+        from chat.tasks import extract_text_task
+
+        # Get current context variables to pass to Celery tasks
+        context_vars = get_contextvars()
+
+        # Start Celery tasks for text extraction
+        task_ids = []
+        for file in files:
+            if not file.text:
+                task = extract_text_task.delay(
+                    file.id, pdf_method="default", context_vars=context_vars
+                )
+                task_ids.append(task.id)
+
+        # If we have tasks running, show progress and wait for completion
+        if task_ids:
+
+            async def file_extraction_and_summarization_generator(task_ids):
+                from chat.models import ChatFile
+
+                yield _("Extracting text from files...")
+                completed_files = []
+                error_files = []
+
+                try:
+                    # Wait for all text extraction tasks to complete
+                    while task_ids:
+                        await asyncio.sleep(1)
+                        for task_id in task_ids.copy():
+                            task = extract_text_task.AsyncResult(task_id)
+                            if task.state in [
+                                "SUCCESS",
+                                "FAILURE",
+                                "REVOKED",
+                                "TIMEOUT",
+                            ]:
+                                task_ids.remove(task_id)
+                                if task.state == "SUCCESS":
+                                    file_id = task.result
+                                    # Refresh the file object from the database
+                                    file = await sync_to_async(ChatFile.objects.get)(
+                                        id=file_id
+                                    )
+                                    completed_files.append(file)
+                                elif task.state == "FAILURE":
+                                    error_id = str(uuid.uuid4())[:7]
+                                    error_str = _("Error extracting text from file.")
+                                    error_str += f" _({_('Error ID:')} {error_id})_"
+                                    error_files.append(error_str)
+                                    logger.exception(
+                                        f"Error extracting text from file: {task.exception()}",
+                                        error_id=error_id,
+                                        message_id=response_message.id,
+                                        chat_id=chat.id,
+                                    )
+
+                        if task_ids:
+                            remaining_count = len(task_ids)
+                            completed_count = len(completed_files) + len(error_files)
+                            total_count = completed_count + remaining_count
+                            yield f"{_('Extracting text from files')} ({completed_count}/{total_count} {_('complete')})..."
+
+                    # Now all extraction is complete, start summarization
+                    yield f"{_('Text extraction complete. Starting summarization...')}"
+
+                    # Build responses for successful files
+                    all_files = completed_files + [
+                        f for f in files if f.text
+                    ]  # Include files that already had text
+                    titles = [file.filename for file in all_files]
+                    responses = []
+
+                    for file in all_files:
+                        if await sync_to_async(cache.get)(
+                            f"stop_response_{response_message.id}", False
+                        ):
+                            break
+                        if file.text:
+                            # Create the summarization response generator
+                            response = summarize_long_text(
+                                file.text,
+                                llm,
+                                summarize_prompt,
+                            )
+                            responses.append(response)
+                        else:
+                            # This shouldn't happen, but handle it just in case
+                            error_str = _("Error: File has no text after extraction.")
+                            responses.append(stream_to_replacer([error_str]))
+
+                    # Add any extraction errors as responses
+                    for error_str in error_files:
+                        responses.append(stream_to_replacer([error_str]))
+                        titles.append(_("Error"))
+
+                    # Use the existing batch processing logic
+                    title_batches = create_batches(titles, batch_size)
+                    response_batches = create_batches(responses, batch_size)
+
+                    # Create batch generators
+                    batch_generators = [
+                        combine_response_replacers(batch_responses, batch_titles)
+                        for batch_responses, batch_titles in zip(
+                            response_batches, title_batches
+                        )
+                    ]
+
+                    # Stream the combined responses
+                    async for response in combine_batch_generators(batch_generators):
+                        yield response
+
+                except Exception as e:
+                    error_id = str(uuid.uuid4())[:7]
+                    error_str = _("Error processing files.")
+                    error_str += f" _({_('Error ID:')} {error_id})_"
+                    logger.exception(
+                        f"Error in file extraction and summarization generator: {e}",
+                        error_id=error_id,
+                        message_id=response_message.id,
+                        chat_id=chat.id,
+                    )
+                    yield error_str
+
+            return StreamingHttpResponse(
+                streaming_content=htmx_stream(
+                    chat,
+                    response_message.id,
+                    llm,
+                    response_replacer=file_extraction_and_summarization_generator(
+                        task_ids
+                    ),
+                    dots=True,
+                    wrap_markdown=True,
+                    remove_stop=True,
+                ),
+                content_type="text/event-stream",
+            )
+
+        # If no files need extraction, proceed with existing logic for files that already have text
         titles = [file.filename for file in files]
         responses = []
         for file in files:
             if cache.get(f"stop_response_{response_message.id}", False):
                 break
             if not file.text:
-                try:
-                    file.extract_text(pdf_method="default")
-                except Exception as e:
-                    error_id = str(uuid.uuid4())[:7]
-                    error_str = _(
-                        "Error extracting text from file. Try copying and pasting the text."
-                    )
-                    error_str += f" _({_('Error ID:')} {error_id})_"
-                    responses.append(stream_to_replacer([error_str]))
-                    logger.exception(
-                        f"Error extracting text from file:{e}",
-                        error_id=error_id,
-                        message_id=response_message.id,
-                        chat_id=chat.id,
-                    )
-                    continue
+                # This shouldn't happen since we should have processed all files above
+                error_id = str(uuid.uuid4())[:7]
+                error_str = _(
+                    "Error: File has no extracted text. Try re-uploading the file."
+                )
+                error_str += f" _({_('Error ID:')} {error_id})_"
+                responses.append(stream_to_replacer([error_str]))
+                logger.error(
+                    f"File {file.filename} has no text when no Celery tasks were needed",
+                    error_id=error_id,
+                    message_id=response_message.id,
+                    chat_id=chat.id,
+                )
+                continue
             responses.append(
                 summarize_long_text(
                     file.text,
@@ -239,6 +380,7 @@ def summarize_response(chat, response_message):
         ]
 
         response_replacer = combine_batch_generators(batch_generators)
+        log_mem("end summarize_response")
         return StreamingHttpResponse(
             streaming_content=htmx_stream(
                 chat,
@@ -266,6 +408,8 @@ def summarize_response(chat, response_message):
             text_to_summarize = user_message.text
 
     if error_str:
+        log_mem("end summarize_response (error)")
+
         return StreamingHttpResponse(
             streaming_content=htmx_stream(
                 chat,
@@ -281,6 +425,7 @@ def summarize_response(chat, response_message):
         llm,
         summarize_prompt,
     )
+    log_mem("end summarize_response")
     return StreamingHttpResponse(
         streaming_content=htmx_stream(
             chat,
