@@ -206,7 +206,8 @@ def summarize_response(chat, response_message):
         # Get current context variables to pass to Celery tasks
         context_vars = get_contextvars()
 
-        # Start Celery tasks for text extraction
+        # Start Celery tasks for text extraction and map task IDs to files
+        task_id_to_file = {}
         task_ids = []
         for file in files:
             if not file.text:
@@ -214,16 +215,19 @@ def summarize_response(chat, response_message):
                     file.id, pdf_method="default", context_vars=context_vars
                 )
                 task_ids.append(task.id)
+                task_id_to_file[task.id] = file
 
         # If we have tasks running, show progress and wait for completion
         if task_ids:
 
-            async def file_extraction_and_summarization_generator(task_ids):
+            async def file_extraction_and_summarization_generator(
+                task_ids, task_id_to_file
+            ):
                 from chat.models import ChatFile
 
                 yield _("Extracting text from files...")
                 completed_files = []
-                error_files = []
+                error_files = []  # Will store tuples: (error_str, failed_file)
 
                 try:
                     # Wait for all text extraction tasks to complete
@@ -247,14 +251,30 @@ def summarize_response(chat, response_message):
                                     completed_files.append(file)
                                 elif task.state == "FAILURE":
                                     error_id = str(uuid.uuid4())[:7]
-                                    error_str = _("Error extracting text from file.")
+                                    failed_file = task_id_to_file.get(task.id)
+                                    file_label = (
+                                        f" ({failed_file.filename})"
+                                        if failed_file
+                                        and hasattr(failed_file, "filename")
+                                        else ""
+                                    )
+                                    error_str = _(
+                                        f"Error extracting text from file{file_label}."
+                                    )
                                     error_str += f" _({_('Error ID:')} {error_id})_"
-                                    error_files.append(error_str)
-                                    logger.exception(
-                                        f"Error extracting text from file: {task.exception()}",
+                                    error_files.append((error_str, failed_file))
+                                    # Log the exception info from the failed task result, if available
+                                    logger.error(
+                                        "Error extracting text from file",
+                                        exc_info=(
+                                            True
+                                            if isinstance(task.result, BaseException)
+                                            else None
+                                        ),
                                         error_id=error_id,
                                         message_id=response_message.id,
                                         chat_id=chat.id,
+                                        file=file_label,
                                     )
 
                         if task_ids:
@@ -291,10 +311,13 @@ def summarize_response(chat, response_message):
                             error_str = _("Error: File has no text after extraction.")
                             responses.append(stream_to_replacer([error_str]))
 
-                    # Add any extraction errors as responses
-                    for error_str in error_files:
+                    # Add any extraction errors as responses, using the filename as the title
+                    for error_str, failed_file in error_files:
                         responses.append(stream_to_replacer([error_str]))
-                        titles.append(_("Error"))
+                        if failed_file and hasattr(failed_file, "filename"):
+                            titles.append(failed_file.filename)
+                        else:
+                            titles.append(_("Error"))
 
                     # Use the existing batch processing logic
                     title_batches = create_batches(titles, batch_size)
@@ -330,7 +353,7 @@ def summarize_response(chat, response_message):
                     response_message.id,
                     llm,
                     response_replacer=file_extraction_and_summarization_generator(
-                        task_ids
+                        task_ids, task_id_to_file
                     ),
                     dots=True,
                     wrap_markdown=True,
