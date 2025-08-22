@@ -94,7 +94,7 @@ def source(request, source_id):
         )
     law.url = get_law_url(law, lang)
 
-    if law.short_title == "THE CONSTITUTION ACTS, 1867 to 1982":
+    if law.short_title_en == "THE CONSTITUTION ACTS, 1867 to 1982":
         url_suffix = ""
     else:
         url_suffix = f"{'FullText' if lang=='eng' else 'TexteComplet'}.html#{source_node['metadata']['lims_id']}"
