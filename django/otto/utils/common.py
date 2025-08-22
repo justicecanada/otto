@@ -1,4 +1,3 @@
-import datetime
 import os
 from urllib.parse import quote, urlparse
 
@@ -6,7 +5,6 @@ from django.conf import settings
 from django.http import HttpResponse
 from django.shortcuts import redirect
 
-import psutil
 import tldextract
 
 
