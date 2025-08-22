@@ -75,7 +75,7 @@ def test_csv_to_markdown_corrupted():
 def test_pdf_to_text_corrupted():
     with pytest.raises(Exception) as exc_info:
         pdf_to_text_pymupdf(b"corrupted content")
-    assert "Corrupt PDF file" in str(exc_info.value)
+    assert "Failed to open stream" in str(exc_info.value)
 
 
 def test_empty_csv():
