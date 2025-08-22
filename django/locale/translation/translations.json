@@ -4810,5 +4810,9 @@
     "(for complex scans, $$$)": {
         "fr": "",
         "fr_auto": "(pour les numérisations complexes, $$$)"
+    },
+    "_(The extracted text was very short. If this isn't correct, try copy & pasting the webpage here.)_": {
+        "fr": "",
+        "fr_auto": "_(Le texte extrait était très court. Si ce n’est pas correct, essayez de copier-coller la page Web ici.)_"
     }
 }
