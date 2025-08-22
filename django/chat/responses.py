@@ -398,8 +398,9 @@ def summarize_response(chat, response_message):
             text_to_summarize = url_to_text(user_message.text)
             # Check if response text is too short (most likely a website blocking Otto)
             if len(text_to_summarize.split()) < 35:
-                error_str = _(
-                    "Couldn't retrieve the webpage. The site might block bots. Try copy & pasting the webpage here."
+                error_str = text_to_summarize + "\n\n"
+                error_str += _(
+                    "_(The extracted text was very short. If this isn't correct, try copy & pasting the webpage here.)_"
                 )
         except ValidationError:
             text_to_summarize = user_message.text
