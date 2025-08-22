@@ -7,7 +7,7 @@ const tourSteps = [
     element: "#user-menu-button",
     popover: {
       title: "{% trans 'User menu' %}",
-      description: "{% trans 'Click your name to see your monthly Otto usage, access the Terms of Use, or Logout.' %}",
+      description: "{% trans 'Click your name to see your monthly Otto usage or Logout.' %}",
       onNextClick: () => {
         // Animate meter id="cost-bar-inner" from values 0 to 100
         const meter = document.getElementById("cost-bar-inner");
@@ -53,7 +53,7 @@ const tourSteps = [
     element: "#help-button",
     popover: {
       title: "{% trans 'Get help' %}",
-      description: "{% trans 'Click the question mark icon to view this tour again, open the user guide, or get help from the Otto team.' %}",
+      description: "{% trans 'Click the question mark icon to view this tour again, open the user guide, access the Terms of Use, or get help from the Otto team.' %}",
       onNextClick: () => {
         htmx.ajax("POST", '{% url "mark_tour_completed" tour_name="homepage" %}', {swap: "none"});
         driverObj.moveNext();
