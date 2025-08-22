@@ -1,0 +1,143 @@
+// let res = http.get(`${base_url}/load_test/?summarize_pdf=large.pdf&mock_llm`);
+// 10 to 20 users
+// 3 celery gevent workers 16 concurrency each
+
+EXECUTION
+    iteration_duration.............: avg = 15.2s min = 6.44s med = 15.85s max = 23s p(90) = 20.71s p(95) = 22.1s
+    iterations.....................: 25     0.717211 / s
+    vus............................: 7      min = 1       max = 19
+    vus_max........................: 20     min = 20      max = 20;
+
+NETWORK
+    data_received..................: 14 kB  386 B / s
+    data_sent......................: 2.8 kB 81 B / s;
+
+
+
+
+running(34.9s), 00 / 20 VUs, 25 complete and 0 interrupted iterations;
+
+
+// With only 1 gevent worker
+    EXECUTION
+    iteration_duration.............: avg=22s    min=8.57s med=21.5s  max=34.53s p(90)=31.85s p(95)=32.87s
+    iterations.....................: 17     0.339993/s
+    vus............................: 7      min=1       max=19
+    vus_max........................: 20     min=20      max=20
+
+    NETWORK
+    data_received..................: 9.7 kB 194 B/s
+    data_sent......................: 2.7 kB 54 B/s
+
+
+
+
+running (50.0s), 00/20 VUs, 17 complete and 7 interrupted iterations
+default ✓ [======================================] 00/20 VUs  20s
+
+
+
+// Small file but 3 of them, 50 to 100 users
+// 1 worker
+
+ EXECUTION
+    iteration_duration.............: avg=20.29s min=3.6s med=22.46s max=24.4s p(90)=23.71s p(95)=24.01s
+    iterations.....................: 115   2.925755/s
+    vus............................: 3     min=3        max=99 
+    vus_max........................: 100   min=100      max=100
+
+    NETWORK
+    data_received..................: 63 kB 1.6 kB/s
+    data_sent......................: 13 kB 337 B/s
+
+
+
+// With 3 workers
+
+running (39.3s), 000/100 VUs, 115 complete and 0 interrupted iterations
+default ✓ [======================================] 000/100 VUs  20s
+
+
+
+    EXECUTION
+    iteration_duration.............: avg=20.86s min=4.1s med=22.79s max=25.78s p(90)=24.81s p(95)=25.24s
+    iterations.....................: 116   2.937765/s
+    vus............................: 14    min=5        max=99 
+    vus_max........................: 100   min=100      max=100
+
+    NETWORK
+    data_received..................: 63 kB 1.6 kB/s
+    data_sent......................: 13 kB 338 B/s
+
+
+
+
+running (39.5s), 000/100 VUs, 116 complete and 0 interrupted iterations
+default ✓ [======================================] 000/100 VUs  20s
+
+-=-----
+
+
+# triple big file, 5 to 10 users
+# 3 workers
+
+    HTTP
+    http_req_duration..............: avg=28.65s min=19.23s med=30.52s max=34.54s p(90)=33.78s p(95)=34.16s
+      { expected_response:true }...: avg=28.65s min=19.23s med=30.52s max=34.54s p(90)=33.78s p(95)=34.16s
+    http_req_failed................: 0.00%  0 out of 9
+    http_reqs......................: 9      0.189167/s
+
+    EXECUTION
+    iteration_duration.............: avg=29.65s min=20.24s med=31.53s max=35.54s p(90)=34.79s p(95)=35.17s
+    iterations.....................: 9      0.189167/s
+    vus............................: 4      min=1      max=9 
+    vus_max........................: 10     min=10     max=10
+
+    NETWORK
+    data_received..................: 4.9 kB 103 B/s
+    data_sent......................: 1.1 kB 24 B/s
+
+
+
+
+running (47.6s), 00/10 VUs, 9 complete and 0 interrupted iterations
+default ✓ [======================================] 00/10 VUs  20s
+
+
+# 1 worker
+
+   EXECUTION
+    iteration_duration.............: avg=33.41s min=25.58s med=32.91s max=42.25s p(90)=40.29s p(95)=41.27s
+    iterations.....................: 4      0.079988/s
+    vus............................: 5      min=1      max=9 
+    vus_max........................: 10     min=10     max=10
+
+    NETWORK
+    data_received..................: 2.2 kB 43 B/s
+    data_sent......................: 1.1 kB 23 B/s
+
+
+
+
+running (50.0s), 00/10 VUs, 4 complete and 5 interrupted iterations
+default ✓ [======================================] 05/10 VUs  20s
+
+
+# 1 worker but prefork: celery -A otto worker -l INFO --pool=prefork --concurrency=4 -n worker1
+
+
+    EXECUTION
+    iteration_duration.............: avg=23.64s min=12.8s med=23.7s  max=33.04s p(90)=30.72s p(95)=31.88s
+    iterations.....................: 8      0.159998/s
+    vus............................: 3      min=1      max=9 
+    vus_max........................: 10     min=10     max=10
+
+    NETWORK
+    data_received..................: 4.3 kB 87 B/s
+    data_sent......................: 1.4 kB 28 B/s
+
+
+
+
+running (50.0s), 00/10 VUs, 8 complete and 3 interrupted iterations
+default ✓ [======================================] 03/10 VUs  20s
