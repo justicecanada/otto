@@ -129,16 +129,3 @@ def robust_redirect(request, redirect_url):
         response["HX-Redirect"] = redirect_url
         return response
     return redirect(redirect_url)
-
-
-# Create a unique log file when Django starts
-logfile_path = os.path.join(
-    settings.BASE_DIR, f"memlog_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
-)
-
-
-def log_mem(label):
-    proc = psutil.Process(os.getpid())
-    mem_str = f"[MEM] {label}: {proc.memory_info().rss/1024/1024:.1f} MiB\n"
-    with open(logfile_path, "a") as f:
-        f.write(mem_str)

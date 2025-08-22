@@ -542,9 +542,9 @@ WARN_COST = 1.0
 
 FILE_FORM_UPLOAD_DIR = "tmp_uploads_dir"
 FILE_FORM_MUST_LOGIN = True
-# The default chunkSize for file uploads is 2.5MB, we reduce Django's in-memory file max
-# to 2MB to reduce memory usage when multiple users upload files simultaneously
-FILE_UPLOAD_MAX_MEMORY_SIZE = 2 * 1024 * 1024
+# The default chunkSize for file uploads in Django-File-Form is 2.5MB
+# Reducing to 1MB means that it should always write chunks to disk (to avoid stateful memory issues)
+FILE_UPLOAD_MAX_MEMORY_SIZE = 1 * 1024 * 1024
 
 # Ensure uploaded files are moved, not copied, to avoid memory spikes
 FILE_FORM_ALWAYS_COPY_UPLOADED_FILE = False

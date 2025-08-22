@@ -13,11 +13,9 @@ from autocomplete import HTMXAutoComplete, widgets
 from autocomplete.widgets import Autocomplete
 from data_fetcher.util import get_request
 from django_file_form.forms import FileFormMixin, MultipleUploadedFileField
-from memory_profiler import profile
 from rules import is_group_member
 from structlog import get_logger
 
-from chat.llm_models import get_chat_model_choices, get_grouped_chat_model_choices
 from chat.models import (
     QA_MODE_CHOICES,
     QA_PROCESS_MODE_CHOICES,
@@ -29,7 +27,6 @@ from chat.models import (
 )
 from librarian.models import DataSource, Document, Library, SavedFile
 from librarian.utils.process_engine import generate_hash
-from otto.utils.common import log_mem
 
 logger = get_logger(__name__)
 
@@ -583,7 +580,6 @@ class UploadForm(FileFormMixin, forms.Form):
     input_file = MultipleUploadedFileField()
 
     def save(self):
-        log_mem("start UploadForm.save")
         saved_files = []
         metadata = json.loads(self.cleaned_data["input_file-metadata"])
         for f in self.cleaned_data["input_file"]:
@@ -608,5 +604,4 @@ class UploadForm(FileFormMixin, forms.Form):
                 f.close()
 
         self.delete_temporary_files()
-        log_mem("end UploadForm.save")
         return saved_files

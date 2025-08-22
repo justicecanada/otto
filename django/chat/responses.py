@@ -12,7 +12,6 @@ from django.utils.translation import gettext as _
 from asgiref.sync import sync_to_async
 from data_fetcher.util import get_request
 from llama_index.core.vector_stores.types import MetadataFilter, MetadataFilters
-from memory_profiler import profile
 from rules.contrib.views import objectgetter
 from structlog import get_logger
 from structlog.contextvars import bind_contextvars
@@ -38,7 +37,7 @@ from chat.utils import (
 )
 from librarian.models import DataSource, Document, Library
 from otto.models import Cost
-from otto.utils.common import cad_cost, log_mem
+from otto.utils.common import cad_cost
 from otto.utils.decorators import permission_required
 
 logger = get_logger(__name__)
@@ -191,7 +190,6 @@ def summarize_response(chat, response_message):
     Summarize the user's input text (or URL) and stream the response.
     If the summarization technique does not support streaming, send final response only.
     """
-    log_mem("start summarize_response")
     user_message = response_message.parent
     files = user_message.sorted_files if user_message is not None else []
     summarize_prompt = chat.options.summarize_prompt
@@ -380,7 +378,6 @@ def summarize_response(chat, response_message):
         ]
 
         response_replacer = combine_batch_generators(batch_generators)
-        log_mem("end summarize_response")
         return StreamingHttpResponse(
             streaming_content=htmx_stream(
                 chat,
@@ -408,7 +405,6 @@ def summarize_response(chat, response_message):
             text_to_summarize = user_message.text
 
     if error_str:
-        log_mem("end summarize_response (error)")
 
         return StreamingHttpResponse(
             streaming_content=htmx_stream(
@@ -425,7 +421,6 @@ def summarize_response(chat, response_message):
         llm,
         summarize_prompt,
     )
-    log_mem("end summarize_response")
     return StreamingHttpResponse(
         streaming_content=htmx_stream(
             chat,

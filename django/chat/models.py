@@ -26,7 +26,7 @@ from chat.prompts import current_time_prompt
 from librarian.models import DataSource, Library, SavedFile
 from librarian.utils.process_engine import guess_content_type
 from otto.models import User
-from otto.utils.common import display_cad_cost, log_mem, set_costs
+from otto.utils.common import display_cad_cost, set_costs
 
 logger = get_logger(__name__)
 
@@ -637,8 +637,6 @@ class ChatFile(models.Model):
 
     def extract_text(self, pdf_method="default"):
 
-        log_mem("start extract_text, importing utils.process_engine")
-
         from librarian.utils.process_engine import (
             extract_markdown,
             get_process_engine_from_type,
@@ -648,23 +646,16 @@ class ChatFile(models.Model):
             return
 
         with self.saved_file.file.open("rb") as file:
-            log_mem("file.read()")
             content = file.read()
-            log_mem("extract_text, guess_content_type")
             content_type = guess_content_type(
                 content, self.saved_file.content_type, self.filename
             )
-            log_mem("extract_text, get_process_engine_from_type")
             process_engine = get_process_engine_from_type(content_type)
-            log_mem(
-                f"extract_text, extract_markdown (process engine {process_engine}, {self.saved_file.file.name})"
-            )
             # Chunk size 0 means no chunking (not needed for summarization)
             extraction_result = extract_markdown(
                 content, process_engine, pdf_method=pdf_method, chunk_size=0
             )
             self.text = extraction_result.markdown
-            log_mem("Saving django object")
             self.save()
 
 

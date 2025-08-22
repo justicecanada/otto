@@ -31,13 +31,10 @@ def extract_text_task(file_id, pdf_method="default", context_vars=None):
             get_process_engine_from_type,
             guess_content_type,
         )
-        from otto.utils.common import log_mem
 
         # Bind context variables for cost tracking
         if context_vars:
             bind_contextvars(**context_vars)
-
-        log_mem("start extract_text_task")
 
         file = ChatFile.objects.get(id=file_id)
 
@@ -45,25 +42,17 @@ def extract_text_task(file_id, pdf_method="default", context_vars=None):
             raise Exception("No saved file found")
 
         with file.saved_file.file.open("rb") as file_handle:
-            log_mem("file.read()")
             content = file_handle.read()
-            log_mem("extract_text_task, guess_content_type")
             content_type = guess_content_type(
                 content, file.saved_file.content_type, file.filename
             )
-            log_mem("extract_text_task, get_process_engine_from_type")
             process_engine = get_process_engine_from_type(content_type)
-            log_mem(
-                f"extract_text_task, extract_markdown (process engine {process_engine}, {file.saved_file.file.name})"
-            )
             extraction_result = extract_markdown(
                 content, process_engine, pdf_method=pdf_method
             )
             file.text = extraction_result.markdown
-            log_mem("extract_text_task, saving django object")
             file.save()
 
-        log_mem("end extract_text_task")
         return file_id
 
     except Exception as e:

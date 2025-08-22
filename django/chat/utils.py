@@ -33,7 +33,7 @@ from chat.llm import OttoLLM
 from chat.models import AnswerSource, Chat, ChatOptions, Message
 from chat.prompts import QA_PRUNING_INSTRUCTIONS, current_time_prompt
 from otto.models import CostType
-from otto.utils.common import cad_cost, display_cad_cost, log_mem
+from otto.utils.common import cad_cost, display_cad_cost
 
 logger = get_logger(__name__)
 # Markdown instance
@@ -257,8 +257,6 @@ async def htmx_stream(
     ##############################
     # Start of the main function #
     ##############################
-    log_mem("start htmx_stream")
-
     is_untitled_chat = chat.title.strip() == ""
     full_message = ""
     stop_warning_message = _(
@@ -386,8 +384,6 @@ async def htmx_stream(
 
     # Render the message template, wrapped in SSE format
     context["message"].json = json.dumps(str(full_message))
-
-    log_mem("end htmx_stream (last yield about to occur)")
 
     yield sse_string(
         await sync_to_async(render_to_string)(
