@@ -54,6 +54,7 @@ test_media
 
 # Ignore load testing results
 load_testing/.results/*
+load_test_results.txt
 tld_cache/
 pdf_benchmark_results*
 memlog*
