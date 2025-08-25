@@ -126,7 +126,8 @@ AZURE_CONTAINER = os.environ.get(
     "AZURE_STORAGE_CONTAINER", ""
 )  # Azure as default storage requires this name to be AZURE_STORAGE_CONTAINER
 
-DEBUG = os.environ.get("DEBUG", "False") == "True"
+# DEBUG = os.environ.get("DEBUG", "False") == "True"
+DEBUG = "False"
 print("Running in debug mode:", DEBUG)
 DEBUG_PROPAGATE_EXCEPTIONS = True
 

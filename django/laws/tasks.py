@@ -152,7 +152,8 @@ def update_laws(
                 # Subset of legislation, for testing
                 law_ids_to_load = SAMPLE_LAW_IDS
             if not small and not eng_law_ids:
-                law_ids_to_load.append("Constitution 2020")
+                print("Using default law IDs for loading:", law_ids_to_load)
+                # law_ids_to_load.append("Constitution 2020")
             eng_law_ids = law_ids_to_load
 
         with cancellation_guard(current_task_id):
