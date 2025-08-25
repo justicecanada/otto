@@ -7,6 +7,7 @@ from datetime import timedelta
 from django.conf import settings
 from django.utils.timezone import now
 
+import markdown
 import requests
 from llama_index.core.node_parser import SentenceSplitter
 from llama_index.core.schema import TextNode
@@ -14,6 +15,8 @@ from lxml import etree as ET
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 from structlog import get_logger
+
+md = markdown.Markdown(extensions=["fenced_code", "nl2br", "tables"], tab_length=2)
 
 logger = get_logger(__name__)
 
@@ -151,9 +154,12 @@ def law_xml_to_nodes(file_path):
 def section_to_nodes(section, lang, chunk_size=1024, chunk_overlap=100):
     if chunk_size < 50:
         raise ValueError("Chunk size must be at least 50 tokens.")
-    splitter = SentenceSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
-    # Split the text into chunks
-    chunks = splitter.split_text(section["text"])
+    if "_schedule_" in section["section_id"]:
+        chunks = section["text"]
+    else:
+        splitter = SentenceSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
+        # Split the text into chunks
+        chunks = splitter.split_text(section["text"])
     # Create a node from each chunk
     nodes = []
     metadata = {
@@ -210,6 +216,74 @@ def _get_link(element):
         if element is not None and "link" in element.attrib.keys()
         else None
     )
+
+
+def parse_table(table_elem):
+    # Find header row (first or second <row> in <thead>)
+    thead = table_elem.find(".//thead")
+    # header_row = thead.findall("row")[1]
+    header_rows = thead.findall("row") if thead is not None else []
+    if len(header_rows) >= 2:
+        header_row = header_rows[1]
+    elif len(header_rows) == 1:
+        header_row = header_rows[0]
+    else:
+        # No header row found; return empty headers and rows
+        return [], []
+    headers = [
+        entry.text.strip() if entry.text is not None else ""
+        for entry in header_row.findall("entry")
+    ]
+
+    # Find body rows
+    tbody = table_elem.find(".//tbody")
+    body_rows = []
+    for row in tbody.findall("row"):
+        cells = [extract_entry_text(entry) for entry in row.findall("entry")]
+        body_rows.append(cells)
+    return headers, body_rows
+
+
+def extract_entry_text(entry):
+    # Check for <List> child
+    list_elem = entry.find("List")
+    if list_elem is not None:
+        items = [
+            item.find("Text").text.strip()
+            for item in list_elem.findall("Item")
+            if item.find("Text") is not None
+        ]
+        return " ".join(items)
+    # Otherwise, use direct text (if any)
+    return entry.text.strip() if entry.text else ""
+
+
+def markdown_header(headers):
+    header_line = "| " + " | ".join(headers) + " |"
+    separator = "| " + " | ".join(["---"] * len(headers)) + " |"
+    return header_line + "\n" + separator
+
+
+def markdown_rows(rows):
+    return "\n".join(["| " + " | ".join(row) + " |" for row in rows])
+
+
+def chunk_table(headers, body_rows, chunk_size=25):
+    chunks = []
+    for i in range(0, len(body_rows), chunk_size):
+        chunk = body_rows[i : i + chunk_size]
+        md = markdown_header(headers) + "\n" + markdown_rows(chunk)
+        chunks.append(md)
+    return chunks
+
+
+def _chunk_schedule_text(element):
+    tables = element.findall(".//table")
+    chunks = []
+    for table_idx, table_elem in enumerate(tables):
+        headers, body_rows = parse_table(table_elem)
+        chunks = chunk_table(headers, body_rows, chunk_size=25)
+    return chunks
 
 
 def _get_joined_text(
@@ -415,7 +489,7 @@ def get_dict_from_xml(xml_filename):
                 d["title_str"],
                 (schedule["id"] if schedule["id"] else "Schedule"),
                 "",
-                schedule["text"],
+                # schedule["text"],
             ]
         )
     # Finally, the preamble also needs a "all_str" field
@@ -595,13 +669,14 @@ def get_schedule(schedule):
     # if schedule "id" attribute is RelatedProvs or NifProvs, skip it
     if schedule.attrib.get("id", None) in ["RelatedProvs", "NifProvs"]:
         return None
+    _chunk_schedule_text(schedule)
     return {
         "id": _get_text(schedule.find(".//Label")),
         "headings": [
             _get_text(schedule.find(".//TitleText")) or "",
         ],
         "marginal_note": _get_text(schedule.find(".//MarginalNote")),
-        "text": _get_joined_text(schedule),
+        "text": _chunk_schedule_text(schedule),
         "in_force_start_date": schedule.attrib.get(
             "{http://justice.gc.ca/lims}inforce-start-date", None
         ),
