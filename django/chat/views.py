@@ -1,30 +1,27 @@
 import json
-import os
 import re
 import uuid
 
-from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
 from django.db.models import Q
-from django.http import HttpRequest, HttpResponse, JsonResponse
+from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils import timezone
-from django.utils.html import format_html
 from django.utils.translation import get_language
 from django.utils.translation import gettext as _
-from django.views.decorators.http import require_GET, require_POST
+from django.views.decorators.http import require_POST
 
 from rules.contrib.views import objectgetter
 from structlog import get_logger
 from structlog.contextvars import bind_contextvars
 
-from chat._views.pin_chat import pin_chat, unpin_chat
+from chat._views.pin_chat import pin_chat, unpin_chat  # do not remove; used in urls.py
 from chat.forms import ChatOptionsForm, ChatRenameForm, PresetForm, UploadForm
 from chat.llm import OttoLLM
 from chat.models import (
@@ -51,7 +48,6 @@ from chat.utils import (
 )
 from librarian.forms import LibraryUsersForm
 from librarian.models import Library
-from otto.rules import can_edit_library
 from otto.utils.common import check_url_allowed, generate_mailto
 from otto.utils.decorators import (
     app_access_required,
@@ -134,7 +130,6 @@ def chat(request, chat_id):
     Get the chat based on the provided chat ID.
     Returns read-only view if user does not have access.
     """
-
     logger.info("Chat session retrieved.", chat_id=chat_id)
     bind_contextvars(feature="chat")
 

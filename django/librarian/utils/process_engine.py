@@ -13,6 +13,8 @@ from django.utils.translation import gettext as _
 
 import filetype
 import openpyxl  # Add this import for handling Excel files
+import pymupdf
+import pymupdf4llm
 import requests
 import tiktoken
 from bs4 import BeautifulSoup
@@ -30,6 +32,14 @@ logger = get_logger(__name__)
 # If the text extracted from a PDF using non-OCR method is less than this threshold,
 # we fallback to the Azure Document Intelligence API to perform OCR.
 FORCE_OCR_THRESHOLD = 1000
+
+
+def is_mostly_empty(md):
+    # Remove <page_x> and </page_x> tags
+    md = re.sub(r"</?page_\d+>", "", md)
+    # Remove newline characters
+    md = md.replace("\n", "").replace("\r", "")
+    return len(md) < FORCE_OCR_THRESHOLD
 
 
 def markdownify_wrapper(text):
@@ -250,22 +260,33 @@ def decode_content(
     """
     for encoding in encodings:
         try:
-            return content.decode(encoding)
+            decoded_content = content.decode(encoding)
+            return decoded_content
         except UnicodeDecodeError as e:
             logger.debug(e)
             continue
     raise Exception(f"Failed to decode content with encodings: {encodings}")
 
 
+class ExtractionResult:
+    def __init__(self, markdown: str, chunks: list[str], pdf_method: str = "default"):
+        self.markdown = markdown
+        self.chunks = chunks
+        self.pdf_method = pdf_method
+
+    def __repr__(self):
+        return f"ExtractionResult(markdown={self.markdown[:30]}, chunks={len(self.chunks)}, pdf_method={self.pdf_method})"
+
+
 def extract_markdown(
-    content,
-    process_engine,
-    pdf_method="default",
-    base_url=None,
-    chunk_size=768,
-    selector=None,
-    root_document_id=None,
-):
+    content: str | bytes,
+    process_engine: str,
+    pdf_method: str = "default",
+    base_url: str = None,
+    chunk_size: int = 768,
+    selector: str = None,
+    root_document_id: int = None,
+) -> ExtractionResult:
     try:
         enable_markdown = True
         if process_engine == "IMAGE":
@@ -275,15 +296,18 @@ def extract_markdown(
         elif process_engine == "PDF":
             if pdf_method == "default":
                 enable_markdown = False
-                md = pdf_to_text_pdfium(content)
-                if len(md) < FORCE_OCR_THRESHOLD:
-                    # Fallback to Azure Document Intelligence Read API to OCR
-                    md = pdf_to_text_azure_read(content)
-            elif pdf_method == "azure_layout":
-                md = pdf_to_markdown_azure_layout(content)
-            elif pdf_method == "azure_read":
+                md = pdf_to_text_pymupdf(content)
+                if is_mostly_empty(md):
+                    pdf_method = "azure_read"
+            if pdf_method == "layout":
+                md = pdf_to_markdown_pymupdf4llm(content)
+                if is_mostly_empty(md):
+                    pdf_method = "azure_read"
+            if pdf_method == "azure_read":
                 enable_markdown = False
                 md = pdf_to_text_azure_read(content)
+            if pdf_method == "azure_layout":
+                md = pdf_to_markdown_via_html_azure_layout(content)
         elif process_engine == "WORD":
             md = docx_to_markdown(content)
         elif process_engine == "POWERPOINT":
@@ -318,58 +342,90 @@ def extract_markdown(
         md = re.sub(r"\n{3,}", "\n\n", md.strip())
 
         # Divide the markdown into chunks
-        try:
-            md_splitter = MarkdownSplitter(
-                chunk_size=chunk_size, chunk_overlap=0, enable_markdown=enable_markdown
-            )
-            md_chunks = md_splitter.split_markdown(md)
-        except Exception as e:
-            logger.debug("Error splitting markdown using MarkdownSplitter:")
-            logger.error(e)
-            # Fallback to simpler method
-            from llama_index.core.node_parser import SentenceSplitter
+        if chunk_size:
+            try:
+                md_splitter = MarkdownSplitter(
+                    chunk_size=chunk_size,
+                    chunk_overlap=100,
+                    enable_markdown=enable_markdown,
+                )
+                md_chunks = md_splitter.split_markdown(md)
+            except Exception as e:
+                logger.debug("Error splitting markdown using MarkdownSplitter:")
+                logger.error(e)
+                # Fallback to simpler method
+                from llama_index.core.node_parser import SentenceSplitter
 
-            sentence_splitter = SentenceSplitter(
-                chunk_size=chunk_size, chunk_overlap=min(chunk_size // 4, 100)
-            )
-            md_chunks = sentence_splitter.split_text(md)
-        return md, md_chunks
+                sentence_splitter = SentenceSplitter(
+                    chunk_size=chunk_size, chunk_overlap=min(chunk_size // 4, 100)
+                )
+                md_chunks = sentence_splitter.split_text(md)
+        else:
+            md_chunks = []
+        return ExtractionResult(md, md_chunks, pdf_method)
+
     except Exception as e:
         logger.error(f"Error in extract_markdown: {str(e)}")
         raise
 
 
-def pdf_to_markdown_azure_layout(content):
+def pdf_to_text_pymupdf(content):
+    doc = pymupdf.open(stream=content)
+    md = ""
+    for i, page in enumerate(doc):
+        md += f"<page_{i+1}>\n"
+        text = page.get_text().strip()
+        md += text
+        md += f"\n</page_{i+1}>\n"
+    doc.close()
+    return md
+
+
+def _replace_pymupdf4llm_page_separators(md: str) -> str:
+    """Convert pymupdf4llm page separators to our page tag format, with each tag on its own line."""
+    if not md.strip():
+        return md
+
+    # Split on pymupdf4llm page separators: "--- end of page=N ---"
+    page_breaks = list(re.finditer(r"--- end of page=(\d+) ---", md))
+    if not page_breaks:
+        # No page breaks, wrap everything in <page_1>...</page_1>
+        content = md.strip()
+        return f"<page_1>\n{content}\n</page_1>\n"
+
+    parts = []
+    last_idx = 0
+    for i, match in enumerate(page_breaks):
+        page_num = int(match.group(1)) + 1  # Convert to 1-based page number
+        part = md[last_idx : match.start()].strip()
+        parts.append((page_num, part))
+        last_idx = match.end()
+    # Add last part as next page number
+    last_page_num = int(page_breaks[-1].group(1)) + 2
+    last_part = md[last_idx:].strip()
+    parts.append((last_page_num, last_part))
+
+    # Build output with each tag on its own line
+    result = ""
+    for page_num, content in parts:
+        result += f"<page_{page_num}>\n{content}\n</page_{page_num}>\n"
+    return result
+
+
+def pdf_to_markdown_pymupdf4llm(content):
+    doc = pymupdf.Document(stream=content)
+
+    md = pymupdf4llm.to_markdown(doc, page_separators=True)
+    md = _replace_pymupdf4llm_page_separators(md)
+
+    doc.close()
+    return md
+
+
+def pdf_to_markdown_via_html_azure_layout(content):
     html = _pdf_to_html_azure_layout(content)
-    return _convert_html_to_markdown(html)
-
-
-def pdf_to_text_pdfium(content):
-    # Fast and cheap, but no OCR or layout analysis
-    import pypdfium2 as pdfium
-
-    from otto.utils.common import pdfium_lock
-
-    with pdfium_lock:
-        try:
-            pdf = pdfium.PdfDocument(content)
-        except Exception as e:
-            logger.error(f"Failed to extract text from PDF file: {e}")
-            raise Exception(_("Corrupt PDF file."))
-
-        text = ""
-        for i, page in enumerate(pdf):
-            text_page = page.get_textpage()
-            text_content = text_page.get_text_range()
-            if text_content:
-                text += f"<page_{i+1}>\n"
-                text += text_content + "\n"
-                text += f"</page_{i+1}>\n"
-            # PyPDFium does not cleanup its resources automatically. Ensures memory freed.
-            text_page.close()
-        pdf.close()
-
-    return text
+    md = _convert_html_to_markdown(html)
+    return md
 
 
 def html_to_markdown(content, base_url=None, selector=None):
@@ -400,7 +456,6 @@ def msg_to_markdown(content):
 
 
 def docx_to_markdown(content):
-
     import mammoth
 
     with io.BytesIO(content) as docx_file:
@@ -411,7 +466,8 @@ def docx_to_markdown(content):
             raise Exception(_("Corrupt docx file."))
     html = result.value
 
-    return _convert_html_to_markdown(html)
+    md = _convert_html_to_markdown(html)
+    return md
 
 
 def pptx_to_markdown(content):
@@ -446,7 +502,8 @@ def pptx_to_markdown(content):
         if html:
             all_html += f"<page_{i+1}>\n{html}\n</page_{i+1}>\n"
 
-    return _convert_html_to_markdown(all_html)
+    md = _convert_html_to_markdown(all_html)
+    return md
 
 
 def create_child_nodes(chunks, source_node_id, metadata=None):
@@ -560,10 +617,6 @@ def _convert_html_to_markdown(
 
 def _pdf_to_html_azure_layout(content):
     from azure.ai.documentintelligence import DocumentIntelligenceClient
-    from azure.ai.documentintelligence.models import (
-        AnalyzeDocumentRequest,
-        DocumentContentFormat,
-    )
     from azure.core.credentials import AzureKeyCredential
     from shapely.geometry import Polygon
 
@@ -686,7 +739,6 @@ def _pdf_to_html_azure_layout(content):
 
 
 def pdf_to_text_azure_read(content: bytes) -> str:
-
     from azure.ai.documentintelligence import DocumentIntelligenceClient
     from azure.core.credentials import AzureKeyCredential
 
@@ -750,7 +802,8 @@ def csv_to_markdown(content):
     for row in rows[1:]:
         table.append("| " + " | ".join(row) + " |")
 
-    return "\n".join(table)
+    md = "\n".join(table)
+    return md
 
 
 def excel_to_markdown(content):

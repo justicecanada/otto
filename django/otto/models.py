@@ -417,6 +417,7 @@ class CostManager(models.Manager):
         document_id = request_context.get("document_id")
         law_id = request_context.get("law_id")
         user_id = request_context.get("user_id")
+        print(request_context)
 
         cost_object = self.create(
             cost_type=cost_type,

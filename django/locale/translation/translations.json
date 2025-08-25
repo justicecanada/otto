@@ -4750,5 +4750,69 @@
     "Click the question mark icon to view this tour again, open the user guide, access the Terms of Use, or get help from the Otto team.": {
         "fr": "Cliquez sur l’icône en forme de point d’interrogation pour revoir cette visite, ouvrir le guide de l’utilisateur, accéder aux conditions d’utilisation ou obtenir de l’aide de l’équipe d’Otto.",
         "fr_auto": "Cliquez sur l’icône en forme de point d’interrogation pour revoir cette visite, ouvrir le guide de l’utilisateur, accéder aux conditions d’utilisation ou obtenir de l’aide de l’équipe d’Otto."
+    },
+    "Extracting text from files...": {
+        "fr": "",
+        "fr_auto": "Extraire du texte de fichiers..."
+    },
+    "Error extracting text from file.": {
+        "fr": "",
+        "fr_auto": "Erreur lors de l’extraction du texte du fichier."
+    },
+    "Extracting text from files": {
+        "fr": "",
+        "fr_auto": "Extraction de texte de fichiers"
+    },
+    "complete": {
+        "fr": "",
+        "fr_auto": "Terminé"
+    },
+    "Text extraction complete. Starting summarization...": {
+        "fr": "",
+        "fr_auto": "L’extraction du texte est terminée. Début du résumé..."
+    },
+    "Error: File has no text after extraction.": {
+        "fr": "",
+        "fr_auto": "Erreur : Le fichier n’a pas de texte après l’extraction."
+    },
+    "Error processing files.": {
+        "fr": "",
+        "fr_auto": "Erreurs de traitement des fichiers."
+    },
+    "Error: File has no extracted text. Try re-uploading the file.": {
+        "fr": "",
+        "fr_auto": "Erreur : Le fichier n’a pas de texte extrait. Essayez de télécharger à nouveau le fichier."
+    },
+    "text & layout": {
+        "fr": "",
+        "fr_auto": "Texte et mise en page"
+    },
+    "OCR & layout": {
+        "fr": "",
+        "fr_auto": "OCR et mise en page"
+    },
+    "(fastest, $)": {
+        "fr": "",
+        "fr_auto": "(le plus rapide, $)"
+    },
+    "PDF layout": {
+        "fr": "",
+        "fr_auto": "Mise en page PDF"
+    },
+    "(keeps formatting, $)": {
+        "fr": "",
+        "fr_auto": "(continue de formater, $)"
+    },
+    "(for scans, $$)": {
+        "fr": "",
+        "fr_auto": "(pour les numérisations, $$)"
+    },
+    "(for complex scans, $$$)": {
+        "fr": "",
+        "fr_auto": "(pour les numérisations complexes, $$$)"
+    },
+    "_(The extracted text was very short. If this isn't correct, try copy & pasting the webpage here.)_": {
+        "fr": "",
+        "fr_auto": "_(Le texte extrait était très court. Si ce n’est pas correct, essayez de copier-coller la page Web ici.)_"
     }
 }
