@@ -9,8 +9,6 @@ from django.urls import reverse
 
 import tldextract
 
-pdfium_lock = Lock()
-
 
 def file_size_to_string(filesize):
     from django.utils.translation import gettext_lazy as _
@@ -130,4 +128,5 @@ def robust_redirect(request, redirect_url):
         response = HttpResponse(status=200)
         response["HX-Redirect"] = redirect_url
         return response
+    return redirect(redirect_url)
     return redirect(redirect_url)

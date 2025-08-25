@@ -16,45 +16,39 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 from structlog import get_logger
 
-from librarian.utils.markdown_splitter import MarkdownSplitter
-
 md = markdown.Markdown(extensions=["fenced_code", "nl2br", "tables"], tab_length=2)
 
 logger = get_logger(__name__)
 
 
-# SAMPLE_LAW_IDS = [
-#     "A-0.6",  # Accessible Canada Act
-#     "SOR-2021-241",  # Accessible Canada Regulations
-#     "A-2",  # Aeronautics Act
-#     "B-9.01",  # Broadcasting Act
-#     "SOR-97-555",  # Broadcasting Distribution Regulations
-#     "SOR-96-433",  # Canadian Aviation Regulations
-#     "SOR-2011-318",  # Canadian Aviation Security Regulations, 2012
-#     "C-15.1",  # Canadian Energy Regulator Act
-#     "C-15.31",  # Canadian Environmental Protection Act, 1999
-#     "C-24.5",  # Cannabis Act
-#     "SOR-2018-144",  # Cannabis Regulations
-#     "C-46",  # Criminal Code
-#     "SOR-2021-25",  # Cross-border Movement of Hazardous Waste and Hazardous Recyclable Material Regulations
-#     "F-14",  # Fisheries Act
-#     "SOR-93-53",  # Fishery (General) Regulations
-#     "C.R.C.,_c._870",  # Food and Drug Regulations
-#     "F-27",  # Food and Drugs Act
-#     "I-2.5",  # Immigration and Refugee Protection Act
-#     "SOR-2002-227",  # Immigration and Refugee Protection Regulations
-#     "I-21",  # Interpretation Act
-#     "SOR-2016-151",  # Multi-Sector Air Pollutants Regulations
-#     "SOR-2010-189",  # Renewable Fuels Regulations
-#     "S-22",  # Statutory Instruments Act
-#     "C.R.C.,_c._1509",  # Statutory Instruments Regulations
-#     "A-1",  # Access to Information Act
-#     "F-11",  # Financial Administration Act
-#     "N-22",  # Canadian Navigable Waters Act
-# ]
-
 SAMPLE_LAW_IDS = [
+    "A-0.6",  # Accessible Canada Act
+    "SOR-2021-241",  # Accessible Canada Regulations
+    "A-2",  # Aeronautics Act
+    "B-9.01",  # Broadcasting Act
+    "SOR-97-555",  # Broadcasting Distribution Regulations
+    "SOR-96-433",  # Canadian Aviation Regulations
+    "SOR-2011-318",  # Canadian Aviation Security Regulations, 2012
+    "C-15.1",  # Canadian Energy Regulator Act
+    "C-15.31",  # Canadian Environmental Protection Act, 1999
+    "C-24.5",  # Cannabis Act
+    "SOR-2018-144",  # Cannabis Regulations
+    "C-46",  # Criminal Code
     "SOR-2021-25",  # Cross-border Movement of Hazardous Waste and Hazardous Recyclable Material Regulations
+    "F-14",  # Fisheries Act
+    "SOR-93-53",  # Fishery (General) Regulations
+    "C.R.C.,_c._870",  # Food and Drug Regulations
+    "F-27",  # Food and Drugs Act
+    "I-2.5",  # Immigration and Refugee Protection Act
+    "SOR-2002-227",  # Immigration and Refugee Protection Regulations
+    "I-21",  # Interpretation Act
+    "SOR-2016-151",  # Multi-Sector Air Pollutants Regulations
+    "SOR-2010-189",  # Renewable Fuels Regulations
+    "S-22",  # Statutory Instruments Act
+    "C.R.C.,_c._1509",  # Statutory Instruments Regulations
+    "A-1",  # Access to Information Act
+    "F-11",  # Financial Administration Act
+    "N-22",  # Canadian Navigable Waters Act
 ]
 
 constitution_dir = os.path.join(settings.BASE_DIR, "laws", "data")
@@ -160,15 +154,12 @@ def law_xml_to_nodes(file_path):
 def section_to_nodes(section, lang, chunk_size=1024, chunk_overlap=100):
     if chunk_size < 50:
         raise ValueError("Chunk size must be at least 50 tokens.")
-    # if "_schedule_" in section["section_id"]:
-    #     chunks = section["text"]
-    # else:
-    #     splitter = SentenceSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
-    #     # Split the text into chunks
-    #     chunks = splitter.split_text(section["text"])
-    splitter = SentenceSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
-    # Split the text into chunks
-    chunks = splitter.split_text(section["text"])
+    if "_schedule_" in section["section_id"]:
+        chunks = section["text"]
+    else:
+        splitter = SentenceSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
+        # Split the text into chunks
+        chunks = splitter.split_text(section["text"])
     # Create a node from each chunk
     nodes = []
     metadata = {
@@ -239,17 +230,32 @@ def parse_table(table_elem):
     else:
         # No header row found; return empty headers and rows
         return [], []
-    headers = [entry.text.strip() for entry in header_row.findall("entry")]
+    headers = [
+        entry.text.strip() if entry.text is not None else ""
+        for entry in header_row.findall("entry")
+    ]
 
     # Find body rows
     tbody = table_elem.find(".//tbody")
     body_rows = []
     for row in tbody.findall("row"):
-        cells = [
-            entry.text.strip() if entry.text else "" for entry in row.findall("entry")
-        ]
+        cells = [extract_entry_text(entry) for entry in row.findall("entry")]
         body_rows.append(cells)
     return headers, body_rows
+
+
+def extract_entry_text(entry):
+    # Check for <List> child
+    list_elem = entry.find("List")
+    if list_elem is not None:
+        items = [
+            item.find("Text").text.strip()
+            for item in list_elem.findall("Item")
+            if item.find("Text") is not None
+        ]
+        return " ".join(items)
+    # Otherwise, use direct text (if any)
+    return entry.text.strip() if entry.text else ""
 
 
 def markdown_header(headers):
@@ -271,19 +277,13 @@ def chunk_table(headers, body_rows, chunk_size=25):
     return chunks
 
 
-def _get_schedule_joined_text(element):
-    # for e in element.findall(".//table"):
-    #     for child in e:
-    #         if child.tag == "table":
-    #             print(child.tag, child.text)
+def _chunk_schedule_text(element):
     tables = element.findall(".//table")
-
+    chunks = []
     for table_idx, table_elem in enumerate(tables):
         headers, body_rows = parse_table(table_elem)
         chunks = chunk_table(headers, body_rows, chunk_size=25)
-        print(f"\n### Table {table_idx+1}\n")
-        for chunk_idx, chunk in enumerate(chunks):
-            print(f"#### Chunk {chunk_idx+1}\n{chunk}\n")
+    return chunks
 
 
 def _get_joined_text(
@@ -342,8 +342,6 @@ def _get_joined_text(
             all_text.append("|")
         if e.tag == "tbody":
             all_text.append("\n<tbody>")
-        if e.tag == "thead":
-            print(e.tag)
     text = (
         " ".join(all_text)
         .replace(" \n ", "\n")
@@ -491,10 +489,9 @@ def get_dict_from_xml(xml_filename):
                 d["title_str"],
                 (schedule["id"] if schedule["id"] else "Schedule"),
                 "",
-                schedule["text"],
+                # schedule["text"],
             ]
         )
-        print(f"Schedule headings: {schedule['heading_str']}")
     # Finally, the preamble also needs a "all_str" field
     if d["preamble"]:
         d["preamble"][0]["section_id"] = f'{d["doc_id"]}_preamble'
@@ -672,14 +669,14 @@ def get_schedule(schedule):
     # if schedule "id" attribute is RelatedProvs or NifProvs, skip it
     if schedule.attrib.get("id", None) in ["RelatedProvs", "NifProvs"]:
         return None
-    _get_schedule_joined_text(schedule)
+    _chunk_schedule_text(schedule)
     return {
         "id": _get_text(schedule.find(".//Label")),
         "headings": [
             _get_text(schedule.find(".//TitleText")) or "",
         ],
         "marginal_note": _get_text(schedule.find(".//MarginalNote")),
-        "text": _get_joined_text(schedule),
+        "text": _chunk_schedule_text(schedule),
         "in_force_start_date": schedule.attrib.get(
             "{http://justice.gc.ca/lims}inforce-start-date", None
         ),
