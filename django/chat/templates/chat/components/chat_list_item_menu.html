@@ -1,4 +1,3 @@
-
 {% load i18n %}
 <div>
   <button class="btn btn-sm btn-outline options"
@@ -16,6 +15,29 @@
        style="padding: 0.25rem 0"
        role="menu">
     <div class="list-group list-group-flush options-menu">
+      {% if chat.current_chat %}
+        <button type="button"
+                id="expand-all-btn-{{ chat.id }}"
+                class="d-flex align-items-center px-3 dropdown-item py-2"
+                onclick="expandAllMessages('{{ chat.id }}')"
+                role="menuitem"
+                hx-swap="none"
+                onkeydown="if (event.key === 'Enter') { event.preventDefault()}"
+                onkeyup="if (event.key === 'Enter') { this.click() }">
+          <i class="bi bi-arrows-expand me-1"></i>
+          <span class="ms-2">{% trans 'Expand All' %}</span>
+        </button>
+        <button type="button"
+                id="collapse-all-btn-{{ chat.id }}"
+                onclick="collapseAllMessages('{{ chat.id }}')"
+                class="d-flex align-items-center px-3 dropdown-item py-2 d-none"
+                role="menuitem"
+                onkeydown="if (event.key === 'Enter') { event.preventDefault()}"
+                onkeyup="if (event.key === 'Enter') { this.click() }">
+          <i class="bi bi-arrows-collapse me-1"></i>
+          <span class="ms-2">{% trans 'Collapse All' %}</span>
+        </button>
+      {% endif %}
       <button type="button"
               hx-get="{% url 'chat:rename_chat' current_chat_id=current_chat_id chat_id=chat.id %}"
               hx-swap="innerHTML"
@@ -53,6 +75,26 @@
           <i class="bi bi-pin-angle me-1"></i>
           <span class="ms-2">{% trans 'Pin' %}</span>
         </button>
+      {% endif %}
+      {% if chat.messages.count > 0 %}
+        <button type="button"
+                id="share-chat-{{ chat.id }}"
+                class="d-flex align-items-center px-3 py-2 chat-share dropdown-item"
+                data-section-number="{{ section_index }}"
+                hx-get="{% url 'chat:share_chat' chat_id=chat.id %}"
+                hx-on::after-request="copyChatURL(event, this)"
+                hx-swap="none"
+                onclick="event.stopPropagation();"
+                role="menuitem">
+          <i class="bi bi-link me-1"></i><i class="bi bi-check-lg"></i>
+          <span class="ms-2">{% trans 'Copy link' %}</span>
+        </button>
+        {% comment %}
+        <a href="{% url 'chat:download_chat' chat_id=chat.id %}" id="download-chat-{{ chat.id }}" class="d-flex align-items-center px-3 py-2 chat-download dropdown-item" data-section-number="{{ section_index }}" role="menuitem">
+          <i class="bi bi-download me-1"></i>
+          <span class="ms-2">{% trans 'Download' %}</span>
+        </a>
+        {% endcomment %}
       {% endif %}
       <button type="button"
               id="delete-chat-{{ chat.id }}"

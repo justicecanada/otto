@@ -8,7 +8,7 @@ from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
 from django.db.models import Q
-from django.http import HttpRequest, HttpResponse
+from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 from django.urls import reverse
@@ -21,7 +21,8 @@ from rules.contrib.views import objectgetter
 from structlog import get_logger
 from structlog.contextvars import bind_contextvars
 
-from chat._views.pin_chat import pin_chat, unpin_chat  # do not remove; used in urls.py
+from chat._views.download_chat import download_chat  # Do not remove - used in urls.py
+from chat._views.pin_chat import pin_chat, unpin_chat  # Do not remove - used in urls.py
 from chat.forms import ChatOptionsForm, ChatRenameForm, PresetForm, UploadForm
 from chat.llm import OttoLLM
 from chat.models import (
@@ -813,6 +814,15 @@ def rename_chat(request, chat_id, current_chat_id):
             "section_index": label_section_index(chat.last_modification_date),
         },
     )
+
+
+@permission_required("chat.access_chat", objectgetter(Chat, "chat_id"))
+def share_chat(request, chat_id):
+    chat = get_object_or_404(Chat, id=chat_id)
+
+    shareable_url = request.build_absolute_uri(reverse("chat:chat", args=[chat.id]))
+
+    return JsonResponse({"success": True, "chat_url": shareable_url})
 
 
 @permission_required("chat.access_message", objectgetter(Message, "message_id"))

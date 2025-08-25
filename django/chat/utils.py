@@ -1,5 +1,6 @@
 import asyncio
 import html
+import io
 import json
 import re
 import sys

@@ -428,6 +428,22 @@ function copyMessage(btn) {
   }, 2200);
 }
 
+function copyChatURL(event, btn) {
+  if (event.detail.xhr.status === 200) {
+    const response = JSON.parse(event.detail.xhr.responseText);
+    if (response.chat_url) {
+      navigator.clipboard.writeText(response.chat_url);
+      btn.blur();
+      btn.classList.add("clicked");
+      dropdown = btn.closest('.dropdown-menu');
+      setTimeout(function () {
+        btn.classList.remove("clicked");
+        dropdown.classList.remove('show');
+      }, 600);
+    }
+  }
+}
+
 function copyCode(btn) {
   let message = btn.closest("pre").querySelector("code");
   let codeText = message.innerText;
@@ -619,6 +635,50 @@ function expandAllSources(message_id, force_expand = false) {
     collapseAllLabel.classList.add("d-none");
   }
 }
+
+// Show "Expand All" only if there's something truncated, right before the menu opens
+document.addEventListener('show.bs.dropdown', (e) => {
+  const id = e.target.id?.split('dropdownMenuButton-')[1];
+  if (!id) return;
+  const hasTruncated = !!document.querySelector('.message-outer.truncate:not(.show-all)');
+  const expandAllBtn = document.getElementById(`expand-all-btn-${id}`);
+  if (expandAllBtn) {
+    expandAllBtn.classList.toggle('d-none', !hasTruncated);
+  }
+});
+
+function expandAllMessages(chat_id) {
+  // Find all truncated messages that haven't been expanded yet
+  const truncatedMessages = document.querySelectorAll('.message-outer.truncate:not(.show-all)');
+  // Add 'show-all' class to expand all truncated messages
+  truncatedMessages.forEach(function (message) {
+    message.classList.add('show-all');
+  });
+
+  // Toggle buttons visibility
+  const expandBtn = document.querySelector(`#expand-all-btn-${chat_id}`);
+  const collapseBtn = document.querySelector(`#collapse-all-btn-${chat_id}`);
+  if (expandBtn) expandBtn.classList.add('d-none');
+  if (collapseBtn) collapseBtn.classList.remove('d-none');
+}
+
+
+function collapseAllMessages(chat_id) {
+  // Find all expanded messages
+  const expandedMessages = document.querySelectorAll('.message-outer.show-all');
+
+  // Remove 'show-all' class to collapse all expanded messages
+  expandedMessages.forEach(function (message) {
+    message.classList.remove('show-all');
+  });
+
+  // Toggle buttons visibility
+  const expandBtn = document.querySelector(`#expand-all-btn-${chat_id}`);
+  const collapseBtn = document.querySelector(`#collapse-all-btn-${chat_id}`);
+  if (expandBtn) expandBtn.classList.remove('d-none');
+  if (collapseBtn) collapseBtn.classList.add('d-none');
+}
+
 
 function nextSourceHighlight(message_id) {
   const highlights = document.querySelectorAll(`#sources-${message_id}-accordion mark`);

@@ -1,5 +1,7 @@
 import asyncio
+import io
 import tempfile
+import uuid
 from unittest import mock
 
 from django.conf import settings
@@ -9,6 +11,7 @@ from django.utils import timezone
 
 import pytest
 from asgiref.sync import async_to_sync, sync_to_async
+from docx import Document
 
 from chat.forms import PresetForm
 from chat.llm import OttoLLM
@@ -375,6 +378,35 @@ def test_delete_all_chats(client, all_apps_user):
 
     # Check that the response contains the HX-Redirect header
     assert response["HX-Redirect"] == reverse("chat:new_chat")
+
+
+# Test download_chat view
+@pytest.mark.django_db
+def test_download_chat(client, all_apps_user):
+
+    user = all_apps_user()
+    client.force_login(user)
+
+    # Create a chat with a message
+    chat = Chat.objects.create(user=user, title="Test Chat")
+    Message.objects.create(chat=chat, text="Hello world!", is_bot=False)
+
+    # Test successful download
+    url = reverse("chat:download_chat", args=[chat.id])
+    response = client.get(url)
+
+    # Check it's a Word document
+    assert response.status_code == 200
+    assert (
+        response["Content-Type"]
+        == "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    )
+
+    # Check that "Hello world!" is actually in the document
+    content = response.content
+    doc = Document(io.BytesIO(content))
+    doc_text = "\n".join([paragraph.text for paragraph in doc.paragraphs])
+    assert "Hello world!" in doc_text
 
 
 # Test download_file view
@@ -1388,3 +1420,37 @@ def test_email_chat_author(client, all_apps_user):
     assert response.status_code == 200
     assert "Otto" in response.content.decode()
     assert f"mailto:{user.email}" in response.content.decode()
+
+
+@pytest.mark.django_db
+def test_share_chat(client, all_apps_user):
+    """Test the share_chat view that generates shareable chat URLs."""
+    user = all_apps_user()
+    client.force_login(user)
+
+    # Create a chat with some messages
+    chat = Chat.objects.create(user=user, title="Test Chat for Sharing")
+    Message.objects.create(chat=chat, text="Hello, this is a test message")
+    Message.objects.create(chat=chat, text="This is a bot response", is_bot=True)
+
+    # Test the share_chat view
+    response = client.get(reverse("chat:share_chat", kwargs={"chat_id": chat.id}))
+
+    # Should return 200 status code
+    assert response.status_code == 200
+
+    # Should return JSON response
+    assert response.get("content-type") == "application/json"
+
+    # Parse the JSON response
+    import json
+
+    response_data = json.loads(response.content.decode())
+
+    # Should contain success and chat_url fields
+    assert "success" in response_data
+    assert "chat_url" in response_data
+    assert response_data["success"] is True
+
+    # The URL should contain the chat ID
+    assert str(chat.id) in response_data["chat_url"]
