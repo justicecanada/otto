@@ -41,6 +41,9 @@ def test_laws_search_and_answer(client, all_apps_user):
     response = client.get(reverse("laws:source", args=[source_id]))
     assert response.status_code == 200
 
+    # Test that the source URL points to a subsection on the laws-lois website
+    assert "FullText.html#" in response.content.decode()
+
     # Test advanced search - with no acts/regs selected it should return "no sources found"
     response = client.post(
         reverse("laws:search"),
