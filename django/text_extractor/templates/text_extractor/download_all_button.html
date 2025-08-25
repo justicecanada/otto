@@ -1,0 +1,14 @@
+{% load i18n %}
+<span id="download-all-files-button"
+      class="ms-auto"
+      {% if swap %}hx-swap-oob="true"{% endif %}>
+  {% if show_download_all_button %}
+    <a href="{% url 'text_extractor:download_all_zip' %}"
+       class="btn btn-sm p-0 m-0 text-decoration-none ms-auto"
+       title="{% trans 'Download all files' %}"
+       aria-label="{% trans 'Download all files' %}"
+       id="download-all-files-button">
+      <i class="bi bi-download align-baseline"></i> ZIP
+    </a>
+  {% endif %}
+</span>

@@ -230,3 +230,63 @@ def test_download_document(client, all_apps_user, output_file):
             == 'attachment; filename="test_document.txt"'
         )
         assert response.content == b"TXT content"
+
+
+@pytest.mark.django_db(transaction=True)
+# fixture of mock outputfiles will not work here as the main method checks files with accesskey and user request id filters
+def test_download_all_zip(client, all_apps_user):
+    user = all_apps_user()
+    client.force_login(user)
+    group, created = Group.objects.get_or_create(name="Otto admin")
+    access_key = AccessKey(user=user)
+    content_type_user_request = ContentType.objects.get_for_model(UserRequest)
+    content_type_output_file = ContentType.objects.get_for_model(OutputFile)
+
+    # Grant permissions to both user and outputfile models
+    permission_user_request, created = Permission.objects.get_or_create(
+        codename="add_userrequest",
+        content_type=content_type_user_request,
+        name="Can add user request",
+    )
+    permission_output_file_add, created = Permission.objects.get_or_create(
+        codename="add_outputfile",
+        content_type=content_type_output_file,
+        name="Can add output file",
+    )
+    group.permissions.add(permission_user_request)
+    group.permissions.add(permission_output_file_add)
+    user.groups.add(group)
+    user.user_permissions.add(permission_user_request)
+    user.user_permissions.add(permission_output_file_add)
+
+    user_request = UserRequest.objects.create(
+        access_key=access_key, name="Test Request"
+    )
+
+    # Create real OutputFile objects
+    output_files = []
+    for i in range(2):
+        output_file = OutputFile.objects.create(
+            access_key=access_key,
+            user_request=user_request,
+            celery_task_ids=[str(uuid.uuid4())],
+            file_name=f"file_{i}",
+            pdf_file=ContentFile(b"%PDF-1.4 test pdf content", name=f"file_{i}.pdf"),
+            txt_file=ContentFile(b"test txt content", name=f"file_{i}.txt"),
+            usd_cost=0.0,
+        )
+        output_files.append(output_file)
+
+    url = reverse("text_extractor:download_all_zip")
+    response = client.get(url)
+    assert response.status_code == 200
+    assert response["Content-Type"] == "application/zip"
+
+    zip_buffer = io.BytesIO(response.content)
+    with zipfile.ZipFile(zip_buffer, "r") as zip_file:
+        namelist = zip_file.namelist()
+        expected_files = []
+        for output_file in output_files:
+            expected_files.append(f"{output_file.file_name}.pdf")
+            expected_files.append(f"{output_file.file_name}.txt")
+        assert set(namelist) == set(expected_files)
