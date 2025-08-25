@@ -4747,6 +4747,18 @@
         "fr": "",
         "fr_auto": "Afficher la liste des applications"
     },
+    "chunk(s)": {
+        "fr": "",
+        "fr_auto": "Bloc(s)"
+    },
+    "failed": {
+        "fr": "",
+        "fr_auto": "Échec"
+    },
+    "stopped": {
+        "fr": "",
+        "fr_auto": "arrêté"
+    },
     "Click the question mark icon to view this tour again, open the user guide, access the Terms of Use, or get help from the Otto team.": {
         "fr": "Cliquez sur l’icône en forme de point d’interrogation pour revoir cette visite, ouvrir le guide de l’utilisateur, accéder aux conditions d’utilisation ou obtenir de l’aide de l’équipe d’Otto.",
         "fr_auto": "Cliquez sur l’icône en forme de point d’interrogation pour revoir cette visite, ouvrir le guide de l’utilisateur, accéder aux conditions d’utilisation ou obtenir de l’aide de l’équipe d’Otto."
