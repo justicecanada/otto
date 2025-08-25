@@ -155,6 +155,6 @@ async def htmx_sse_error(e="", query_uuid=None):
 def get_display_title(metadata):
     title = metadata["display_metadata"].split("\n")[0]
     if metadata["lang"] == "fra":
-        title = title.replace("Subsection", "Paragraphe").replace("Section", "Article")
+        title = title.replace("Subsection", "paragraphe").replace("Section", "article")
 
     return title
