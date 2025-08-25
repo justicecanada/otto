@@ -1,11 +1,7 @@
-import io
 import json
-import os
 import re
 import uuid
-from decimal import Decimal
 
-from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
@@ -17,18 +13,16 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils import timezone
-from django.utils.html import format_html
 from django.utils.translation import get_language
 from django.utils.translation import gettext as _
-from django.views.decorators.http import require_GET, require_POST
+from django.views.decorators.http import require_POST
 
-from docx import Document
-from docx.shared import RGBColor
 from rules.contrib.views import objectgetter
 from structlog import get_logger
 from structlog.contextvars import bind_contextvars
 
-from chat._views.pin_chat import pin_chat, unpin_chat
+from chat._views.download_chat import download_chat  # Do not remove - used in urls.py
+from chat._views.pin_chat import pin_chat, unpin_chat  # Do not remove - used in urls.py
 from chat.forms import ChatOptionsForm, ChatRenameForm, PresetForm, UploadForm
 from chat.llm import OttoLLM
 from chat.models import (
@@ -44,7 +38,6 @@ from chat.utils import (
     bad_url,
     change_mode_to_chat_qa,
     copy_options,
-    create_chat_conversation_doc,
     fix_source_links,
     generate_prompt,
     get_chat_history_sections,
@@ -832,20 +825,6 @@ def share_chat(request, chat_id):
     shareable_url = request.build_absolute_uri(reverse("chat:chat", args=[chat.id]))
 
     return JsonResponse({"success": True, "chat_url": shareable_url})
-
-
-@permission_required("chat.access_chat", objectgetter(Chat, "chat_id"))
-def download_chat(request, chat_id):
-    chat = get_object_or_404(Chat, id=chat_id)
-
-    file_content = create_chat_conversation_doc(chat)
-
-    response = HttpResponse(
-        file_content.getvalue(),
-        content_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-    )
-    response["Content-Disposition"] = f"attachment; filename={chat.title}.docx"
-    return response
 
 
 @permission_required("chat.access_message", objectgetter(Message, "message_id"))

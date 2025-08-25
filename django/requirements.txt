@@ -70,6 +70,7 @@ reportlab==4.4.3
 pyreadstat==1.2.8
 openpyxl==3.1.5
 RapidFuzz==3.12.1
+
 # Redis/Celery -----------------------------------------------------------------
 celery==5.5.3
 redis==5.0.8
