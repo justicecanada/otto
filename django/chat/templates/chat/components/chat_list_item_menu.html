@@ -89,14 +89,12 @@
           <i class="bi bi-link me-1"></i><i class="bi bi-check-lg"></i>
           <span class="ms-2">{% trans 'Copy link' %}</span>
         </button>
-        <a href="{% url 'chat:download_chat' chat_id=chat.id %}"
-           id="download-chat-{{ chat.id }}"
-           class="d-flex align-items-center px-3 py-2 chat-download dropdown-item"
-           data-section-number="{{ section_index }}"
-           role="menuitem">
+        {% comment %}
+        <a href="{% url 'chat:download_chat' chat_id=chat.id %}" id="download-chat-{{ chat.id }}" class="d-flex align-items-center px-3 py-2 chat-download dropdown-item" data-section-number="{{ section_index }}" role="menuitem">
           <i class="bi bi-download me-1"></i>
           <span class="ms-2">{% trans 'Download' %}</span>
         </a>
+        {% endcomment %}
       {% endif %}
       <button type="button"
               id="delete-chat-{{ chat.id }}"
