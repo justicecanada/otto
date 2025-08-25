@@ -84,7 +84,15 @@
                    href="#"
                    hx-get="{% url 'librarian:document_start' document.id 'default' %}">
                   <span>{% trans "Text only" %}</span>
-                  <span class="text-muted">{% trans "(default, $)" %}</span>
+                  <span class="text-muted">{% trans "(fastest, $)" %}</span>
+                </a>
+              </li>
+              <li>
+                <a class="dropdown-item small"
+                   href="#"
+                   hx-get="{% url 'librarian:document_start' document.id 'layout' %}">
+                  <span>{% trans "PDF layout" %}</span>
+                  <span class="text-muted">{% trans "(keeps formatting, $)" %}</span>
                 </a>
               </li>
               <li>
@@ -92,7 +100,7 @@
                    href="#"
                    hx-get="{% url 'librarian:document_start' document.id 'azure_read' %}">
                   <span>{% trans "PDF OCR" %}</span>
-                  <span class="text-muted">{% trans "(more robust, $$)" %}</span>
+                  <span class="text-muted">{% trans "(for scans, $$)" %}</span>
                 </a>
               </li>
               <li>
@@ -100,7 +108,7 @@
                    href="#"
                    hx-get="{% url 'librarian:document_start' document.id 'azure_layout' %}">
                   <span>{% trans "PDF layout & OCR" %}</span>
-                  <span class="text-muted">{% trans "(best, $$$)" %}</span>
+                  <span class="text-muted">{% trans "(for complex scans, $$$)" %}</span>
                 </a>
               </li>
             </ul>

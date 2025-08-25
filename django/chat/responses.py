@@ -199,28 +199,190 @@ def summarize_response(chat, response_message):
     error_str = ""
 
     if len(files) > 0:
+        from structlog.contextvars import get_contextvars
+
+        from chat.tasks import extract_text_task
+
+        # Get current context variables to pass to Celery tasks
+        context_vars = get_contextvars()
+
+        # Start Celery tasks for text extraction and map task IDs to files
+        task_id_to_file = {}
+        task_ids = []
+        for file in files:
+            if not file.text:
+                task = extract_text_task.delay(
+                    file.id, pdf_method="default", context_vars=context_vars
+                )
+                task_ids.append(task.id)
+                task_id_to_file[task.id] = file
+
+        # If we have tasks running, show progress and wait for completion
+        if task_ids:
+
+            async def file_extraction_and_summarization_generator(
+                task_ids, task_id_to_file
+            ):
+                from chat.models import ChatFile
+
+                yield _("Extracting text from files...")
+                completed_files = []
+                error_files = []  # Will store tuples: (error_str, failed_file)
+
+                try:
+                    # Wait for all text extraction tasks to complete
+                    while task_ids:
+                        await asyncio.sleep(1)
+                        for task_id in task_ids.copy():
+                            task = extract_text_task.AsyncResult(task_id)
+                            if task.state in [
+                                "SUCCESS",
+                                "FAILURE",
+                                "REVOKED",
+                                "TIMEOUT",
+                            ]:
+                                task_ids.remove(task_id)
+                                if task.state == "SUCCESS":
+                                    file_id = task.result
+                                    # Refresh the file object from the database
+                                    file = await sync_to_async(ChatFile.objects.get)(
+                                        id=file_id
+                                    )
+                                    completed_files.append(file)
+                                elif task.state == "FAILURE":
+                                    error_id = str(uuid.uuid4())[:7]
+                                    failed_file = task_id_to_file.get(task.id)
+                                    file_label = (
+                                        f" ({failed_file.filename})"
+                                        if failed_file
+                                        and hasattr(failed_file, "filename")
+                                        else ""
+                                    )
+                                    error_str = _(
+                                        f"Error extracting text from file{file_label}."
+                                    )
+                                    error_str += f" _({_('Error ID:')} {error_id})_"
+                                    error_files.append((error_str, failed_file))
+                                    # Log the exception info from the failed task result, if available
+                                    logger.error(
+                                        "Error extracting text from file",
+                                        exc_info=(
+                                            True
+                                            if isinstance(task.result, BaseException)
+                                            else None
+                                        ),
+                                        error_id=error_id,
+                                        message_id=response_message.id,
+                                        chat_id=chat.id,
+                                        file=file_label,
+                                    )
+
+                        if task_ids:
+                            remaining_count = len(task_ids)
+                            completed_count = len(completed_files) + len(error_files)
+                            total_count = completed_count + remaining_count
+                            yield f"{_('Extracting text from files')} ({completed_count}/{total_count} {_('complete')})..."
+
+                    # Now all extraction is complete, start summarization
+                    yield f"{_('Text extraction complete. Starting summarization...')}"
+
+                    # Build responses for successful files
+                    all_files = completed_files + [
+                        f for f in files if f.text
+                    ]  # Include files that already had text
+                    titles = [file.filename for file in all_files]
+                    responses = []
+
+                    for file in all_files:
+                        if await sync_to_async(cache.get)(
+                            f"stop_response_{response_message.id}", False
+                        ):
+                            break
+                        if file.text:
+                            # Create the summarization response generator
+                            response = summarize_long_text(
+                                file.text,
+                                llm,
+                                summarize_prompt,
+                            )
+                            responses.append(response)
+                        else:
+                            # This shouldn't happen, but handle it just in case
+                            error_str = _("Error: File has no text after extraction.")
+                            responses.append(stream_to_replacer([error_str]))
+
+                    # Add any extraction errors as responses, using the filename as the title
+                    for error_str, failed_file in error_files:
+                        responses.append(stream_to_replacer([error_str]))
+                        if failed_file and hasattr(failed_file, "filename"):
+                            titles.append(failed_file.filename)
+                        else:
+                            titles.append(_("Error"))
+
+                    # Use the existing batch processing logic
+                    title_batches = create_batches(titles, batch_size)
+                    response_batches = create_batches(responses, batch_size)
+
+                    # Create batch generators
+                    batch_generators = [
+                        combine_response_replacers(batch_responses, batch_titles)
+                        for batch_responses, batch_titles in zip(
+                            response_batches, title_batches
+                        )
+                    ]
+
+                    # Stream the combined responses
+                    async for response in combine_batch_generators(batch_generators):
+                        yield response
+
+                except Exception as e:
+                    error_id = str(uuid.uuid4())[:7]
+                    error_str = _("Error processing files.")
+                    error_str += f" _({_('Error ID:')} {error_id})_"
+                    logger.exception(
+                        f"Error in file extraction and summarization generator: {e}",
+                        error_id=error_id,
+                        message_id=response_message.id,
+                        chat_id=chat.id,
+                    )
+                    yield error_str
+
+            return StreamingHttpResponse(
+                streaming_content=htmx_stream(
+                    chat,
+                    response_message.id,
+                    llm,
+                    response_replacer=file_extraction_and_summarization_generator(
+                        task_ids, task_id_to_file
+                    ),
+                    dots=True,
+                    wrap_markdown=True,
+                    remove_stop=True,
+                ),
+                content_type="text/event-stream",
+            )
+
+        # If no files need extraction, proceed with existing logic for files that already have text
         titles = [file.filename for file in files]
         responses = []
         for file in files:
             if cache.get(f"stop_response_{response_message.id}", False):
                 break
             if not file.text:
-                try:
-                    file.extract_text(pdf_method="default")
-                except Exception as e:
-                    error_id = str(uuid.uuid4())[:7]
-                    error_str = _(
-                        "Error extracting text from file. Try copying and pasting the text."
-                    )
-                    error_str += f" _({_('Error ID:')} {error_id})_"
-                    responses.append(stream_to_replacer([error_str]))
-                    logger.exception(
-                        f"Error extracting text from file:{e}",
-                        error_id=error_id,
-                        message_id=response_message.id,
-                        chat_id=chat.id,
-                    )
-                    continue
+                # This shouldn't happen since we should have processed all files above
+                error_id = str(uuid.uuid4())[:7]
+                error_str = _(
+                    "Error: File has no extracted text. Try re-uploading the file."
+                )
+                error_str += f" _({_('Error ID:')} {error_id})_"
+                responses.append(stream_to_replacer([error_str]))
+                logger.error(
+                    f"File {file.filename} has no text when no Celery tasks were needed",
+                    error_id=error_id,
+                    message_id=response_message.id,
+                    chat_id=chat.id,
+                )
+                continue
             responses.append(
                 summarize_long_text(
                     file.text,
@@ -259,13 +421,15 @@ def summarize_response(chat, response_message):
             text_to_summarize = url_to_text(user_message.text)
             # Check if response text is too short (most likely a website blocking Otto)
             if len(text_to_summarize.split()) < 35:
-                error_str = _(
-                    "Couldn't retrieve the webpage. The site might block bots. Try copy & pasting the webpage here."
+                error_str = text_to_summarize + "\n\n"
+                error_str += _(
+                    "_(The extracted text was very short. If this isn't correct, try copy & pasting the webpage here.)_"
                 )
         except ValidationError:
             text_to_summarize = user_message.text
 
     if error_str:
+
         return StreamingHttpResponse(
             streaming_content=htmx_stream(
                 chat,

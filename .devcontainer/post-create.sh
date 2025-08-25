@@ -1,4 +1,14 @@
 #!/bin/bash
+install_k6() {
+    echo "Installing k6"
+    K6_VER=$(curl -s https://api.github.com/repos/grafana/k6/releases/latest | grep -oP '"tag_name": "\K(.*)(?=")')
+    wget "https://github.com/grafana/k6/releases/download/${K6_VER}/k6-${K6_VER}-linux-amd64.tar.gz"
+    tar -xvf "k6-${K6_VER}-linux-amd64.tar.gz"
+    sudo mv "k6-${K6_VER}-linux-amd64/k6" /usr/local/bin/
+    sudo chmod +x /usr/local/bin/k6
+    rm -rf "k6-${K6_VER}-linux-amd64"*
+    rm "k6-${K6_VER}-linux-amd64.tar.gz"
+}
 
 if ! command -v az &> /dev/null
 then
@@ -13,6 +23,13 @@ if [[ $input == "Y" || $input == "y" ]]; then
 # Set the working directory to /django
         cd django
         bash initial_setup.sh
+else
+        echo "OK, skipping. Run 'bash .devcontainer/post-create.sh' again if you change your mind."
+fi
+echo " >>> Install k6 load testing tool? [y/N]:"
+read input
+if [[ $input == "Y" || $input == "y" ]]; then
+        install_k6
 else
         echo "OK, skipping. Run 'bash .devcontainer/post-create.sh' again if you change your mind."
 fi
