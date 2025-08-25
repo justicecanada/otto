@@ -995,15 +995,60 @@ def estimate_cost_of_request(chat, response_message, response_estimation_count=5
     elif mode == "summarize" or mode == "translate":
         model = chat.options.summarize_model
         for file in response_message.parent.sorted_files.all():
-            if not file.text:
+            if file.text:
+                # If file already has extracted text, use it for cost estimation
+                cost += estimate_cost_of_string(
+                    file.text,
+                    "translate-file" if mode == "translate" else model + "-in",
+                )
+            else:
+                # If file doesn't have text yet, estimate based on page count for PDFs
+                # or file size for other file types
                 try:
-                    file.extract_text(pdf_method="default")
-                    cost += estimate_cost_of_string(
-                        file.text,
-                        "translate-file" if mode == "translate" else model + "-in",
+                    # First try to get page count for PDFs
+                    if (
+                        file.saved_file.content_type == "application/pdf"
+                        or file.filename.lower().endswith(".pdf")
+                    ):
+                        try:
+                            import pymupdf
+
+                            with file.saved_file.file.open("rb") as pdf_file:
+                                doc = pymupdf.open(stream=pdf_file.read())
+                                page_count = doc.page_count
+                                doc.close()
+                                # Estimate ~300 tokens per page (conservative estimate)
+                                estimated_tokens = page_count * 300
+                        except Exception as pdf_error:
+                            # Fall back to file size estimation if PyMuPDF fails
+                            logger.warning(
+                                f"Failed to get page count for PDF {file.filename}: {pdf_error}"
+                            )
+                            file_size = file.saved_file.file.size
+                            estimated_tokens = file_size // 5  # Very rough estimate
+                    else:
+                        # For non-PDF files, use file size estimation
+                        file_size = file.saved_file.file.size
+                        estimated_tokens = file_size // 5  # Very rough estimate
+
+                    cost_type = CostType.objects.get(
+                        short_name=(
+                            "translate-file" if mode == "translate" else model + "-in"
+                        )
                     )
+                    cost += (
+                        estimated_tokens * cost_type.unit_cost
+                    ) / cost_type.unit_quantity
                 except:
-                    continue
+                    # If we can't estimate, use a conservative high estimate
+                    cost_type = CostType.objects.get(
+                        short_name=(
+                            "translate-file" if mode == "translate" else model + "-in"
+                        )
+                    )
+                    cost += (
+                        5000 * cost_type.unit_cost
+                    ) / cost_type.unit_quantity  # Conservative default: 5000 tokens
 
     elif mode == "chat":
 

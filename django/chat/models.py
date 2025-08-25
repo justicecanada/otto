@@ -651,9 +651,11 @@ class ChatFile(models.Model):
                 content, self.saved_file.content_type, self.filename
             )
             process_engine = get_process_engine_from_type(content_type)
-            self.text, _ = extract_markdown(
-                content, process_engine, pdf_method=pdf_method
+            # Chunk size 0 means no chunking (not needed for summarization)
+            extraction_result = extract_markdown(
+                content, process_engine, pdf_method=pdf_method, chunk_size=0
             )
+            self.text = extraction_result.markdown
             self.save()
 
 

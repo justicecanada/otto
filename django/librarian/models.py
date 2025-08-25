@@ -35,8 +35,9 @@ STATUS_CHOICES = [
 
 PDF_EXTRACTION_CHOICES = [
     ("default", _("text only")),
+    ("layout", _("text & layout")),
     ("azure_read", _("OCR")),
-    ("azure_layout", _("layout & OCR")),
+    ("azure_layout", _("OCR & layout")),
 ]
 
 

@@ -16,7 +16,7 @@ from django_file_form.forms import FileFormMixin, MultipleUploadedFileField
 from rules import is_group_member
 from structlog import get_logger
 
-from chat.llm_models import get_chat_model_choices, get_grouped_chat_model_choices
+from chat.llm_models import get_grouped_chat_model_choices
 from chat.models import (
     QA_MODE_CHOICES,
     QA_PROCESS_MODE_CHOICES,

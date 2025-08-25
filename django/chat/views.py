@@ -8,7 +8,7 @@ from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
 from django.db.models import Q
-from django.http import HttpRequest, HttpResponse, JsonResponse
+from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 from django.urls import reverse
@@ -49,7 +49,6 @@ from chat.utils import (
 )
 from librarian.forms import LibraryUsersForm
 from librarian.models import Library
-from otto.rules import can_edit_library
 from otto.utils.common import check_url_allowed, generate_mailto
 from otto.utils.decorators import (
     app_access_required,
@@ -132,7 +131,6 @@ def chat(request, chat_id):
     Get the chat based on the provided chat ID.
     Returns read-only view if user does not have access.
     """
-
     logger.info("Chat session retrieved.", chat_id=chat_id)
     bind_contextvars(feature="chat")
 

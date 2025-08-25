@@ -124,7 +124,7 @@ def process_document_helper(document, llm, pdf_method="default"):
         for key, value in extracted_metadata.items():
             setattr(document, key, value)
 
-    document.extracted_text, chunks = extract_markdown(
+    extraction_result = extract_markdown(
         content,
         process_engine,
         pdf_method=pdf_method,
@@ -132,6 +132,11 @@ def process_document_helper(document, llm, pdf_method="default"):
         selector=document.selector,
         root_document_id=document.id,
     )
+
+    document.extracted_text = extraction_result.markdown
+    if document.content_type == "application/pdf":
+        # The PDF method may have been changed during extraction, due to OCR fallback
+        document.pdf_extraction_method = extraction_result.pdf_method
 
     if document.content_type in ["application/x-zip-compressed", "application/zip"]:
         # Delete the document; we've already extracted the contents
@@ -145,11 +150,9 @@ def process_document_helper(document, llm, pdf_method="default"):
                 "status_text": _("Adding to library..."),
             },
         )
-    nodes = create_nodes(chunks, document)
+    nodes = create_nodes(extraction_result.chunks, document)
 
     document.num_chunks = len(nodes)
-    if document.content_type == "application/pdf":
-        document.pdf_extraction_method = pdf_method
     document.save()
 
     library_uuid = document.data_source.library.uuid_hex

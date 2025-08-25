@@ -47,7 +47,6 @@ markdownify==1.1.0
 Markdown==3.7
 bleach==6.1.0
 newspaper3k==0.2.8
-pypdfium2==4.30.1
 filetype==1.2.0
 docxtpl==0.19.1
 html2docx==1.6.0
@@ -77,5 +76,8 @@ redis==5.0.8
 django-redis==6.0.0
 django-celery-beat==2.7.0
 
-# GPL-licensed: Use only through CLI to maintain Otto's MIT license ------------
+# GPL-licensed
 extract_msg==0.54.1
+
+# AGPL-licensed
+pymupdf4llm==0.0.27
