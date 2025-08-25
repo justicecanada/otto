@@ -89,8 +89,10 @@
                   <th scope="col" width="20%">{% trans "Status" %}</th>
                   <th scope="col" width="10%">{% trans "Cost" %}</th>
                   <th scope="col" width="20%">
-                    <span id="download-all-files-btn"
-                          class="d-inline-flex align-items-center gap-2">{% trans "Downloads" %}</span>
+                    <div class="d-flex justify-content-between align-items-center">
+                      <span>{% trans "Downloads" %}</span>
+                      {% include "text_extractor/download_all_button.html" %}
+                    </div>
                   </th>
                 </tr>
               </thead>

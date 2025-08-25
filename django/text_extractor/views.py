@@ -235,8 +235,10 @@ def poll_tasks(request, user_request_id):
             if output_file.pdf_file:
                 output_file.pdf_size = file_size_to_string(output_file.pdf_file.size)
     statuses = [f.status for f in output_files]
-    show_download_all_button = len(output_files) > 0 and all(
-        s in ("SUCCESS", "FAILURE") for s in statuses
+    show_download_all_button = (
+        len(output_files) > 0
+        and all(s in ("SUCCESS", "FAILURE") for s in statuses)
+        and any(s == "SUCCESS" for s in statuses)
     )
     context = {
         "output_files": output_files,
