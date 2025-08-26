@@ -155,20 +155,6 @@ def trim_to_tokens(text, max_tokens=15000):
     return trimmed_beginning, trimmed_end
 
 
-def extract_text_from_pdf(pdf_file):
-    import pypdfium2 as pdfium
-
-    pdf = pdfium.PdfDocument(pdf_file)
-    text = ""
-    for i, page in enumerate(pdf):
-        text_page = page.get_textpage()
-        text += text_page.get_text_range() + "\n"
-        # PyPDFium does not cleanup its resources automatically. Ensures memory freed.
-        text_page.close()
-    pdf.close()
-    return text
-
-
 def convert_to_text(file, content_type=None):
     text = ""
     if content_type is None:
@@ -183,9 +169,6 @@ def convert_to_text(file, content_type=None):
             fullText.append(para.text)
         text = "\n".join(fullText)
         text = text.replace(".", ". ")
-
-    elif content_type == "application/pdf":
-        text = extract_text_from_pdf(file)
 
     elif content_type == "text/plain":
         text = file.read().decode("utf-8")

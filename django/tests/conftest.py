@@ -339,3 +339,8 @@ def sample_csv():
 def sample_pdf():
     # Mock PDF content for testing
     return b"%PDF-1.4\n..."
+
+
+@pytest.fixture(autouse=True)
+def ensure_otto_admin_group(db):
+    Group.objects.get_or_create(name="Otto admin")

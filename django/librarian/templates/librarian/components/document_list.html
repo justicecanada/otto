@@ -66,7 +66,15 @@
                    href="#"
                    hx-get="{% url 'librarian:data_source_start' selected_data_source.id 'default' 'all' %}">
                   <span>{% trans "Text only" %}</span>
-                  <span class="text-muted">{% trans "(default, $)" %}</span>
+                  <span class="text-muted">{% trans "(fastest, $)" %}</span>
+                </a>
+              </li>
+              <li>
+                <a class="dropdown-item small"
+                   href="#"
+                   hx-get="{% url 'librarian:data_source_start' selected_data_source.id 'layout' 'all' %}">
+                  <span>{% trans "PDF layout" %}</span>
+                  <span class="text-muted">{% trans "(keeps formatting, $)" %}</span>
                 </a>
               </li>
               <li>
@@ -74,7 +82,7 @@
                    href="#"
                    hx-get="{% url 'librarian:data_source_start' selected_data_source.id 'azure_read' 'all' %}">
                   <span>{% trans "PDF OCR" %}</span>
-                  <span class="text-muted">{% trans "(more robust, $$)" %}</span>
+                  <span class="text-muted">{% trans "(for scans, $$)" %}</span>
                 </a>
               </li>
               <li>
@@ -82,7 +90,7 @@
                    href="#"
                    hx-get="{% url 'librarian:data_source_start' selected_data_source.id 'azure_layout' 'all' %}">
                   <span>{% trans "PDF layout & OCR" %}</span>
-                  <span class="text-muted">{% trans "(best, $$$)" %}</span>
+                  <span class="text-muted">{% trans "(for complex scans, $$$)" %}</span>
                 </a>
               </li>
               <li>
@@ -96,7 +104,15 @@
                    href="#"
                    hx-get="{% url 'librarian:data_source_start' selected_data_source.id 'default' 'incomplete' %}">
                   <span>{% trans "Text only" %}</span>
-                  <span class="text-muted">{% trans "(default, $)" %}</span>
+                  <span class="text-muted">{% trans "(fastest, $)" %}</span>
+                </a>
+              </li>
+              <li>
+                <a class="dropdown-item small"
+                   href="#"
+                   hx-get="{% url 'librarian:data_source_start' selected_data_source.id 'layout' 'incomplete' %}">
+                  <span>{% trans "PDF layout" %}</span>
+                  <span class="text-muted">{% trans "(keeps formatting, $)" %}</span>
                 </a>
               </li>
               <li>
@@ -104,7 +120,7 @@
                    href="#"
                    hx-get="{% url 'librarian:data_source_start' selected_data_source.id 'azure_read' 'incomplete' %}">
                   <span>{% trans "PDF OCR" %}</span>
-                  <span class="text-muted">{% trans "(more robust, $$)" %}</span>
+                  <span class="text-muted">{% trans "(for scans, $$)" %}</span>
                 </a>
               </li>
               <li>
@@ -112,7 +128,7 @@
                    href="#"
                    hx-get="{% url 'librarian:data_source_start' selected_data_source.id 'azure_layout' 'incomplete' %}">
                   <span>{% trans "PDF layout & OCR" %}</span>
-                  <span class="text-muted">{% trans "(best, $$$)" %}</span>
+                  <span class="text-muted">{% trans "(for complex scans, $$$)" %}</span>
                 </a>
               </li>
               <li>

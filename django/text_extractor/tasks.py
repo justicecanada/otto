@@ -1,4 +1,3 @@
-import io
 import logging
 import os
 import tempfile
@@ -11,15 +10,12 @@ from django.core.files.uploadedfile import InMemoryUploadedFile
 from celery import current_task, shared_task
 from PIL import Image, ImageSequence
 from pypdf import PdfReader, PdfWriter
-from reportlab.pdfgen import canvas
 
 from otto.secure_models import AccessKey
 
-from .models import OutputFile, UserRequest
+from .models import OutputFile
 from .utils import (
-    calculate_start_pages,
     create_searchable_pdf,
-    create_toc_pdf,
     img_extensions,
     resize_image_to_a4,
     shorten_input_name,

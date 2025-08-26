@@ -1094,6 +1094,14 @@ def load_test(request):
         return HttpResponse("Load testing is disabled", status=403)
     query_params = request.GET.dict()
     logger.info("Load test request", query_params=query_params)
+
+    # Set mock_llm context variable if requested
+    if "mock_llm" in query_params:
+        from chat.llm import mock_llm_context
+
+        mock_llm_context.set(True)
+        bind_contextvars(mock_llm=True)
+
     if "error" in query_params:
         return HttpResponseServerError("Error requested")
     if "sleep" in query_params:
@@ -1193,6 +1201,18 @@ def load_test(request):
             return HttpResponse(
                 f"Document processing (mock embedding) took {total_time:.2f} seconds."
             )
+    if "summarize_pdf" in query_params:
+        from chat._views.load_test import load_test_summarize_pdf
+
+        file_count = int(query_params.get("num_files", 1))
+        pdf_filename = query_params.get("summarize_pdf") or "example.pdf"
+        # if pdf_filename is an empty string, it means the query param was present without a value
+        if not pdf_filename or pdf_filename.lower() == "true":
+            pdf_filename = "example.pdf"
+
+        return load_test_summarize_pdf(
+            request, file_count=file_count, pdf_filename=pdf_filename
+        )
 
     return HttpResponse(
         f"Response took {(timezone.now() - start_time).total_seconds():.2f} seconds"

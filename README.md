@@ -371,6 +371,6 @@ If things are even more messed up:
 
 ## License and contact
 
-MIT license.
+AGPL license due to PyMuPDF dependency.
 
 For details, please see LICENSE.txt.
