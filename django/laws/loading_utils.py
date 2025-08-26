@@ -223,6 +223,8 @@ def parse_table(table_elem):
     thead = table_elem.find(".//thead")
     # header_row = thead.findall("row")[1]
     header_rows = thead.findall("row") if thead is not None else []
+    # TODO: There's no guarantee that the second row is the most important header
+    # Discarding the other header rows is not a good idea
     if len(header_rows) >= 2:
         header_row = header_rows[1]
     elif len(header_rows) == 1:
@@ -278,10 +280,12 @@ def chunk_table(headers, body_rows, chunk_size=25):
 
 
 def _chunk_schedule_text(element):
+    # TODO: This needs to include all text, not just tables
     tables = element.findall(".//table")
     chunks = []
-    for table_idx, table_elem in enumerate(tables):
+    for table_elem in tables:
         headers, body_rows = parse_table(table_elem)
+        # TODO: chunk_size is a bit of a misnomer here; could be rows_per_chunk
         chunks = chunk_table(headers, body_rows, chunk_size=25)
     return chunks
 
@@ -312,7 +316,6 @@ def _get_joined_text(
     strong_tags=["MarginalNote", "TitleText"],
     underline_tags=[],
 ):
-    # TODO: Improve table parsing
     def stylized_text(text, tag):
         if tag in em_tags:
             return f"*{text}*"
@@ -669,7 +672,6 @@ def get_schedule(schedule):
     # if schedule "id" attribute is RelatedProvs or NifProvs, skip it
     if schedule.attrib.get("id", None) in ["RelatedProvs", "NifProvs"]:
         return None
-    _chunk_schedule_text(schedule)
     return {
         "id": _get_text(schedule.find(".//Label")),
         "headings": [
