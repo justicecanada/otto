@@ -10,6 +10,9 @@ from django.template.loader import render_to_string
 from django.utils.translation import gettext as _
 
 from asgiref.sync import sync_to_async
+from azure.ai.translation.text import TextTranslationClient
+from azure.core.credentials import AzureKeyCredential
+from azure.core.exceptions import HttpResponseError
 from data_fetcher.util import get_request
 from llama_index.core.vector_stores.types import MetadataFilter, MetadataFilters
 from rules.contrib.views import objectgetter
@@ -456,6 +459,49 @@ def summarize_response(chat, response_message):
     )
 
 
+def translate_text_with_azure(text, target_language):
+    """
+    Translate text using Azure Text Translation service.
+    Returns the translated text.
+    """
+    try:
+        # Map language codes to Azure Translator format
+        language_mapping = {"en": "en", "fr": "fr-ca"}  # Use Canadian French
+
+        target_lang = language_mapping.get(target_language, target_language)
+
+        # Create translation client
+        credential = AzureKeyCredential(settings.AZURE_COGNITIVE_SERVICE_KEY)
+        text_translator = TextTranslationClient(
+            credential=credential, region=settings.AZURE_COGNITIVE_SERVICE_REGION
+        )
+
+        # Translate the text
+        response = text_translator.translate(body=[text], to_language=[target_lang])
+
+        if response and len(response) > 0:
+            translation = response[0]
+            if translation.translations and len(translation.translations) > 0:
+                translated_text = translation.translations[0].text
+
+                # Track usage for cost calculation
+                char_count = len(text)
+                Cost.objects.new(cost_type="translate-text", count=char_count)
+
+                return translated_text
+
+        raise Exception("No translation received from Azure Translator")
+
+    except HttpResponseError as exception:
+        logger.exception(f"Azure Translator API error: {exception}")
+        if exception.error is not None:
+            raise Exception(f"Azure Translator Error: {exception.error.message}")
+        raise Exception("Azure Translator API error")
+    except Exception as e:
+        logger.exception(f"Error translating text with Azure: {e}")
+        raise Exception(f"Translation failed: {str(e)}")
+
+
 def translate_response(chat, response_message):
     """
     Translate the user's input text and stream the response.
@@ -527,32 +573,57 @@ def translate_response(chat, response_message):
             ),
             content_type="text/event-stream",
         )
-    # Simplest method: Just use LLM to translate input text.
-    # Note that long plain-translations frequently fail due to output token limits (~4k)
-    # It is not easy to check for this in advance, so we just try and see what happens
-    # TODO: Evaluate vs. Azure translator (cost and quality)
-    target_language = {"en": "English", "fr": "French"}[language]
-    translate_prompt = (
-        "Translate the following text to English (Canada):\n"
-        "Bonjour, comment ça va?"
-        "\n---\nTranslation: Hello, how are you?\n"
-        "Translate the following text to French (Canada):\n"
-        "What size is the file?\nPlease answer in bytes."
-        "\n---\nTranslation: Quelle est la taille du fichier?\nVeuillez répondre en octets.\n"
-        f"Translate the following text to {target_language} (Canada):\n"
-        f"<content_to_translate>\n{user_message.text}\n</content_to_translate>"
-        "\n---\nTranslation: "
-    )
 
-    return StreamingHttpResponse(
-        streaming_content=htmx_stream(
-            chat,
-            response_message.id,
-            llm,
-            response_replacer=llm.stream(translate_prompt),
-        ),
-        content_type="text/event-stream",
-    )
+    # Plain text translation - check translation method
+    translation_method = chat.options.translate_method
+
+    if translation_method == "azure":
+        # Use Azure Translator for plain text - faster and cheaper
+        try:
+            translated_text = translate_text_with_azure(user_message.text, language)
+
+            return StreamingHttpResponse(
+                streaming_content=htmx_stream(
+                    chat,
+                    response_message.id,
+                    llm,
+                    response_str=translated_text,
+                    dots=True,
+                ),
+                content_type="text/event-stream",
+            )
+        except Exception as e:
+            # If Azure translation fails, fall back to GPT
+            logger.warning(f"Azure translation failed, falling back to GPT: {e}")
+            translation_method = "gpt"
+
+    if translation_method == "gpt":
+        # Use GPT for translation - more expensive but may handle context better
+        target_language = {"en": "English", "fr": "French"}[language]
+        translate_prompt = (
+            "Translate the following text to English (Canada):\n"
+            "Bonjour, comment ça va?"
+            "\n---\nTranslation: Hello, how are you?\n"
+            "Translate the following text to French (Canada):\n"
+            "What size is the file?\nPlease answer in bytes."
+            "\n---\nTranslation: Quelle est la taille du fichier?\nVeuillez répondre en octets.\n"
+            f"Translate the following text to {target_language} (Canada):\n"
+            f"<content_to_translate>\n{user_message.text}\n</content_to_translate>"
+            "\n---\nTranslation: "
+        )
+
+        return StreamingHttpResponse(
+            streaming_content=htmx_stream(
+                chat,
+                response_message.id,
+                llm,
+                response_replacer=llm.stream(translate_prompt),
+            ),
+            content_type="text/event-stream",
+        )
+
+    # Fallback in case of invalid translation method
+    raise Exception(f"Invalid translation method: {translation_method}")
 
 
 def qa_response(chat, response_message, switch_mode=False):

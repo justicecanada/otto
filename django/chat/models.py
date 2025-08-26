@@ -32,6 +32,13 @@ logger = get_logger(__name__)
 
 DEFAULT_MODE = "chat"
 
+MODE_CHOICES = [
+    ("chat", _("Chat")),
+    ("qa", _("Q&A")),
+    ("summarize", _("Summarize")),
+    ("translate", _("Translate")),
+]
+
 
 def create_chat_data_source(user, chat):
     if not user.personal_library:
@@ -179,6 +186,11 @@ REASONING_EFFORT_CHOICES = [
     ("high", _("High (slower, more expensive)")),
 ]
 
+TRANSLATE_METHOD_CHOICES = [
+    ("azure", _("Azure Translator")),
+    ("gpt", _("GPT-4.1-mini")),
+]
+
 
 class ChatOptions(models.Model):
     """
@@ -216,6 +228,9 @@ class ChatOptions(models.Model):
 
     # Translate-specific options
     translate_language = models.CharField(max_length=255, default="fr")
+    translate_method = models.CharField(
+        max_length=20, default="azure", choices=TRANSLATE_METHOD_CHOICES
+    )
 
     # QA-specific options
     qa_model = models.CharField(max_length=255, default=DEFAULT_QA_MODEL_ID)

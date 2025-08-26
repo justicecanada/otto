@@ -415,6 +415,8 @@ def save_upload(request, chat_id):
             saved_file=saved_file["saved_file"],
         )
     bot_name = get_model_name(chat.options) if not chat.options.mode == "qa" else ""
+    if chat.options.mode == "translate":
+        bot_name = _("Azure Translator")
     response_message = Message.objects.create(
         chat=chat,
         text="",

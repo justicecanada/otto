@@ -4838,5 +4838,33 @@
     "Downloaded on": {
         "fr": "",
         "fr_auto": "Téléchargé le"
+    },
+    "Azure Translator": {
+        "fr": "",
+        "fr_auto": "Azure Translator"
+    },
+    "GPT-4.1 (alternative method)": {
+        "fr": "",
+        "fr_auto": "GPT-4.1 (méthode alternative)"
+    },
+    "Error extracting text from file{file_label}.": {
+        "fr": "",
+        "fr_auto": "Erreur lors de l’extraction du texte de file{file_label}."
+    },
+    "Translate plain text with...": {
+        "fr": "",
+        "fr_auto": "Traduire du texte brut avec..."
+    },
+    "GPT-4.1-mini": {
+        "fr": "",
+        "fr_auto": "GPT-4.1-mini"
+    },
+    "(text entry only)": {
+        "fr": "",
+        "fr_auto": "(entrée texte seulement)"
+    },
+    "(affects text entry only)": {
+        "fr": "",
+        "fr_auto": "(affecte la saisie de texte seulement)"
     }
 }

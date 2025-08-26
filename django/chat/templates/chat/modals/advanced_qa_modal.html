@@ -74,8 +74,7 @@
                     disabled
                     data-bs-toggle="tooltip"
                     data-bs-title='{% trans 'Select "granular answers" to split retrieved document excerpts into groups, and get separate answers for each group.' %}'>
-              <i class="bi-info-circle-fill text-primary small"
-                 style="vertical-align: middle"></i>
+              <i class="bi-info-circle-fill small"></i>
             </button>
             <select class="form-select form-select-sm"
                     id="qa_granular_toggle-modal"
@@ -94,10 +93,10 @@
                        class="col-form-label col-form-label-sm mb-0"
                        id="granularity-label">{% trans "Granularity" %}</label>
                 <button class="p-0 border-0 bg-transparent"
+                        disabled
                         data-bs-toggle="tooltip"
                         data-bs-title='{% trans '"Coarse" means a small number of groups, each containing a large number of excerpts.' %}'>
-                  <i class="bi-info-circle-fill text-primary small"
-                     style="vertical-align: middle"></i>
+                  <i class="bi-info-circle-fill small"></i>
                 </button>
                 <input type="range"
                        class="form-range my-1"

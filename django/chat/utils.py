@@ -179,6 +179,11 @@ def get_model_name(chat_options):
     from chat.llm_models import get_chat_model_choices
 
     model_key = ""
+    if chat_options.mode == "translate":
+        if chat_options.translate_method == "gpt":
+            model_key = settings.DEFAULT_CHAT_MODEL
+        elif chat_options.translate_method == "azure":
+            return _("Azure Translator")
     if chat_options.mode == "qa":
         model_key = chat_options.qa_model
     elif chat_options.mode == "chat":

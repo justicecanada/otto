@@ -12,4 +12,12 @@
            for="{{ options_form.translate_language.auto_id }}">{% trans "Desired language" %}</label>
   </div>
   <div class="px-3">{{ options_form.translate_language }}</div>
+
+  <div class="px-3">
+    <label class="col-form-label col-form-label-sm"
+           for="{{ options_form.translate_method.auto_id }}">
+      {% trans "Model" %} <span class="text-secondary">{% trans "(affects text entry only)" %}</span>
+    </label>
+  </div>
+  <div class="px-3">{{ options_form.translate_method }}</div>
 {% endblock %}

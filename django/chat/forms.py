@@ -18,10 +18,12 @@ from structlog import get_logger
 
 from chat.llm_models import get_grouped_chat_model_choices
 from chat.models import (
+    MODE_CHOICES,
     QA_MODE_CHOICES,
     QA_PROCESS_MODE_CHOICES,
     QA_SCOPE_CHOICES,
     REASONING_EFFORT_CHOICES,
+    TRANSLATE_METHOD_CHOICES,
     Chat,
     ChatOptions,
     Preset,
@@ -392,6 +394,16 @@ class ChatOptionsForm(ModelForm):
         for field in ["translate_language"]:
             self.fields[field].widget = forms.Select(
                 choices=LANGUAGES,
+                attrs={
+                    "class": "form-select form-select-sm",
+                    "onchange": "triggerOptionSave();",
+                },
+            )
+
+        # translate_method has choices for translation service
+        for field in ["translate_method"]:
+            self.fields[field].widget = forms.Select(
+                choices=TRANSLATE_METHOD_CHOICES,
                 attrs={
                     "class": "form-select form-select-sm",
                     "onchange": "triggerOptionSave();",
