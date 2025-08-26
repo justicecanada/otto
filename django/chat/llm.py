@@ -1,4 +1,5 @@
 import uuid
+from contextvars import ContextVar
 
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
@@ -16,6 +17,7 @@ from llama_index.core.instrumentation.events.llm import (
     LLMChatStartEvent,
     LLMCompletionEndEvent,
 )
+from llama_index.core.llms import MockLLM
 from llama_index.core.response_synthesizers import CompactAndRefine, TreeSummarize
 from llama_index.core.retrievers import BaseRetriever, QueryFusionRetriever
 from llama_index.core.vector_stores.types import MetadataFilter, MetadataFilters
@@ -35,6 +37,9 @@ from .llm_models import get_model
 logger = get_logger(__name__)
 
 debug = settings.DEBUG
+
+# Context variable for load testing - when set to True, forces use of Mock LLM and Mock Embedding
+mock_llm_context: ContextVar[bool] = ContextVar("mock_llm_context", default=False)
 
 
 class ModelEventHandler(BaseEventHandler):
@@ -97,6 +102,9 @@ class OttoLLM:
         mock_embedding: bool = False,
         reasoning_effort: str = "medium",
     ):
+        # Check if mock_llm is enabled via contextvar (for load testing)
+        self.use_mock_llm = mock_llm_context.get(False)
+
         self.llm_config = get_model(deployment)
         if not self.llm_config:
             raise ValueError(f"Invalid deployment: {deployment}")
@@ -110,7 +118,8 @@ class OttoLLM:
         )
         self._callback_manager = CallbackManager([self._token_counter])
         self.llm = self._get_llm()
-        self.mock_embedding = mock_embedding
+        # If mock_llm context is set, always use mock embedding regardless of mock_embedding parameter
+        self.mock_embedding = mock_embedding or self.use_mock_llm
         self.embed_model = self._get_embed_model()
         self.max_input_tokens = self.llm_config.max_tokens_in
         self.max_output_tokens = self.llm_config.max_tokens_out
@@ -385,7 +394,10 @@ class OttoLLM:
             verbose=True,
         )
 
-    def _get_llm(self) -> AzureOpenAI:
+    def _get_llm(self) -> AzureOpenAI | MockLLM:
+        if self.use_mock_llm:
+            # Use small max_tokens for efficient load testing - generates short responses instead of echoing prompts
+            return MockLLM(max_tokens=50)
         return AzureOpenAI(
             azure_endpoint=settings.AZURE_OPENAI_ENDPOINT,
             api_version=settings.AZURE_OPENAI_VERSION,

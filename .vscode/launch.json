@@ -53,6 +53,18 @@
             }
         },
         {
+            "name": "Django: Run Legislation Search Testss",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "pytest",
+            "args": [
+                "django/tests/laws"
+            ],
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            }
+        },
+        {
             "name": "Django: Eval Library QA",
             "type": "debugpy",
             "request": "launch",
@@ -101,6 +113,18 @@
             "program": "${workspaceFolder}/django/manage.py",
             "args": [
                 "runserver",
+            ],
+            "django": true,
+            "justMyCode": false
+        },
+        {
+            "name": "Django: Load Laws",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/django/manage.py",
+            "args": [
+                "load_laws_xml",
+                "--small",
             ],
             "django": true,
             "justMyCode": false

@@ -89,15 +89,10 @@
                   <th scope="col" width="20%">{% trans "Status" %}</th>
                   <th scope="col" width="10%">{% trans "Cost" %}</th>
                   <th scope="col" width="20%">
-                    {% trans "Downloads" %}
-                    <a class="ms-1 d-none fw-normal icon-link"
-                       id="download-all-files"
-                       type="button"
-                       href="#"
-                       onclick="downloadAllFiles();">
-                      <i class="bi bi-download h5"></i>
-                      {% trans "Download all files..." %}
-                    </a>
+                    <div class="d-flex justify-content-between align-items-center">
+                      <span>{% trans "Downloads" %}</span>
+                      {% include "text_extractor/download_all_button.html" %}
+                    </div>
                   </th>
                 </tr>
               </thead>
@@ -112,14 +107,7 @@
     </div>
   </div>
   <script>
-function downloadAllFiles() {
-  const downloadLinks = document.querySelectorAll('td a.icon-link');
-  downloadLinks.forEach((link, index) => {
-    setTimeout(() => {
-      link.click();
-    }, index * 100); // delay is necessary to download multiple files
-  });
-}
+  
 // event listener for when the documents are completed the spinner is hidden and file input is cleared
 document.getElementById('completed_documents_body').addEventListener('htmx:afterSwap', function() {
   document.getElementById('file-upload-field').value = '';

@@ -3,13 +3,10 @@ import math
 import os
 import tempfile
 import time
-import traceback
 import uuid
 from io import BytesIO
 
 from django.conf import settings
-from django.core.files.base import ContentFile
-from django.shortcuts import render
 from django.utils.translation import gettext as _
 
 from azure.ai.documentintelligence import DocumentIntelligenceClient
@@ -18,17 +15,12 @@ from azure.ai.documentintelligence.models import (
     DocumentContentFormat,
 )
 from azure.core.credentials import AzureKeyCredential
-from pdf2image import convert_from_path
-from pdf2image.exceptions import PDFPageCountError
-from PIL import Image, ImageDraw, ImageFont, ImageSequence
+from PIL import Image
 from PIL.Image import Resampling
-from pypdf import PdfReader, PdfWriter
-from reportlab.lib import pagesizes
+from pypdf import PdfReader
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 from structlog import get_logger
-
-from librarian.utils.process_engine import resize_to_azure_requirements
 
 logger = get_logger(__name__)
 

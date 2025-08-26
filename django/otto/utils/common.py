@@ -1,11 +1,9 @@
 import os
-from threading import Lock
 from urllib.parse import quote, urlparse
 
 from django.conf import settings
 from django.http import HttpResponse
 from django.shortcuts import redirect
-from django.urls import reverse
 
 import tldextract
 

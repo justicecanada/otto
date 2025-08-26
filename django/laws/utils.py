@@ -1,5 +1,6 @@
 import asyncio
 import json
+import re
 import uuid
 
 from django.core.cache import cache
@@ -48,8 +49,12 @@ def get_other_lang_node(node_id):
     lang = "eng" if "eng" in node_id else "fra"
     other_lang_node_id = (
         node_id.replace("eng", "fra")
+        .replace("_SCHEDULE ", "_ANNEXE ")
+        .replace("_FORM ", "_FORMULE ")
         if lang == "eng"
         else node_id.replace("fra", "eng")
+        .replace("_ANNEXE ", "_SCHEDULE ")
+        .replace("_FORMULE ", "_FORM ")
     )
     return get_source_node(other_lang_node_id)
 
@@ -145,3 +150,11 @@ async def htmx_sse_error(e="", query_uuid=None):
         f"data: <div hx-swap-oob='true' id='answer-sse'>"
         f"<div>{error_message}</div></div>\n\n"
     )
+
+
+def get_display_title(metadata):
+    title = metadata["display_metadata"].split("\n")[0]
+    if metadata["lang"] == "fra":
+        title = title.replace("Subsection", "paragraphe").replace("Section", "article")
+
+    return title
