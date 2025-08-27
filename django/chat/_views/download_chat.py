@@ -40,30 +40,20 @@ def download_chat(request, chat_id):
 
     # Create a new Word document
     doc = Document()
-    # Set default font to Aptos for all styles and headings to black
-    from docx.oxml.ns import qn
-    from docx.shared import Pt
-
     style = doc.styles["Normal"]
-    font = style.font
-    font.name = "Aptos"
-    font.size = Pt(12)
+    style.font.size = Pt(12)
+    style.font.color.rgb = RGBColor(0, 0, 0)
 
-    # Set all heading styles to black and Aptos
-    from docx.shared import RGBColor
-
-    for i in range(1, 7):
+    for i in range(0, 7):
         style_name = f"Heading {i}"
         if style_name in doc.styles:
             heading_style = doc.styles[style_name]
-            heading_style.font.name = "Aptos"
             heading_style.font.color.rgb = RGBColor(0, 0, 0)
 
     parser = HtmlToDocx()
 
-    # Add document title (Otto heading) in black
-    title_para = doc.add_heading(otto_title, 0)
-    title_para.runs[0].font.color.rgb = RGBColor(0, 0, 0)
+    title_para = doc.add_heading(otto_title, 1)
+    title_para.runs[0].font.size = Pt(26)
 
     # Add metadata
     doc.add_paragraph()  # Space
@@ -79,9 +69,9 @@ def download_chat(request, chat_id):
     date_para.add_run(current_date)
 
     # Add separator
-    doc.add_paragraph()
     separator = doc.add_paragraph()
-    separator.add_run("─" * 60)
+    sep_run = separator.add_run("─" * 60)
+    sep_run.font.color.rgb = RGBColor(0, 0, 0)
     doc.add_paragraph()
 
     # Get messages from database
@@ -128,7 +118,6 @@ def download_chat(request, chat_id):
         # Add cost information if available
         if message.usd_cost:
             cost_para = doc.add_paragraph()
-            cost_para.paragraph_format.left_indent = Inches(0.5)
             cost_run = cost_para.add_run(f"Cost: {display_cad_cost(message.usd_cost)}")
             cost_run.italic = True
             cost_run.font.size = Pt(9)
