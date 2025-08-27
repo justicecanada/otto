@@ -21,34 +21,38 @@ md = markdown.Markdown(extensions=["fenced_code", "nl2br", "tables"], tab_length
 logger = get_logger(__name__)
 
 
+# SAMPLE_LAW_IDS = [
+#     "A-0.6",  # Accessible Canada Act
+#     "SOR-2021-241",  # Accessible Canada Regulations
+#     "A-2",  # Aeronautics Act
+#     "B-9.01",  # Broadcasting Act
+#     "SOR-97-555",  # Broadcasting Distribution Regulations
+#     "SOR-96-433",  # Canadian Aviation Regulations
+#     "SOR-2011-318",  # Canadian Aviation Security Regulations, 2012
+#     "C-15.1",  # Canadian Energy Regulator Act
+#     "C-15.31",  # Canadian Environmental Protection Act, 1999
+#     "C-24.5",  # Cannabis Act
+#     "SOR-2018-144",  # Cannabis Regulations
+#     "C-46",  # Criminal Code
+#     "SOR-2021-25",  # Cross-border Movement of Hazardous Waste and Hazardous Recyclable Material Regulations
+#     "F-14",  # Fisheries Act
+#     "SOR-93-53",  # Fishery (General) Regulations
+#     "C.R.C.,_c._870",  # Food and Drug Regulations
+#     "F-27",  # Food and Drugs Act
+#     "I-2.5",  # Immigration and Refugee Protection Act
+#     "SOR-2002-227",  # Immigration and Refugee Protection Regulations
+#     "I-21",  # Interpretation Act
+#     "SOR-2016-151",  # Multi-Sector Air Pollutants Regulations
+#     "SOR-2010-189",  # Renewable Fuels Regulations
+#     "S-22",  # Statutory Instruments Act
+#     "C.R.C.,_c._1509",  # Statutory Instruments Regulations
+#     "A-1",  # Access to Information Act
+#     "F-11",  # Financial Administration Act
+#     "N-22",  # Canadian Navigable Waters Act
+# ]
+
 SAMPLE_LAW_IDS = [
-    "A-0.6",  # Accessible Canada Act
-    "SOR-2021-241",  # Accessible Canada Regulations
-    "A-2",  # Aeronautics Act
-    "B-9.01",  # Broadcasting Act
-    "SOR-97-555",  # Broadcasting Distribution Regulations
-    "SOR-96-433",  # Canadian Aviation Regulations
-    "SOR-2011-318",  # Canadian Aviation Security Regulations, 2012
-    "C-15.1",  # Canadian Energy Regulator Act
-    "C-15.31",  # Canadian Environmental Protection Act, 1999
-    "C-24.5",  # Cannabis Act
-    "SOR-2018-144",  # Cannabis Regulations
-    "C-46",  # Criminal Code
     "SOR-2021-25",  # Cross-border Movement of Hazardous Waste and Hazardous Recyclable Material Regulations
-    "F-14",  # Fisheries Act
-    "SOR-93-53",  # Fishery (General) Regulations
-    "C.R.C.,_c._870",  # Food and Drug Regulations
-    "F-27",  # Food and Drugs Act
-    "I-2.5",  # Immigration and Refugee Protection Act
-    "SOR-2002-227",  # Immigration and Refugee Protection Regulations
-    "I-21",  # Interpretation Act
-    "SOR-2016-151",  # Multi-Sector Air Pollutants Regulations
-    "SOR-2010-189",  # Renewable Fuels Regulations
-    "S-22",  # Statutory Instruments Act
-    "C.R.C.,_c._1509",  # Statutory Instruments Regulations
-    "A-1",  # Access to Information Act
-    "F-11",  # Financial Administration Act
-    "N-22",  # Canadian Navigable Waters Act
 ]
 
 constitution_dir = os.path.join(settings.BASE_DIR, "laws", "data")
@@ -219,31 +223,25 @@ def _get_link(element):
 
 
 def parse_table(table_elem):
-    # Find header row (first or second <row> in <thead>)
-    thead = table_elem.find(".//thead")
-    # header_row = thead.findall("row")[1]
-    header_rows = thead.findall("row") if thead is not None else []
-    # TODO: There's no guarantee that the second row is the most important header
-    # Discarding the other header rows is not a good idea
-    if len(header_rows) >= 2:
-        header_row = header_rows[1]
-    elif len(header_rows) == 1:
-        header_row = header_rows[0]
-    else:
-        # No header row found; return empty headers and rows
-        return [], []
-    headers = [
-        entry.text.strip() if entry.text is not None else ""
-        for entry in header_row.findall("entry")
-    ]
-
-    # Find body rows
-    tbody = table_elem.find(".//tbody")
+    tgroup_elem = table_elem.find("tgroup")
+    # Parse headers
+    thead = tgroup_elem.find("thead") if tgroup_elem is not None else None
+    header_rows = []
+    if thead is not None:
+        for header_row in thead.findall("row"):
+            row_cells = [
+                entry.text.strip() if entry.text is not None else ""
+                for entry in header_row.findall("entry")
+            ]
+            header_rows.append(row_cells)
+    # Parse body
+    tbody = tgroup_elem.find("tbody") if tgroup_elem is not None else None
     body_rows = []
-    for row in tbody.findall("row"):
-        cells = [extract_entry_text(entry) for entry in row.findall("entry")]
-        body_rows.append(cells)
-    return headers, body_rows
+    if tbody is not None:
+        for row in tbody.findall("row"):
+            cells = [extract_entry_text(entry) for entry in row.findall("entry")]
+            body_rows.append(cells)
+    return header_rows, body_rows
 
 
 def extract_entry_text(entry):
@@ -260,34 +258,116 @@ def extract_entry_text(entry):
     return entry.text.strip() if entry.text else ""
 
 
-def markdown_header(headers):
-    header_line = "| " + " | ".join(headers) + " |"
-    separator = "| " + " | ".join(["---"] * len(headers)) + " |"
-    return header_line + "\n" + separator
+def markdown_header(header_rows):
+    # Join each header row as a Markdown row
+    md = ""
+    for i, row in enumerate(header_rows):
+        md += "| " + " | ".join(row) + " |\n"
+        # Add separator after the last header row
+        if i == len(header_rows) - 1:
+            md += "| " + " | ".join(["---"] * len(row)) + " |\n"
+    return md
 
 
 def markdown_rows(rows):
     return "\n".join(["| " + " | ".join(row) + " |" for row in rows])
 
 
-def chunk_table(headers, body_rows, chunk_size=25):
+# Extract any text after the last <table> in a schedule
+def get_schedule_suffix(elem):
+    suffix_texts = []
+    found_table = False
+    for child in elem:
+        if found_table:
+            text = _get_joined_text(child).strip()
+            if text:
+                suffix_texts.append(text)
+        if child.tag == "table":
+            found_table = True
+    return "\n\n".join(suffix_texts)
+
+
+def get_table_group_and_table_prefix(elem):
+    # All siblings of <table> before <table> in <TableGroup>
+    prefix_texts = []
+    table_elem = None
+    for child in elem:
+        if child.tag == "table":
+            table_elem = child
+            break
+        text = _get_joined_text(child).strip()
+        if text:
+            prefix_texts.append(text)
+    # All siblings of <tgroup> before <tgroup> in <table>
+    if table_elem is not None:
+        for child in table_elem:
+            if child.tag == "tgroup":
+                break
+            text = _get_joined_text(child).strip()
+            if text:
+                prefix_texts.append(text)
+    return "\n\n".join(prefix_texts)
+
+
+def chunk_table(headers, body_rows, row_per_chunk=25):
     chunks = []
-    for i in range(0, len(body_rows), chunk_size):
-        chunk = body_rows[i : i + chunk_size]
+    for i in range(0, len(body_rows), row_per_chunk):
+        chunk = body_rows[i : i + row_per_chunk]
         md = markdown_header(headers) + "\n" + markdown_rows(chunk)
         chunks.append(md)
     return chunks
 
 
+def parse_schedule_with_all_prefix_suffix(schedule_elem):
+    # Schedule prefix: everything before first TableGroup
+    prefix_elems = []
+    for child in schedule_elem:
+        if child.tag == "TableGroup":
+            break
+        prefix_elems.append(child)
+    schedule_prefix = "\n".join(
+        _get_joined_text(e) for e in prefix_elems if _get_joined_text(e).strip()
+    )
+
+    tables = []
+    for tg in schedule_elem.findall("TableGroup"):
+        table = tg.find("table")
+        if table is None:
+            continue
+        header_rows, body_rows = parse_table(table)
+        table_group_and_table_prefix = get_table_group_and_table_prefix(tg)
+        schedule_suffix = get_schedule_suffix(tg)
+        tables.append(
+            {
+                "schedule_prefix": schedule_prefix,
+                "table_group_and_table_prefix": table_group_and_table_prefix,
+                "header_rows": header_rows,
+                "body_rows": body_rows,
+                "schedule_suffix": schedule_suffix,
+            }
+        )
+    return tables
+
+
 def _chunk_schedule_text(element):
     # TODO: This needs to include all text, not just tables
-    tables = element.findall(".//table")
+    tables = parse_schedule_with_all_prefix_suffix(element)
     chunks = []
-    for table_elem in tables:
-        headers, body_rows = parse_table(table_elem)
-        # TODO: chunk_size is a bit of a misnomer here; could be rows_per_chunk
-        chunks = chunk_table(headers, body_rows, chunk_size=25)
-    return chunks
+    for table_info in tables:
+        chunk_prefix = ""
+        if table_info["schedule_prefix"]:
+            chunk_prefix += table_info["schedule_prefix"] + "\n\n"
+        if table_info["table_group_and_table_prefix"]:
+            chunk_prefix += table_info["table_group_and_table_prefix"] + "\n\n"
+        chunk_suffix = (
+            "\n\n" + table_info["schedule_suffix"]
+            if table_info["schedule_suffix"]
+            else ""
+        )
+        chunks = chunk_table(
+            table_info["header_rows"], table_info["body_rows"], rows_per_chunk=25
+        )
+    return [chunk_prefix + chunk + chunk_suffix + "\n" for chunk in chunks]
 
 
 def _get_joined_text(
