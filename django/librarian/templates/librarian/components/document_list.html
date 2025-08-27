@@ -6,7 +6,7 @@
     <h6 id="documents-label" class="mb-2">
       {% trans "Documents" %}
       {% if selected_data_source and selected_data_source.id %}({{ documents|length }}){% endif %}
-      {% if selected_data_source and selected_data_source.id and failed_count %}
+      {% if failed_count %}
         <span class="small text-danger"
               role="img"
               data-bs-toggle="tooltip"
