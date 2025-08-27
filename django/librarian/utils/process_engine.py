@@ -186,7 +186,7 @@ def guess_content_type(
         if path.endswith(".zip"):
             return "application/zip"
 
-        if path.endswith(".docx"):
+        if path.endswith(".docx") or path.endswith(".doc"):
             return "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
 
         if path.endswith(".eml"):
@@ -461,6 +461,11 @@ def docx_to_markdown(content):
     with io.BytesIO(content) as docx_file:
         try:
             result = mammoth.convert_to_html(docx_file)
+            try:
+                doc_to_markdown(content)
+            except Exception as e:
+                logger.error(f"Failed to convert .doc to markdown: {e}")
+                raise Exception(_("Corrupt doc file."))
         except Exception as e:
             logger.error(f"Failed to extract text from .docx file: {e}")
             raise Exception(_("Corrupt docx file."))
@@ -468,6 +473,50 @@ def docx_to_markdown(content):
 
     md = _convert_html_to_markdown(html)
     return md
+
+
+def doc_to_markdown(content):
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".doc") as tmp_doc:
+        tmp_doc.write(content)
+        tmp_doc_path = tmp_doc.name
+
+    # Prepare a temporary file for the HTML output
+    tmp_html_path = tmp_doc_path.replace(".doc", ".html")
+
+    try:
+        # Use LibreOffice to convert .doc to .html
+        subprocess.run(
+            [
+                "libreoffice",
+                "--headless",
+                "--convert-to",
+                "html",
+                "--outdir",
+                os.path.dirname(tmp_doc_path),
+                tmp_doc_path,
+            ],
+            check=True,
+        )
+
+        # Read the HTML output
+        with open(tmp_html_path, "r", encoding="utf-8") as html_file:
+            html = html_file.read()
+
+        # Convert HTML to Markdown
+        md = _convert_html_to_markdown(html)
+        return md
+
+    except Exception as e:
+        logger.error(f"Failed to convert .doc to markdown: {e}")
+        raise Exception(_("Corrupt doc file."))
+    finally:
+        # Clean up temporary files
+        try:
+            os.remove(tmp_doc_path)
+            if os.path.exists(tmp_html_path):
+                os.remove(tmp_html_path)
+        except Exception:
+            pass
 
 
 def pptx_to_markdown(content):

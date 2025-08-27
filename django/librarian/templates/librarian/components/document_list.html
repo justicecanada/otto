@@ -5,16 +5,20 @@
   <div class="d-flex justify-content-between align-items-baseline">
     <h6 id="documents-label" class="mb-2">
       {% trans "Documents" %}
-      {% if selected_data_source and selected_data_source.id %}({{ documents|length }}){% endif %}
-      {% if failed_count %}
-        <span class="small text-danger"
-              role="img"
-              data-bs-toggle="tooltip"
-              data-bs-placement="bottom"
-              data-bs-trigger="hover focus"
-              title="{{ failed_count }} {% trans 'failed' %}{% if blocked_count %} · {{ blocked_count }} {% trans 'stopped' %}{% endif %}"
-              aria-label="{{ failed_count }} {% trans 'failed' %}{% if blocked_count %} · {{ blocked_count }} {% trans 'stopped' %}{% endif %}">
-          <i class="bi bi-exclamation-circle-fill"></i>
+      {% if selected_data_source and selected_data_source.id %}
+        ({{ documents|length }})
+        <span id="librarian-failed-oob">
+          {% if blocked_count or failed_count %}
+            <span class="small text-danger"
+                  role="img"
+                  data-bs-toggle="tooltip"
+                  data-bs-placement="bottom"
+                  data-bs-trigger="hover focus"
+                  title="{{ failed_count }} {% trans 'failed' %}{% if blocked_count %} · {{ blocked_count }} {% trans 'stopped' %}{% endif %}"
+                  aria-label="{{ failed_count }} {% trans 'failed' %}{% if blocked_count %} · {{ blocked_count }} {% trans 'stopped' %}{% endif %}">
+              <i class="bi bi-exclamation-circle-fill"></i>
+            </span>
+          {% endif %}
         </span>
       {% endif %}
     </h6>
@@ -22,7 +26,7 @@
       <div class="small text-muted">
         <span id="librarian-total-cost">{{ total_cost|default:"$0.00" }}</span>
         /
-        <span id="librarian-total-chunks">{{ total_chunks|default:"0" }} {% trans "chunk(s)" %}</span>
+        <span id="librarian-total-chunks">{{ total_chunks|default:0 }} {% trans "chunk(s)" %}</span>
       </div>
     {% endif %}
   </div>

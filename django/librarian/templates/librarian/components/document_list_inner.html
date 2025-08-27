@@ -15,7 +15,18 @@
     </div>
   {% endif %}
 </div>
-
+<span id="librarian-failed-oob" hx-swap-oob="true">
+  {% if blocked_count or failed_count %}
+    <span class="small text-danger"
+          role="img"
+          data-bs-toggle="tooltip"
+          data-bs-placement="bottom"
+          data-bs-trigger="hover focus"
+          title="{{ failed_count }} {% trans 'failed' %}{% if blocked_count %} · {{ blocked_count }} {% trans 'stopped' %}{% endif %}">
+      <i class="bi bi-exclamation-circle-fill"></i>
+    </span>
+  {% endif %}
+</span>
 <span id="librarian-totals-oob" hx-swap-oob="true" class="d-none">
   <span id="librarian-total-cost">{{ total_cost|default:"$0.00" }}</span>
   /
@@ -27,3 +38,13 @@
     · <span id="librarian-blocked-count">{{ blocked_count }}</span> {% trans "stopped" %}
   {% endif %}
 </span>
+<script>
+document.body.addEventListener('htmx:afterSwap', function() {
+  var el = document.querySelector('#librarian-failed-oob [data-bs-toggle="tooltip"]');
+  if (el) {
+    var inst = bootstrap.Tooltip.getInstance(el);
+    if (inst) inst.dispose();
+    new bootstrap.Tooltip(el);
+  }
+});
+</script>
