@@ -9,9 +9,11 @@ from django.utils.translation import gettext as _
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
+import markdown
 from docx import Document
 from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
 from docx.shared import Inches, Pt, RGBColor
+from htmldocx import HtmlToDocx
 from rules.contrib.views import objectgetter
 
 from chat.models import Chat
@@ -38,9 +40,10 @@ def download_chat(request, chat_id):
 
     # Create a new Word document
     doc = Document()
+    parser = HtmlToDocx()
 
     # Add document title
-    title_paragraph = doc.add_heading(otto_title, 0)
+    doc.add_heading(otto_title, 0)
 
     # Add metadata
     doc.add_paragraph()  # Space
@@ -58,7 +61,7 @@ def download_chat(request, chat_id):
     # Add separator
     doc.add_paragraph()
     separator = doc.add_paragraph()
-    separator.add_run("─" * 80)
+    separator.add_run("─" * 60)
     doc.add_paragraph()
 
     # Get messages from database
@@ -70,7 +73,7 @@ def download_chat(request, chat_id):
             author = "Otto"
             if message.bot_name:
                 author += f" ({message.bot_name})"
-            header_color = RGBColor(0, 102, 204)  # Blue
+            header_color = RGBColor(139, 111, 173)
         else:
             author = message.chat.user.full_name if message.chat.user else "User"
             header_color = RGBColor(0, 128, 0)  # Green
@@ -85,22 +88,22 @@ def download_chat(request, chat_id):
 
         # Add message content
         if message.text and message.text.strip():
-            content_para = doc.add_paragraph()
-            content_para.paragraph_format.left_indent = Inches(0.5)
-            content_para.paragraph_format.space_after = Pt(6)
-
-            # Add colored border indicator
+            # Choose color for border
             if message.is_bot:
-                border_run = content_para.add_run("▌ ")
-                border_run.font.color.rgb = RGBColor(0, 102, 204)  # Blue
+                border_color = "#8B6FAD"  # Purple (RGB 75, 0, 130)
             else:
-                border_run = content_para.add_run("▌ ")
-                border_run.font.color.rgb = RGBColor(0, 128, 0)  # Green
-            border_run.font.size = Pt(12)
-
-            # Add the message text
-            content_run = content_para.add_run(message.text)
-            content_run.font.size = Pt(11)
+                border_color = "#008000"  # Green
+            # Create HTML with colored border and message text inline
+            border_html = (
+                f'<span style="color: {border_color}; font-size: 12pt;">▌ </span>'
+            )
+            content_html = markdown.markdown(message.text)
+            # Remove outer <p> tags if present
+            if content_html.startswith("<p>") and content_html.endswith("</p>"):
+                content_html = content_html[3:-4]
+            full_html = f"<span>{border_html}{content_html}</span>"
+            # Add to document (will be in the same line)
+            parser.add_html_to_document(full_html, doc)
 
         # Add cost information if available
         if message.usd_cost:
