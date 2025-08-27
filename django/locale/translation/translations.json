@@ -4850,5 +4850,9 @@
     "Downloaded on": {
         "fr": "",
         "fr_auto": "Téléchargé le"
+    },
+    "Corrupt doc file.": {
+        "fr": "",
+        "fr_auto": "Fichier doc corrompu."
     }
 }
