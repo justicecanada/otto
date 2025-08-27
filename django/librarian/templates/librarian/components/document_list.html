@@ -7,11 +7,11 @@
       {% trans "Documents" %}
       {% if selected_data_source and selected_data_source.id %}({{ documents|length }}){% endif %}
     </h6>
-    {% if selected_data_source and selected_data_source.id %}
+    {% if selected_data_source or selected_data_source.id or selected_item %}
       <div class="small text-muted">
         <span id="librarian-total-cost">{{ total_cost|default:"$0.00" }}</span>
         /
-        <span id="librarian-total-chunks">{{ total_chunks|default:0 }} {% trans "chunk(s)" %}</span>
+        <span id="librarian-total-chunks">{{ total_chunks|default:"0" }} {% trans "chunk(s)" %}</span>
       </div>
     {% endif %}
   </div>
