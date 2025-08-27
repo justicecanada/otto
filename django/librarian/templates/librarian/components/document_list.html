@@ -28,7 +28,7 @@
       </div>
     {% endif %}
     {% if can_edit_data_source %}
-      <div class="row mb-2">
+      <div class="row mb-2 g-2">
         <div class="col">
           <div class="btn-group w-100">
             <button type="button"
@@ -120,6 +120,66 @@
                 </a>
               </li>
             </ul>
+          </div>
+        </div>
+        <div class="col-auto">
+          <div class="btn-group w-100">
+            <button type="button"
+                    class="btn btn-sm btn-outline-success dropdown-toggle"
+                    data-bs-toggle="dropdown"
+                    aria-expanded="false">{% trans "Sort" %}</button>
+            <ul class="dropdown-menu">
+
+              <li>
+                <a class="dropdown-item small"
+                   href="#"
+                   hx-get="{% url 'librarian:sort_date' selected_data_source.id %}">
+                  <span>{% trans "Date" %}</span>
+
+                </a>
+              </li>
+              <li>
+                <a class="dropdown-item small"
+                   href="#"
+                   hx-get="{% url 'librarian:sort_filename' selected_data_source.id %}">
+                  <span>{% trans "Filename" %}</span>
+
+                </a>
+              </li>
+              <li>
+                <a class="dropdown-item small"
+                   href="#"
+                   hx-get="{% url 'librarian:sort_filetype' selected_data_source.id %}">
+                  <span>{% trans "Filetype" %}</span>
+
+                </a>
+              </li>
+              <li>
+                <a class="dropdown-item small"
+                   href="#"
+                   hx-get="{% url 'librarian:sort_chunks' selected_data_source.id %}">
+                  <span>{% trans "#Chunks/size" %}</span>
+
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div class="col">
+          <div class="input-group input-group-sm w-100">
+
+            <input type="text"
+                   class="form-control border-success border-end-0"
+                   placeholder="{% trans 'Search' %}"
+                   aria-label="{% trans 'Search' %}"
+                   id="librarian-search-input"
+                   name="search"
+                   autocomplete="off">
+            <button class="input-group-text bg-white border-success border-start-0"
+                    type="submit"
+                    style="border-left: 0">
+              <i class="bi bi-search small"></i>
+            </button>
           </div>
         </div>
       </div>

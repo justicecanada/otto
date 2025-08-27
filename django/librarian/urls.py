@@ -21,6 +21,10 @@ from librarian.views import (
     modal_view_document,
     modal_view_library,
     poll_status,
+    sort_chunks,
+    sort_date,
+    sort_filename,
+    sort_filetype,
     upload,
 )
 
@@ -122,5 +126,17 @@ urlpatterns = [
         "library/<int:library_id>/email_admins/",
         email_library_admins,
         name="email_library_admins",
+    ),
+    path("library/<int:data_source_id>/sort_date/", sort_date, name="sort_date"),
+    path("library/<int:data_source_id>/sort_chunks/", sort_chunks, name="sort_chunks"),
+    path(
+        "library/<int:data_source_id>/sort_filename/",
+        sort_filename,
+        name="sort_filename",
+    ),
+    path(
+        "library/<int:data_source_id>/sort_filetype/",
+        sort_filetype,
+        name="sort_filetype",
     ),
 ]

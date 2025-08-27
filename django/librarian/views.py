@@ -47,7 +47,7 @@ def get_viewable_libraries(user):
 
 
 # AC-20: Implements role-based access control for interacting with data sources
-def modal_view(request, item_type=None, item_id=None, parent_id=None):
+def modal_view(request, item_type=None, item_id=None, parent_id=None, documents=None):
     """
     !!! This is not to be called directly, but rather through the wrapper functions
         which implement permission checking (see below) !!!
@@ -312,6 +312,10 @@ def modal_view(request, item_type=None, item_id=None, parent_id=None):
         "has_error": has_error,
         "upload_form": UploadForm(prefix="librarian"),
     }
+
+    if documents is not None:
+        context["documents"] = documents
+
     return render(request, "librarian/modal_inner.html", context)
 
 
@@ -653,4 +657,64 @@ def email_library_admins(request, library_id):
 
     return HttpResponse(
         f"<a href='{generate_mailto(to,cc,subject,body)}'>mailto link</a>"
+    )
+
+
+def sort_date(request, data_source_id):
+    bind_contextvars(feature="librarian")
+    data_source = get_object_or_404(DataSource, id=data_source_id)
+    documents = list(data_source.documents.defer("extracted_text").all())
+    sorted_documents = sorted(
+        documents,
+        key=lambda doc: doc.extracted_modified_at or doc.created_at,
+        reverse=True,
+    )
+    return modal_view(
+        request,
+        item_type="data_source",
+        item_id=data_source_id,
+        documents=sorted_documents,
+    )
+
+
+def sort_filename(request, data_source_id):
+    bind_contextvars(feature="librarian")
+    data_source = get_object_or_404(DataSource, id=data_source_id)
+    documents = list(data_source.documents.defer("extracted_text").all())
+    sorted_documents = sorted(documents, key=lambda doc: (doc.filename or "").lower())
+    return modal_view(
+        request,
+        item_type="data_source",
+        item_id=data_source_id,
+        documents=sorted_documents,
+    )
+
+
+def sort_filetype(request, data_source_id):
+    bind_contextvars(feature="librarian")
+    data_source = get_object_or_404(DataSource, id=data_source_id)
+    documents = list(data_source.documents.defer("extracted_text").all())
+    sorted_documents = sorted(
+        documents, key=lambda doc: (doc.content_type or "").lower()
+    )
+    return modal_view(
+        request,
+        item_type="data_source",
+        item_id=data_source_id,
+        documents=sorted_documents,
+    )
+
+
+def sort_chunks(request, data_source_id):
+    bind_contextvars(feature="librarian")
+    data_source = get_object_or_404(DataSource, id=data_source_id)
+    documents = list(data_source.documents.defer("extracted_text").all())
+    sorted_documents = sorted(
+        documents, key=lambda doc: doc.num_chunks or 0, reverse=True
+    )
+    return modal_view(
+        request,
+        item_type="data_source",
+        item_id=data_source_id,
+        documents=sorted_documents,
     )
