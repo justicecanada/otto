@@ -745,3 +745,30 @@ svg.driver-overlay {
     display: none;
   }
 }
+
+#message-from-admins {
+  width: 100%;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+#message-from-admins.danger {
+  background: #911919;
+  color: white;
+}
+
+#message-from-admins.warning {
+  background: #ffcc00;
+  color: black;
+}
+
+#message-from-admins.success {
+  background: #198754;
+  color: white;
+}
+
+#message-from-admins.info {
+  background: #0d6efd;
+  color: white;
+}
