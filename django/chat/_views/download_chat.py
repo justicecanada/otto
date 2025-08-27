@@ -42,6 +42,7 @@ def download_chat(request, chat_id):
     doc = Document()
     style = doc.styles["Normal"]
     style.font.size = Pt(12)
+    style.font.name = "Aptos"
     style.font.color.rgb = RGBColor(0, 0, 0)
 
     for i in range(0, 7):
@@ -56,7 +57,7 @@ def download_chat(request, chat_id):
     title_para.runs[0].font.size = Pt(26)
 
     # Add metadata
-    doc.add_paragraph()  # Space
+    doc.add_paragraph()
 
     url_para = doc.add_paragraph()
     url_run = url_para.add_run(f"{_('Chat URL')}: ")
@@ -71,7 +72,6 @@ def download_chat(request, chat_id):
     # Add separator
     separator = doc.add_paragraph()
     sep_run = separator.add_run("─" * 60)
-    sep_run.font.color.rgb = RGBColor(0, 0, 0)
     doc.add_paragraph()
 
     # Get messages from database
@@ -125,6 +125,11 @@ def download_chat(request, chat_id):
 
         # Add spacing between messages
         doc.add_paragraph()
+
+    # set everything to the same font
+    for p in doc.paragraphs:
+        for r in p.runs:
+            r.font.name = "Aptos"
 
     # Save document to buffer
     buffer = io.BytesIO()
