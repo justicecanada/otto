@@ -712,9 +712,30 @@ def sort_chunks(request, data_source_id):
     sorted_documents = sorted(
         documents, key=lambda doc: doc.num_chunks or 0, reverse=True
     )
-    return modal_view(
+    # return modal_view(
+    #     request,
+    #     item_type="data_source",
+    #     item_id=data_source_id,
+    #     documents=sorted_documents,
+    # )
+    request,
+    "librarian/components/document_list_inner.html",
+    {
+        "documents": documents,
+        # ...other context as needed
+    },
+
+
+def search_docs(request, data_source_id):
+    query = request.GET.get("search", "")
+    documents = Document.objects.filter(data_source_id=data_source_id)
+    if query:
+        documents = documents.filter(filename__icontains=query)
+    return render(
         request,
-        item_type="data_source",
-        item_id=data_source_id,
-        documents=sorted_documents,
+        "librarian/components/document_list_inner.html",
+        {
+            "documents": documents,
+            # ...other context as needed
+        },
     )

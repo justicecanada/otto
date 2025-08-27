@@ -174,11 +174,20 @@
                    aria-label="{% trans 'Search' %}"
                    id="librarian-search-input"
                    name="search"
-                   autocomplete="off">
+                   autocomplete="off"
+                   hx-get="{% url 'librarian:search_docs' selected_data_source.id %}"
+                   hx-trigger="keyup[enter] changed delay:500ms"
+                   hx-target="#librarian-documents"
+                   hx-include="[name='search']">
             <button class="input-group-text bg-white border-success border-start-0"
-                    type="submit"
+                    type="button"
+                    id="librarian-search-button"
+                    hx-get="{% url 'librarian:search_docs' selected_data_source.id %}"
+                    hx-target="#librarian-documents"
+                    hx-include="[name='search']"
                     style="border-left: 0">
-              <i class="bi bi-search small"></i>
+              <i class="bi bi-search small"
+                 hx-get="{% url 'librarian:search_docs' selected_data_source.id %}"></i>
             </button>
           </div>
         </div>

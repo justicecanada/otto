@@ -21,6 +21,7 @@ from librarian.views import (
     modal_view_document,
     modal_view_library,
     poll_status,
+    search_docs,
     sort_chunks,
     sort_date,
     sort_filename,
@@ -138,5 +139,10 @@ urlpatterns = [
         "library/<int:data_source_id>/sort_filetype/",
         sort_filetype,
         name="sort_filetype",
+    ),
+    path(
+        "search_docs/<int:data_source_id>",
+        search_docs,
+        name="search_docs",
     ),
 ]
