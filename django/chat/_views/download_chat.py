@@ -40,10 +40,30 @@ def download_chat(request, chat_id):
 
     # Create a new Word document
     doc = Document()
+    # Set default font to Aptos for all styles and headings to black
+    from docx.oxml.ns import qn
+    from docx.shared import Pt
+
+    style = doc.styles["Normal"]
+    font = style.font
+    font.name = "Aptos"
+    font.size = Pt(12)
+
+    # Set all heading styles to black and Aptos
+    from docx.shared import RGBColor
+
+    for i in range(1, 7):
+        style_name = f"Heading {i}"
+        if style_name in doc.styles:
+            heading_style = doc.styles[style_name]
+            heading_style.font.name = "Aptos"
+            heading_style.font.color.rgb = RGBColor(0, 0, 0)
+
     parser = HtmlToDocx()
 
-    # Add document title
-    doc.add_heading(otto_title, 0)
+    # Add document title (Otto heading) in black
+    title_para = doc.add_heading(otto_title, 0)
+    title_para.runs[0].font.color.rgb = RGBColor(0, 0, 0)
 
     # Add metadata
     doc.add_paragraph()  # Space
@@ -73,7 +93,7 @@ def download_chat(request, chat_id):
             author = "Otto"
             if message.bot_name:
                 author += f" ({message.bot_name})"
-            header_color = RGBColor(139, 111, 173)
+            header_color = RGBColor(0, 116, 217)  # Blue
         else:
             author = message.chat.user.full_name if message.chat.user else "User"
             header_color = RGBColor(0, 128, 0)  # Green
@@ -90,7 +110,7 @@ def download_chat(request, chat_id):
         if message.text and message.text.strip():
             # Choose color for border
             if message.is_bot:
-                border_color = "#8B6FAD"  # Purple (RGB 75, 0, 130)
+                border_color = "#0074D9"  # Blue
             else:
                 border_color = "#008000"  # Green
             # Create HTML with colored border and message text inline
