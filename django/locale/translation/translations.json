@@ -4838,5 +4838,17 @@
     "Downloaded on": {
         "fr": "",
         "fr_auto": "Téléchargé le"
+    },
+    "Sort": {
+        "fr": "",
+        "fr_auto": "Trier"
+    },
+    "Date": {
+        "fr": "",
+        "fr_auto": "Rendez-vous"
+    },
+    "#Chunks/size": {
+        "fr": "",
+        "fr_auto": "#Chunks/taille"
     }
 }
