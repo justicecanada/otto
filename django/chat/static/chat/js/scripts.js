@@ -636,7 +636,7 @@ function expandAllSources(message_id, force_expand = false) {
   }
 }
 
-// Show "Expand All" only if there's something truncated, right before the menu opens
+// Show "Expand all" only if there's something truncated, right before the menu opens
 document.addEventListener('show.bs.dropdown', (e) => {
   const id = e.target.id?.split('dropdownMenuButton-')[1];
   if (!id) return;

@@ -12,5 +12,10 @@ urlpatterns = [
         views.download_document,
         name="download_document",
     ),
+    path(
+        "download_all_zip/",
+        views.download_all_zip,
+        name="download_all_zip",
+    ),
     path("session/<str:user_request_id>", views.poll_tasks, name="poll_tasks"),
 ]

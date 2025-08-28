@@ -88,9 +88,12 @@
 {% elif swap %}
   <div id="warn-dont-leave-page" hx-swap-oob="true" class="d-none"></div>
 {% endif %}
-{% if show_download_all_button %}
-  <script>document.querySelector("#download-all-files").classList.remove("d-none");</script>
+
+{# OOB update to toggle the header "Download all" button #}
+{% if swap and show_download_all_button %}
+  {% include "text_extractor/download_all_button.html" %}
 {% endif %}
+
 {% if user_request_id %}
   <script>window.location.href = "{% url 'text_extractor:poll_tasks' user_request_id=user_request_id %}";</script>
 {% endif %}
