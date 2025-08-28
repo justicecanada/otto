@@ -367,7 +367,7 @@ def modal_view(request, item_type=None, item_id=None, parent_id=None, documents=
 
 
 @permission_required(
-    "librarian.edit_data_source", objectgetter(DataSource, "data_source_id")
+    "librarian.view_data_source", objectgetter(DataSource, "data_source_id")
 )
 def poll_status(request, data_source_id, document_id=None):
     """
