@@ -127,7 +127,7 @@
       <div class="col-auto">
         <div class="btn-group w-100">
           <button type="button"
-                  class="btn btn-sm btn-outline-success dropdown-toggle"
+                  class="btn btn-sm btn-outline-secondary dropdown-toggle"
                   data-bs-toggle="dropdown"
                   aria-expanded="false">{% trans "Sort" %}</button>
           <ul class="dropdown-menu">
@@ -144,7 +144,7 @@
               <a class="dropdown-item small"
                  href="#"
                  hx-get="{% url 'librarian:sort_filename' selected_data_source.id %}">
-                <span>{% trans "Filename" %}</span>
+                <span>{% trans "Name" %}</span>
 
               </a>
             </li>
@@ -152,7 +152,7 @@
               <a class="dropdown-item small"
                  href="#"
                  hx-get="{% url 'librarian:sort_filetype' selected_data_source.id %}">
-                <span>{% trans "Filetype" %}</span>
+                <span>{% trans "Type" %}</span>
 
               </a>
             </li>
@@ -171,9 +171,9 @@
         <div class="input-group input-group-sm w-100">
 
           <input type="text"
-                 class="form-control border-success "
-                 placeholder="{% trans 'Search' %}"
-                 aria-label="{% trans 'Search' %}"
+                 class="form-control border-none"
+                 placeholder="{% trans 'Search...' %}"
+                 aria-label="{% trans 'Search...' %}"
                  id="librarian-search-input"
                  name="search"
                  autocomplete="off"
