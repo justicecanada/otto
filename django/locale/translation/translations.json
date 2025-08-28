@@ -4747,6 +4747,18 @@
         "fr": "",
         "fr_auto": "Afficher la liste des applications"
     },
+    "chunk(s)": {
+        "fr": "",
+        "fr_auto": "Bloc(s)"
+    },
+    "failed": {
+        "fr": "",
+        "fr_auto": "Échec"
+    },
+    "stopped": {
+        "fr": "",
+        "fr_auto": "arrêté"
+    },
     "Invalid download request.": {
         "fr": "",
         "fr_auto": "Demande de téléchargement non valide."
@@ -4838,5 +4850,9 @@
     "Downloaded on": {
         "fr": "",
         "fr_auto": "Téléchargé le"
+    },
+    "Corrupt doc file.": {
+        "fr": "",
+        "fr_auto": "Fichier doc corrompu."
     }
 }
