@@ -727,15 +727,34 @@ def sort_chunks(request, data_source_id):
 
 
 def search_docs(request, data_source_id):
-    query = request.GET.get("search", "")
-    documents = Document.objects.filter(data_source_id=data_source_id)
+    selected_data_source = get_object_or_404(DataSource, id=data_source_id)
+
+    # basic query
+    query = (request.GET.get("search", "") or "").strip()
+
+    # base queryset from the selected data source (avoid loading extracted_text)
+    documents_qs = selected_data_source.documents.defer("extracted_text").all()
     if query:
-        documents = documents.filter(filename__icontains=query)
+        # filter by filename (adjust fields as needed, add other lookups if desired)
+        documents_qs = documents_qs.filter(filename__icontains=query)
+
+    documents = list(documents_qs)
+
+    selected_library = selected_data_source.library
+    data_sources = selected_library.folders
+    can_edit_data_source = request.user.has_perm(
+        "librarian.edit_data_source", selected_data_source
+    )
+
     return render(
         request,
-        "librarian/components/document_list_inner.html",
+        "librarian/components/document_list.html",
         {
+            "selected_data_source": selected_data_source,
+            "selected_library": selected_library,
+            "data_sources": data_sources,
             "documents": documents,
-            # ...other context as needed
+            "can_edit_data_source": can_edit_data_source,
+            "search":query,
         },
     )
