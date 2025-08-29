@@ -4849,6 +4849,6 @@
     },
     "#Chunks/size": {
         "fr": "",
-        "fr_auto": "#Chunks/taille"
+        "fr_auto": "#Morceaux/taille"
     }
 }
