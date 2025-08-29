@@ -30,6 +30,41 @@ IN_PROGRESS_STATUSES = ["PENDING", "INIT", "PROCESSING"]
 END_STATUSES = ["SUCCESS", "ERROR", "BLOCKED"]
 
 
+# ---- Sorting helpers (persist per data source in session) ----
+def _set_sort_pref(request, data_source_id: int, key: str):
+    prefs = request.session.get("librarian_sort", {})
+    prefs[str(data_source_id)] = key
+    request.session["librarian_sort"] = prefs
+    # Mark the session as modified so Django saves it
+    request.session.modified = True
+
+
+def _get_sort_pref(request, data_source_id: int) -> str:
+    prefs = request.session.get("librarian_sort", {})
+    # default newest first
+    return prefs.get(str(data_source_id), "date_desc")
+
+
+def _sort_documents(documents, key: str):
+    # documents: list[Document]
+    if not documents:
+        return documents
+    if key == "date_desc":
+        return sorted(
+            documents,
+            key=lambda doc: (doc.extracted_modified_at or doc.created_at or doc.id),
+            reverse=True,
+        )
+    if key == "filename_asc":
+        return sorted(documents, key=lambda doc: (doc.filename or "").lower())
+    if key == "filetype_asc":
+        return sorted(documents, key=lambda doc: (doc.content_type or "").lower())
+    if key == "chunks_desc":
+        return sorted(documents, key=lambda doc: (doc.num_chunks or 0), reverse=True)
+    # fallback
+    return documents
+
+
 def get_editable_libraries(user):
     return [
         library
@@ -47,7 +82,7 @@ def get_viewable_libraries(user):
 
 
 # AC-20: Implements role-based access control for interacting with data sources
-def modal_view(request, item_type=None, item_id=None, parent_id=None):
+def modal_view(request, item_type=None, item_id=None, parent_id=None, documents=None):
     """
     !!! This is not to be called directly, but rather through the wrapper functions
         which implement permission checking (see below) !!!
@@ -118,7 +153,13 @@ def modal_view(request, item_type=None, item_id=None, parent_id=None):
                 show_document_status = True
             else:
                 selected_data_source = get_object_or_404(DataSource, id=parent_id)
-        documents = list(selected_data_source.documents.defer("extracted_text").all())
+        # Always fetch and then apply persisted sort
+        documents = list(
+            selected_data_source.documents.defer("extracted_text").all()
+        )
+        documents = _sort_documents(
+            documents, _get_sort_pref(request, selected_data_source.id)
+        )
         selected_library = selected_data_source.library
         data_sources = selected_library.folders
         if not item_id and not request.method == "DELETE":
@@ -164,7 +205,13 @@ def modal_view(request, item_type=None, item_id=None, parent_id=None):
             if item_id:
                 selected_data_source = get_object_or_404(DataSource, id=item_id)
                 selected_library = selected_data_source.library
-                documents = selected_data_source.documents.defer("extracted_text").all()
+                # fetch and sort per preference
+                documents = list(
+                    selected_data_source.documents.defer("extracted_text").all()
+                )
+                documents = _sort_documents(
+                    documents, _get_sort_pref(request, selected_data_source.id)
+                )
             else:
                 selected_library = get_object_or_404(Library, id=parent_id)
         data_sources = list(selected_library.folders)
@@ -312,6 +359,10 @@ def modal_view(request, item_type=None, item_id=None, parent_id=None):
         "has_error": has_error,
         "upload_form": UploadForm(prefix="librarian"),
     }
+
+    if documents is not None:
+        context["documents"] = documents
+
     return render(request, "librarian/modal_inner.html", context)
 
 
@@ -331,6 +382,9 @@ def poll_status(request, data_source_id, document_id=None):
         poll = False
     poll_url = request.path if poll else None
 
+    # Apply persisted sort to poll results
+    documents = list(documents)
+    documents = _sort_documents(documents, _get_sort_pref(request, data_source_id))
     document = Document.objects.get(id=document_id) if document_id else None
     return render(
         request,
@@ -653,4 +707,78 @@ def email_library_admins(request, library_id):
 
     return HttpResponse(
         f"<a href='{generate_mailto(to,cc,subject,body)}'>mailto link</a>"
+    )
+
+
+def sort_date(request, data_source_id):
+    bind_contextvars(feature="librarian")
+    _set_sort_pref(request, data_source_id, "date_desc")
+    return modal_view(request, item_type="data_source", item_id=data_source_id)
+
+
+def sort_filename(request, data_source_id):
+    bind_contextvars(feature="librarian")
+    _set_sort_pref(request, data_source_id, "filename_asc")
+    return modal_view(request, item_type="data_source", item_id=data_source_id)
+
+
+def sort_filetype(request, data_source_id):
+    bind_contextvars(feature="librarian")
+    _set_sort_pref(request, data_source_id, "filetype_asc")
+    return modal_view(request, item_type="data_source", item_id=data_source_id)
+
+
+def sort_chunks(request, data_source_id):
+    # Optional: bind structlog context for this action
+    # bind_contextvars(feature="librarian")
+    selected_data_source = get_object_or_404(DataSource, id=data_source_id)
+
+    # basic query
+    query = (request.GET.get("search", "") or "").strip()
+
+    # base queryset from the selected data source (avoid loading extracted_text)
+    documents_qs = selected_data_source.documents.defer("extracted_text").all()
+    if query:
+        # filter by filename (adjust fields as needed, add other lookups if desired)
+        documents_qs = documents_qs.filter(filename__icontains=query)
+
+    # Set persisted sort and render; modal_view will apply it consistently
+    _set_sort_pref(request, data_source_id, "chunks_desc")
+
+    return modal_view(request, item_type="data_source", item_id=data_source_id)
+
+
+def search_docs(request, data_source_id):
+    selected_data_source = get_object_or_404(DataSource, id=data_source_id)
+
+    # basic query
+    query = (request.GET.get("search", "") or "").strip()
+
+    # base queryset from the selected data source (avoid loading extracted_text)
+    documents_qs = selected_data_source.documents.defer("extracted_text").all()
+    if query:
+        # filter by filename (adjust fields as needed, add other lookups if desired)
+        documents_qs = documents_qs.filter(filename__icontains=query)
+
+    documents = list(documents_qs)
+    # Apply persisted sort to search results
+    documents = _sort_documents(documents, _get_sort_pref(request, data_source_id))
+
+    selected_library = selected_data_source.library
+    data_sources = selected_library.folders
+    can_edit_data_source = request.user.has_perm(
+        "librarian.edit_data_source", selected_data_source
+    )
+
+    return render(
+        request,
+        "librarian/components/document_list.html",
+        {
+            "selected_data_source": selected_data_source,
+            "selected_library": selected_library,
+            "data_sources": data_sources,
+            "documents": documents,
+            "can_edit_data_source": can_edit_data_source,
+            "search": query,
+        },
     )

@@ -28,7 +28,7 @@
       </div>
     {% endif %}
     {% if can_edit_data_source %}
-      <div class="row mb-2">
+      <div class="row mb-2 g-2">
         <div class="col">
           <div class="btn-group w-100">
             <button type="button"
@@ -122,8 +122,71 @@
             </ul>
           </div>
         </div>
+      {% endif %}
+
+      <div class="col-auto">
+        <div class="btn-group w-100">
+          <button type="button"
+                  class="btn btn-sm btn-outline-secondary dropdown-toggle"
+                  data-bs-toggle="dropdown"
+                  aria-expanded="false">{% trans "Sort" %}</button>
+          <ul class="dropdown-menu">
+
+            <li>
+              <a class="dropdown-item small"
+                 href="#"
+                 hx-get="{% url 'librarian:sort_date' selected_data_source.id %}">
+                <span>{% trans "Date" %}</span>
+
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item small"
+                 href="#"
+                 hx-get="{% url 'librarian:sort_filename' selected_data_source.id %}">
+                <span>{% trans "Name" %}</span>
+
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item small"
+                 href="#"
+                 hx-get="{% url 'librarian:sort_filetype' selected_data_source.id %}">
+                <span>{% trans "Type" %}</span>
+
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item small"
+                 href="#"
+                 hx-get="{% url 'librarian:sort_chunks' selected_data_source.id %}">
+                <span>{% trans "#Chunks/size" %}</span>
+
+              </a>
+            </li>
+          </ul>
+        </div>
       </div>
-    {% endif %}
+      <div class="col">
+        <div class="input-group input-group-sm w-100">
+
+          <input type="text"
+                 class="form-control border-none"
+                 placeholder="{% trans 'Search...' %}"
+                 aria-label="{% trans 'Search...' %}"
+                 id="librarian-search-input"
+                 name="search"
+                 autocomplete="off"
+                 value="{{ search|default:'' }}"
+                 hx-get="{% url 'librarian:search_docs' selected_data_source.id %}"
+                 hx-trigger="keyup changed delay:500ms"
+                 hx-target="#librarian-documents"
+                 hx-include="[name='search']"
+                 hx-swap="outerHTML">
+        </div>
+      </div>
+    </div>
+
     {% include "librarian/components/document_list_inner.html" %}
   {% endif %}
 </div>
