@@ -4840,16 +4840,12 @@
         "fr_auto": "Téléchargé le"
     },
     "Sort": {
-        "fr": "",
+        "fr": "Trier",
         "fr_auto": "Trier"
     },
     "Date": {
-        "fr": "",
+        "fr": "Date",
         "fr_auto": "Rendez-vous"
-    },
-    "#Chunks/size": {
-        "fr": "",
-        "fr_auto": "#Morceaux/taille"
     },
     "Error extracting text from file{file_label}.": {
         "fr": "",
@@ -4868,7 +4864,7 @@
         "fr_auto": "Type de fichier"
     },
     "Size (Number of chunks)": {
-        "fr": "",
+        "fr": "Taille (nombres de blocs)",
         "fr_auto": "Taille (nombre de morceaux)"
     }
 }
