@@ -21,37 +21,35 @@ md = markdown.Markdown(extensions=["fenced_code", "nl2br", "tables"], tab_length
 logger = get_logger(__name__)
 
 
-# SAMPLE_LAW_IDS = [
-#     "A-0.6",  # Accessible Canada Act
-#     "SOR-2021-241",  # Accessible Canada Regulations
-#     "A-2",  # Aeronautics Act
-#     "B-9.01",  # Broadcasting Act
-#     "SOR-97-555",  # Broadcasting Distribution Regulations
-#     "SOR-96-433",  # Canadian Aviation Regulations
-#     "SOR-2011-318",  # Canadian Aviation Security Regulations, 2012
-#     "C-15.1",  # Canadian Energy Regulator Act
-#     "C-15.31",  # Canadian Environmental Protection Act, 1999
-#     "C-24.5",  # Cannabis Act
-#     "SOR-2018-144",  # Cannabis Regulations
-#     "C-46",  # Criminal Code
-#     "SOR-2021-25",  # Cross-border Movement of Hazardous Waste and Hazardous Recyclable Material Regulations
-#     "F-14",  # Fisheries Act
-#     "SOR-93-53",  # Fishery (General) Regulations
-#     "C.R.C.,_c._870",  # Food and Drug Regulations
-#     "F-27",  # Food and Drugs Act
-#     "I-2.5",  # Immigration and Refugee Protection Act
-#     "SOR-2002-227",  # Immigration and Refugee Protection Regulations
-#     "I-21",  # Interpretation Act
-#     "SOR-2016-151",  # Multi-Sector Air Pollutants Regulations
-#     "SOR-2010-189",  # Renewable Fuels Regulations
-#     "S-22",  # Statutory Instruments Act
-#     "C.R.C.,_c._1509",  # Statutory Instruments Regulations
-#     "A-1",  # Access to Information Act
-#     "F-11",  # Financial Administration Act
-#     "N-22",  # Canadian Navigable Waters Act
-# ]
-
-SAMPLE_LAW_IDS = ["SOR-96-263", "SOR-2001-286"]  # Canada Evidence Act,
+SAMPLE_LAW_IDS = [
+    "A-0.6",  # Accessible Canada Act
+    "SOR-2021-241",  # Accessible Canada Regulations
+    "A-2",  # Aeronautics Act
+    "B-9.01",  # Broadcasting Act
+    "SOR-97-555",  # Broadcasting Distribution Regulations
+    "SOR-96-433",  # Canadian Aviation Regulations
+    "SOR-2011-318",  # Canadian Aviation Security Regulations, 2012
+    "C-15.1",  # Canadian Energy Regulator Act
+    "C-15.31",  # Canadian Environmental Protection Act, 1999
+    "C-24.5",  # Cannabis Act
+    "SOR-2018-144",  # Cannabis Regulations
+    "C-46",  # Criminal Code
+    "SOR-2021-25",  # Cross-border Movement of Hazardous Waste and Hazardous Recyclable Material Regulations
+    "F-14",  # Fisheries Act
+    "SOR-93-53",  # Fishery (General) Regulations
+    "C.R.C.,_c._870",  # Food and Drug Regulations
+    "F-27",  # Food and Drugs Act
+    "I-2.5",  # Immigration and Refugee Protection Act
+    "SOR-2002-227",  # Immigration and Refugee Protection Regulations
+    "I-21",  # Interpretation Act
+    "SOR-2016-151",  # Multi-Sector Air Pollutants Regulations
+    "SOR-2010-189",  # Renewable Fuels Regulations
+    "S-22",  # Statutory Instruments Act
+    "C.R.C.,_c._1509",  # Statutory Instruments Regulations
+    "A-1",  # Access to Information Act
+    "F-11",  # Financial Administration Act
+    "N-22",  # Canadian Navigable Waters Act
+]
 
 constitution_dir = os.path.join(settings.BASE_DIR, "laws", "data")
 CONSTITUTION_FILE_PATHS = (
@@ -246,11 +244,14 @@ def extract_entry_text(entry):
     # Check for <List> child
     list_elem = entry.find("List")
     if list_elem is not None:
-        items = [
-            item.find("Text").text.strip()
-            for item in list_elem.findall("Item")
-            if item.find("Text") is not None
-        ]
+        items = []
+        for item in list_elem.findall("Item"):
+            text_elem = item.find("Text")
+            if text_elem is not None:
+                # Use itertext() to get all text, including from child tags
+                item_text = "".join(text_elem.itertext()).strip()
+                if item_text:
+                    items.append(item_text)
         return " ".join(items)
     # Otherwise, use direct text (if any)
     return entry.text.strip() if entry.text else ""
