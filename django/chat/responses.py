@@ -828,7 +828,7 @@ def full_doc_answer(chat, response_message, llm, documents, batch_size=5):
             "<document>\n"
             + "\n</document>\n<document>\n".join(
                 [
-                    f"# {title}\n---\n{document.extracted_text}"
+                    f"# {title}\n---\n{document.extracted_text}---\n{document.file_path if document.file_path else ''}"
                     for title, document in zip(document_titles, documents)
                 ]
             )
@@ -843,7 +843,7 @@ def full_doc_answer(chat, response_message, llm, documents, batch_size=5):
         title_batches = create_batches(document_titles, batch_size)
         doc_responses = [
             llm.tree_summarize(
-                context=document.extracted_text,
+                context=f"# {document.extracted_text} \n---\n{document.file_path if document.file_path else ''}",
                 query=query,
                 template=chat.options.qa_prompt_combined,
             )
