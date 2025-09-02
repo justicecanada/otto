@@ -153,8 +153,12 @@ def modal_view(request, item_type=None, item_id=None, parent_id=None, documents=
                 show_document_status = True
             else:
                 selected_data_source = get_object_or_404(DataSource, id=parent_id)
-        # Always fetch and then apply persisted sort
-        documents = list(selected_data_source.documents.defer("extracted_text").all())
+        # Always fetch, filter by active search (if any), and then apply persisted sort
+        active_search = (request.GET.get("search", "") or "").strip()
+        qs = selected_data_source.documents.defer("extracted_text").all()
+        if active_search:
+            qs = qs.filter(filename__icontains=active_search)
+        documents = list(qs)
         documents = _sort_documents(
             documents, _get_sort_pref(request, selected_data_source.id)
         )
@@ -203,10 +207,12 @@ def modal_view(request, item_type=None, item_id=None, parent_id=None, documents=
             if item_id:
                 selected_data_source = get_object_or_404(DataSource, id=item_id)
                 selected_library = selected_data_source.library
-                # fetch and sort per preference
-                documents = list(
-                    selected_data_source.documents.defer("extracted_text").all()
-                )
+                # fetch, optionally filter by search, and sort per preference
+                active_search = (request.GET.get("search", "") or "").strip()
+                qs = selected_data_source.documents.defer("extracted_text").all()
+                if active_search:
+                    qs = qs.filter(filename__icontains=active_search)
+                documents = list(qs)
                 documents = _sort_documents(
                     documents, _get_sort_pref(request, selected_data_source.id)
                 )
@@ -360,6 +366,18 @@ def modal_view(request, item_type=None, item_id=None, parent_id=None, documents=
 
     if documents is not None:
         context["documents"] = documents
+        # Keep current search in the input if present
+        try:
+            context["search"] = (request.GET.get("search", "") or "").strip()
+        except Exception:
+            pass
+
+    # Expose current sort key for template radios when a data source is selected
+    try:
+        if selected_data_source:
+            context["current_sort"] = _get_sort_pref(request, selected_data_source.id)
+    except Exception:
+        pass
 
     return render(request, "librarian/modal_inner.html", context)
 
@@ -709,31 +727,22 @@ def email_library_admins(request, library_id):
 
 
 def sort_docs(request, data_source_id, sort_by):
-    if sort_by == "date":
-        _set_sort_pref(request, data_source_id, "date_desc")
-        return modal_view(request, item_type="data_source", item_id=data_source_id)
-    if sort_by == "filename":
-        _set_sort_pref(request, data_source_id, "filename_asc")
-        return modal_view(request, item_type="data_source", item_id=data_source_id)
-    if sort_by == "filetype":
-        _set_sort_pref(request, data_source_id, "filetype_asc")
-        return modal_view(request, item_type="data_source", item_id=data_source_id)
-    if sort_by == "chunks":
-        selected_data_source = get_object_or_404(DataSource, id=data_source_id)
-        # basic query
-        query = (request.GET.get("search", "") or "").strip()
-        # base queryset from the selected data source (avoid loading extracted_text)
-        documents_qs = selected_data_source.documents.defer("extracted_text").all()
-        if query:
-            # filter by filename (adjust fields as needed, add other lookups if desired)
-            documents_qs = documents_qs.filter(filename__icontains=query)
+    mapping = {
+        "date": "date_desc",
+        "filename": "filename_asc",
+        "filetype": "filetype_asc",
+        "chunks": "chunks_desc",
+    }
+    key = mapping.get(sort_by)
+    if key:
+        _set_sort_pref(request, data_source_id, key)
 
-        # Set persisted sort and render; modal_view will apply it consistently
-        _set_sort_pref(request, data_source_id, "chunks_desc")
+    # If there's an active search term, reuse search_docs so sort+search work together
+    query = (request.GET.get("search", "") or "").strip()
+    if query:
+        return search_docs(request, data_source_id)
 
-        return modal_view(request, item_type="data_source", item_id=data_source_id)
-    else:
-        return modal_view(request, item_type="data_source", item_id=data_source_id)
+    return modal_view(request, item_type="data_source", item_id=data_source_id)
 
 
 def search_docs(request, data_source_id):
@@ -768,5 +777,6 @@ def search_docs(request, data_source_id):
             "documents": documents,
             "can_edit_data_source": can_edit_data_source,
             "search": query,
+            "current_sort": _get_sort_pref(request, data_source_id),
         },
     )

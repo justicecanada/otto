@@ -130,39 +130,70 @@
                   class="btn btn-sm btn-outline-secondary dropdown-toggle"
                   data-bs-toggle="dropdown"
                   aria-expanded="false">{% trans "Sort" %}</button>
-          <ul class="dropdown-menu">
-
+          <ul class="dropdown-menu p-2" style="min-width: 18rem;">
             <li>
-              <a class="dropdown-item small"
-                 href="#"
-                 hx-get="{% url 'librarian:sort_docs' selected_data_source.id 'date' %}">
+              <label class="dropdown-item d-flex align-items-center gap-2 m-0">
+                <input type="radio"
+                       class="form-check-input m-0"
+                       name="sort"
+                       value="date"
+                       {% if current_sort == 'date_desc' %}checked{% endif %}
+                       hx-get="{% url 'librarian:sort_docs' selected_data_source.id 'date' %}"
+                       hx-select="#librarian-documents"
+                       hx-include="#librarian-search-input"
+                       hx-trigger="change"
+                       hx-target="#librarian-documents"
+                       hx-swap="outerHTML">
                 <span>{% trans "Date modified/created" %}</span>
-
-              </a>
+              </label>
             </li>
             <li>
-              <a class="dropdown-item small"
-                 href="#"
-                 hx-get="{% url 'librarian:sort_docs' selected_data_source.id 'filename' %}">
+              <label class="dropdown-item d-flex align-items-center gap-2 m-0">
+                <input type="radio"
+                       class="form-check-input m-0"
+                       name="sort"
+                       value="filename"
+                       {% if current_sort == 'filename_asc' %}checked{% endif %}
+                       hx-get="{% url 'librarian:sort_docs' selected_data_source.id 'filename' %}"
+                       hx-select="#librarian-documents"
+                       hx-include="#librarian-search-input"
+                       hx-trigger="change"
+                       hx-target="#librarian-documents"
+                       hx-swap="outerHTML">
                 <span>{% trans "File name" %}</span>
-
-              </a>
+              </label>
             </li>
             <li>
-              <a class="dropdown-item small"
-                 href="#"
-                 hx-get="{% url 'librarian:sort_docs' selected_data_source.id 'filetype' %}">
+              <label class="dropdown-item d-flex align-items-center gap-2 m-0">
+                <input type="radio"
+                       class="form-check-input m-0"
+                       name="sort"
+                       value="filetype"
+                       {% if current_sort == 'filetype_asc' %}checked{% endif %}
+                       hx-get="{% url 'librarian:sort_docs' selected_data_source.id 'filetype' %}"
+                       hx-select="#librarian-documents"
+                       hx-include="#librarian-search-input"
+                       hx-trigger="change"
+                       hx-target="#librarian-documents"
+                       hx-swap="outerHTML">
                 <span>{% trans "File type" %}</span>
-
-              </a>
+              </label>
             </li>
             <li>
-              <a class="dropdown-item small"
-                 href="#"
-                 hx-get="{% url 'librarian:sort_docs' selected_data_source.id 'chunks' %}">
+              <label class="dropdown-item d-flex align-items-center gap-2 m-0">
+                <input type="radio"
+                       class="form-check-input m-0"
+                       name="sort"
+                       value="chunks"
+                       {% if current_sort == 'chunks_desc' %}checked{% endif %}
+                       hx-get="{% url 'librarian:sort_docs' selected_data_source.id 'chunks' %}"
+                       hx-select="#librarian-documents"
+                       hx-include="#librarian-search-input"
+                       hx-trigger="change"
+                       hx-target="#librarian-documents"
+                       hx-swap="outerHTML">
                 <span>{% trans "Size (Number of chunks)" %}</span>
-
-              </a>
+              </label>
             </li>
           </ul>
         </div>
@@ -179,6 +210,7 @@
                autocomplete="off"
                value="{{ search|default:'' }}"
                hx-get="{% url 'librarian:search_docs' selected_data_source.id %}"
+               hx-select="#librarian-documents"
                hx-trigger="keyup changed delay:500ms"
                hx-target="#librarian-documents"
                hx-include="[name='search']"

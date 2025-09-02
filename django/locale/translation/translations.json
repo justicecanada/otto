@@ -4850,5 +4850,25 @@
     "#Chunks/size": {
         "fr": "",
         "fr_auto": "#Morceaux/taille"
+    },
+    "Error extracting text from file{file_label}.": {
+        "fr": "",
+        "fr_auto": "Erreur lors de l’extraction du texte de file{file_label}."
+    },
+    "Date modified/created": {
+        "fr": "",
+        "fr_auto": "Date de modification/création"
+    },
+    "File name": {
+        "fr": "",
+        "fr_auto": "Nom du fichier"
+    },
+    "File type": {
+        "fr": "",
+        "fr_auto": "Type de fichier"
+    },
+    "Size (Number of chunks)": {
+        "fr": "",
+        "fr_auto": "Taille (nombre de morceaux)"
     }
 }
