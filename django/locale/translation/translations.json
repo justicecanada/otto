@@ -4771,9 +4771,9 @@
         "fr": "",
         "fr_auto": "Extraire du texte de fichiers..."
     },
-    "Error extracting text from file.": {
+    "Error extracting text from file": {
         "fr": "",
-        "fr_auto": "Erreur lors de l’extraction du texte du fichier."
+        "fr_auto": "Erreur lors de l’extraction du texte du fichier"
     },
     "Extracting text from files": {
         "fr": "",
@@ -4894,9 +4894,5 @@
     "Remove banner": {
         "fr": "",
         "fr_auto": "Supprimer la bannière"
-    },
-    "Error extracting text from file{file_label}.": {
-        "fr": "",
-        "fr_auto": "Erreur lors de l’extraction du texte de file{file_label}."
     }
 }

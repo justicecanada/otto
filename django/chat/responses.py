@@ -258,8 +258,10 @@ def summarize_response(chat, response_message):
                                         and hasattr(failed_file, "filename")
                                         else ""
                                     )
-                                    error_str = _(
-                                        f"Error extracting text from file{file_label}."
+                                    error_str = (
+                                        _("Error extracting text from file")
+                                        + file_label
+                                        + "."
                                     )
                                     error_str += f" _({_('Error ID:')} {error_id})_"
                                     error_files.append((error_str, failed_file))
