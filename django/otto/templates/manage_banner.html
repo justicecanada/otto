@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block page_title %}
+  {% trans "Manage banner - Otto" %}
+{% endblock %}
+
+{% block content_container %}
+  <div class="container py-3 px-0">
+    <h2 class="mb-3 mt-2">{% trans "Manage banner" %}</h2>
+    <p class="text-muted">{% trans "All fields required" %}</p>
+
+    <form method="post">
+      {% csrf_token %}
+      <div class="mb-3">
+        <label for="message_en" class="form-label">{% trans "Banner message (English)" %}</label>
+        <input type="text"
+               class="form-control"
+               id="message_en"
+               name="message_en"
+               required
+               value="{{ banner.message_en|default_if_none:'' }}">
+      </div>
+      <div class="mb-3">
+        <label for="message_fr" class="form-label">{% trans "Banner message (French)" %}</label>
+        <input type="text"
+               class="form-control"
+               id="message_fr"
+               name="message_fr"
+               required
+               value="{{ banner.message_fr|default_if_none:'' }}">
+      </div>
+      <div class="mb-3">
+        <label for="category" class="form-label">{% trans "Category" %}</label>
+        <select class="form-select" id="category" name="category">
+          {% for cat in categories %}
+            <option value="{{ cat.0 }}"
+                    {% if banner.category == cat.0 %}selected{% endif %}>{{ cat.1 }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="mb-3">
+        <label for="timeout_hours" class="form-label">{% trans "Timeout (hours)" %}</label>
+        <input type="number"
+               class="form-control"
+               id="timeout_hours"
+               name="timeout_hours"
+               min="1"
+               required
+               value="{{ banner.timeout_hours|default_if_none:24 }}">
+        <div class="form-text">{% trans "Defaults to 24 hours." %}</div>
+      </div>
+      <button type="submit"
+              class="btn btn-primary"
+              onclick="return confirm('{% blocktrans %}This banner will appear for ALL OTTO USERS ON EVERY PAGE until the timeout is reached. Are you sure?{% endblocktrans %}');">
+        {% trans "Save banner" %}
+      </button>
+      <button type="button"
+              class="btn btn-secondary ms-2"
+              name="preview"
+              value="1"
+              hx-post="{{ request.path }}"
+              hx-target="#message-from-admins"
+              hx-swap="outerHTML">{% trans "Preview banner" %}</button>
+      <button type="button"
+              class="btn btn-outline-secondary ms-2"
+              onclick="window.location.href='{{ request.path }}'">{% trans "Reset preview & cancel" %}</button>
+    </form>
+    <form method="post" class="mt-3">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-danger" name="remove" value="1">{% trans "Remove banner" %}</button>
+    </form>
+  </div>
+{% endblock %}

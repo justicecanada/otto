@@ -55,6 +55,7 @@
   </head>
 
   <body class="{% block body_classes %}{% endblock %}">
+    {% include "components/message_from_admins.html" %}
     {% if not hide_nav %}
       <nav class="navbar bg-dark border-bottom navbar-expand-sm position-relative"
            data-bs-theme="dark"
