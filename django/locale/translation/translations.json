@@ -4771,9 +4771,9 @@
         "fr": "",
         "fr_auto": "Extraire du texte de fichiers..."
     },
-    "Error extracting text from file.": {
+    "Error extracting text from file": {
         "fr": "",
-        "fr_auto": "Erreur lors de l’extraction du texte du fichier."
+        "fr_auto": "Erreur lors de l’extraction du texte du fichier"
     },
     "Extracting text from files": {
         "fr": "",
