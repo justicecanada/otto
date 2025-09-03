@@ -4838,5 +4838,13 @@
     "Downloaded on": {
         "fr": "",
         "fr_auto": "Téléchargé le"
+    },
+    "Error extracting text from file{file_label}.": {
+        "fr": "",
+        "fr_auto": "Erreur lors de l’extraction du texte de file{file_label}."
+    },
+    "Save as PDF": {
+        "fr": "",
+        "fr_auto": "Enregistrer au format PDF"
     }
 }

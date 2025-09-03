@@ -21,7 +21,6 @@ from rules.contrib.views import objectgetter
 from structlog import get_logger
 from structlog.contextvars import bind_contextvars
 
-from chat._views.download_chat import download_chat  # Do not remove - used in urls.py
 from chat._views.pin_chat import pin_chat, unpin_chat  # Do not remove - used in urls.py
 from chat.forms import ChatOptionsForm, ChatRenameForm, PresetForm, UploadForm
 from chat.llm import OttoLLM
