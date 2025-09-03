@@ -1073,7 +1073,7 @@ def update_qa_options_from_librarian(request, chat_id, library_id):
         "chat/components/chat_options_accordion.html",
         {
             "options_form": ChatOptionsForm(instance=chat.options, user=request.user),
-            "preset_loaded": "true",
+            "preset_loaded": "false",
             "trigger_library_change": "true" if library != original_library else None,
         },
     )

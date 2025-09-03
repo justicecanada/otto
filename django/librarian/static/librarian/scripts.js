@@ -21,7 +21,7 @@ let librarianModalCloseHandler = event => {
     library_id = selected_library_li.getAttribute('data-library-id');
   }
   // Update the QA library select
-  htmx.ajax('GET', `/chat/id/${chat_id}/options/set_qa_library/${library_id}`, {target: '#options-accordion'}).then(() => {
+  htmx.ajax('GET', `/chat/id/${chat_id}/options/set_qa_library/${library_id}`, {target: '#options-accordion', swap: 'outerHTML'}).then(() => {
     // Reset QA autocompletes on edit library modal close
     if (prev_library_id != library_id) {
       resetQaAutocompletes();

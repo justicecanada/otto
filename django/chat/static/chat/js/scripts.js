@@ -138,8 +138,7 @@ function handleModeChange(mode, element = null) {
   hidden_mode_input.value = mode;
   // Set the #chat-outer class to the selected mode for mode-specific styling
   document.querySelector('#chat-outer').classList = [mode];
-  // Dispatch change event for search mode in order to trigger advance settings options
-  document.getElementById('id_qa_mode').dispatchEvent(new Event("change"));
+  triggerOptionSave();
   updatePlaceholder(mode);
   resizeOtherElements();
   // If the invoking element is an accordion-button we can stop
@@ -724,7 +723,6 @@ function afterAccordionSwap() {
   if (presetLoaded || swap) {
     handleModeChange(mode, null);
     const qa_mode = document.getElementById('id_qa_mode');
-    switchToDocumentScope();
     // Update the advanced settings RAG options visibility
     toggleRagOptions(qa_mode);
     setTimeout(updateQaSourceForms, 100);
