@@ -4894,5 +4894,9 @@
     "Remove banner": {
         "fr": "",
         "fr_auto": "Supprimer la bannière"
+    },
+    "Error extracting text from file{file_label}.": {
+        "fr": "",
+        "fr_auto": "Erreur lors de l’extraction du texte de file{file_label}."
     }
 }

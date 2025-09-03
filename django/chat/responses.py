@@ -812,6 +812,12 @@ def qa_response(chat, response_message, switch_mode=False):
 
 
 def full_doc_answer(chat, response_message, llm, documents, batch_size=5):
+    def combined_file_path_string(document):
+        return str(document.file_path) + "\n" if document.file_path else ""
+
+    def single_doc_file_path_string(document):
+        return (str(document.file_path) + "\n---\n") if document.file_path else ""
+
     template = chat.options.qa_prompt_combined
     query = response_message.parent.text
     document_titles = [document.name for document in documents]
@@ -828,8 +834,8 @@ def full_doc_answer(chat, response_message, llm, documents, batch_size=5):
             "<document>\n"
             + "\n</document>\n<document>\n".join(
                 [
-                    f"# {title}\n---\n{document.extracted_text}---\n{document.file_path if document.file_path else ''}"
-                    for title, document in zip(document_titles, documents)
+                    f"# {document.name}\n{combined_file_path_string(document)}---\n{document.extracted_text}"
+                    for document in documents
                 ]
             )
             + "\n</document>"
@@ -843,7 +849,7 @@ def full_doc_answer(chat, response_message, llm, documents, batch_size=5):
         title_batches = create_batches(document_titles, batch_size)
         doc_responses = [
             llm.tree_summarize(
-                context=f"# {document.extracted_text} \n---\n{document.file_path if document.file_path else ''}",
+                context=f"{single_doc_file_path_string(document)}{document.extracted_text}",
                 query=query,
                 template=chat.options.qa_prompt_combined,
             )
