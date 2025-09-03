@@ -2,6 +2,7 @@ import os
 from dataclasses import dataclass
 
 from django.contrib import messages
+from django.db.models import Q
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
@@ -157,7 +158,11 @@ def modal_view(request, item_type=None, item_id=None, parent_id=None, documents=
         active_search = (request.GET.get("search", "") or "").strip()
         qs = selected_data_source.documents.defer("extracted_text").all()
         if active_search:
-            qs = qs.filter(filename__icontains=active_search)
+            qs = qs.filter(
+                Q(manual_title__icontains=active_search)
+                | Q(extracted_title__icontains=active_search)
+                | Q(filename__icontains=active_search)
+            )
         documents = list(qs)
         documents = _sort_documents(
             documents, _get_sort_pref(request, selected_data_source.id)
@@ -211,7 +216,11 @@ def modal_view(request, item_type=None, item_id=None, parent_id=None, documents=
                 active_search = (request.GET.get("search", "") or "").strip()
                 qs = selected_data_source.documents.defer("extracted_text").all()
                 if active_search:
-                    qs = qs.filter(filename__icontains=active_search)
+                    qs = qs.filter(
+                        Q(manual_title__icontains=active_search)
+                        | Q(extracted_title__icontains=active_search)
+                        | Q(filename__icontains=active_search)
+                    )
                 documents = list(qs)
                 documents = _sort_documents(
                     documents, _get_sort_pref(request, selected_data_source.id)
@@ -755,7 +764,11 @@ def search_docs(request, data_source_id):
     documents_qs = selected_data_source.documents.defer("extracted_text").all()
     if query:
         # filter by filename (adjust fields as needed, add other lookups if desired)
-        documents_qs = documents_qs.filter(filename__icontains=query)
+        documents_qs = documents_qs.filter(
+            Q(filename__icontains=query)
+            | Q(manual_title__icontains=query)
+            | Q(extracted_title__icontains=query)
+        )
 
     documents = list(documents_qs)
     # Apply persisted sort to search results
