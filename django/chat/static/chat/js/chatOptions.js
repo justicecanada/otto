@@ -53,39 +53,14 @@ document.addEventListener("htmx:afterSettle", function (event) {
 });
 
 function clearAutocomplete(field_name) {
-  const input_wrapper = document.querySelector(`#id_${field_name}`);
-  const result_items = document.querySelector(`#id_${field_name}__items`);
   const chips = document.querySelectorAll(`#id_${field_name}_ac_container li.chip`);
-  const info = document.querySelector(`#id_${field_name}__info`);
-  const sr_desc = document.querySelector(`#id_${field_name}__sr_description`);
-  input_wrapper.innerHTML = '';
-  result_items.innerHTML = '';
   chips.forEach(chip => chip.remove());
-  info.innerHTML = '';
-  sr_desc.innerHTML = '';
 }
 
 function resetQaAutocompletes() {
-  const mode = document.getElementById('id_qa_mode');
-  const e = new Event("change");
-  mode.value = 'rag';
-  mode.dispatchEvent(e);
-  limitScopeSelect();
   updateQaSourceForms();
   clearAutocomplete('qa_data_sources');
   clearAutocomplete('qa_documents');
-}
-
-function limitScopeSelect() {
-  const scope = document.getElementById('id_qa_scope');
-  let search_mode = document.getElementById('id_qa_mode').value;
-  if (search_mode === "rag") {
-    scope.value = 'all';
-    // scope.removeAttribute('disabled');
-  } else {
-    scope.value = "documents";
-    // scope.setAttribute('disabled', 'disabled');
-  }
 }
 
 function switchToDocumentScope() {

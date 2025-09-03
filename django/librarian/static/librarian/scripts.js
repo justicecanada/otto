@@ -15,6 +15,7 @@ let librarianModalCloseHandler = event => {
   poller.parentNode.replaceChild(newPoller, poller);
   // Fake library ID which won't exist. If passed through, this will reset the QA library to the default.
   let library_id = 99999999999999999999;
+  var prev_library_id = document.getElementById('id_qa_library').value;
   const selected_library_li = document.querySelector("#librarian-libraries li.list-group-item[aria-selected='true']");
   if (selected_library_li) {
     library_id = selected_library_li.getAttribute('data-library-id');
@@ -22,7 +23,10 @@ let librarianModalCloseHandler = event => {
   // Update the QA library select
   htmx.ajax('GET', `/chat/id/${chat_id}/options/set_qa_library/${library_id}`, {target: '#options-accordion'}).then(() => {
     // Reset QA autocompletes on edit library modal close
-    resetQaAutocompletes();
+    if (prev_library_id != library_id) {
+      resetQaAutocompletes();
+    }
+    updateAccordion('qa');
     triggerOptionSave();
   });
 };

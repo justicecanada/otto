@@ -325,7 +325,7 @@ class ChatOptionsForm(ModelForm):
                 choices=QA_PROCESS_MODE_CHOICES,
                 attrs={
                     "class": "form-select form-select-sm",
-                    "onchange": "switchToDocumentScope(); updateQaSourceForms(); triggerOptionSave();",
+                    "onchange": "updateQaSourceForms(); triggerOptionSave();",
                 },
             ),
             "qa_scope": forms.Select(
