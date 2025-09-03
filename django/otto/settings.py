@@ -538,7 +538,7 @@ ALLOWED_FETCH_URLS = [
     "wikipedia.org",
 ]
 
-WARN_COST = 1.0
+WARN_COST = 0.5
 
 FILE_FORM_UPLOAD_DIR = "tmp_uploads_dir"
 FILE_FORM_MUST_LOGIN = True
