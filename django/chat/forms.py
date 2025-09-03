@@ -316,7 +316,7 @@ class ChatOptionsForm(ModelForm):
                         """
                         <strong>Combine:</strong> Read all selected documents together, write single answer. <em>Essential for comparing documents. Usually less detailed.</em>
                         <br><br>
-                        <strong>Separate:</strong> Read each selected document individually and write a separate answer for each. <em>Usually more detailed. Expensive./em>
+                        <strong>Separate:</strong> Read each selected document individually and write a separate answer for each. <em>Usually more detailed. Expensive.</em>
                         """
                     ),
                 },
