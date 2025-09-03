@@ -159,9 +159,12 @@ def modal_view(request, item_type=None, item_id=None, parent_id=None, documents=
         qs = selected_data_source.documents.defer("extracted_text").all()
         if active_search:
             qs = qs.filter(
-                Q(manual_title__icontains=active_search)
-                | Q(extracted_title__icontains=active_search)
-                | Q(filename__icontains=active_search)
+                Q(filename__icontains=active_search)
+                | Q(manual_title__icontains=active_search)
+                | (
+                    Q(extracted_title__icontains=active_search)
+                    & (Q(manual_title__isnull=True) | Q(manual_title=""))
+                )
             )
         documents = list(qs)
         documents = _sort_documents(
@@ -217,9 +220,12 @@ def modal_view(request, item_type=None, item_id=None, parent_id=None, documents=
                 qs = selected_data_source.documents.defer("extracted_text").all()
                 if active_search:
                     qs = qs.filter(
-                        Q(manual_title__icontains=active_search)
-                        | Q(extracted_title__icontains=active_search)
-                        | Q(filename__icontains=active_search)
+                        Q(filename__icontains=active_search)
+                        | Q(manual_title__icontains=active_search)
+                        | (
+                            Q(extracted_title__icontains=active_search)
+                            & (Q(manual_title__isnull=True) | Q(manual_title=""))
+                        )
                     )
                 documents = list(qs)
                 documents = _sort_documents(
@@ -763,11 +769,14 @@ def search_docs(request, data_source_id):
     # base queryset from the selected data source (avoid loading extracted_text)
     documents_qs = selected_data_source.documents.defer("extracted_text").all()
     if query:
-        # filter by filename (adjust fields as needed, add other lookups if desired)
+        # filename or manual_title always match; extracted_title only if manual_title is empty
         documents_qs = documents_qs.filter(
             Q(filename__icontains=query)
             | Q(manual_title__icontains=query)
-            | Q(extracted_title__icontains=query)
+            | (
+                Q(extracted_title__icontains=query)
+                & (Q(manual_title__isnull=True) | Q(manual_title=""))
+            )
         )
 
     documents = list(documents_qs)
