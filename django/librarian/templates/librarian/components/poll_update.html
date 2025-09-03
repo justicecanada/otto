@@ -16,7 +16,7 @@ Template for updating document list items and, optionally, selected document sta
 {# Update total cost in header out-of-band so it changes even when only the list morphs #}
 {% if total_cost %}<span id="librarian-total-cost" hx-swap-oob="true">{{ total_cost }}</span>{% endif %}
 {% if total_chunks is not None %}
-  <span id="librarian-total-chunks" hx-swap-oob="true">{{ total_chunks }}{% trans "chunk(s)" %}</span>
+  <span id="librarian-total-chunks" hx-swap-oob="true">{{ total_chunks }} {% trans "chunk(s)" %}</span>
   {% if failed_count is not None %}
     <span id="librarian-failed-count" hx-swap-oob="true">{{ failed_count }}</span>
   {% endif %}
