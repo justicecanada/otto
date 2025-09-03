@@ -29,7 +29,6 @@
 </span>
 <span id="librarian-totals-oob" hx-swap-oob="true" class="d-none">
   <span id="librarian-total-cost">{{ total_cost|default:"$0.00" }}</span>
-  /
   <span id="librarian-total-chunks">{{ total_chunks|default:"0" }} {% trans "chunk(s)" %}</span>
   {% if failed_count %}
     · <span id="librarian-failed-count">{{ failed_count }}</span> {% trans "failed" %}
