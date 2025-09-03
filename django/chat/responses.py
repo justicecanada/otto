@@ -818,15 +818,8 @@ def full_doc_answer(chat, response_message, llm, documents, batch_size=5):
     def single_doc_file_path_string(document):
         return (str(document.file_path) + "\n---\n") if document.file_path else ""
 
-    template = chat.options.qa_prompt_combined
     query = response_message.parent.text
     document_titles = [document.name for document in documents]
-
-    doc_responses = [
-        llm.tree_summarize(context=doc, query=query, template=template)
-        for doc in documents
-        if not cache.get(f"stop_response_{response_message.id}", False)
-    ]
 
     if chat.options.qa_process_mode == "combined_docs":
         # Combine all documents into one text, including the titles
