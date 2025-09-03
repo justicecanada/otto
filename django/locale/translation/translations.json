@@ -4866,5 +4866,61 @@
     "Size (Number of chunks)": {
         "fr": "Taille (nombres de blocs)",
         "fr_auto": "Taille (nombre de morceaux)"
+    },
+    "Manage message banner": {
+        "fr": "",
+        "fr_auto": "Gérer la bannière de message"
+    },
+    "Manage banner - Otto": {
+        "fr": "",
+        "fr_auto": "Gérer la bannière - Otto"
+    },
+    "Manage banner": {
+        "fr": "",
+        "fr_auto": "Gérer la bannière"
+    },
+    "All fields required": {
+        "fr": "",
+        "fr_auto": "Tous les champs obligatoires"
+    },
+    "Banner message (English)": {
+        "fr": "",
+        "fr_auto": "Message de bannière (anglais)"
+    },
+    "Banner message (French)": {
+        "fr": "",
+        "fr_auto": "Message de bannière (français)"
+    },
+    "Category": {
+        "fr": "",
+        "fr_auto": "Catégorie"
+    },
+    "Timeout (hours)": {
+        "fr": "",
+        "fr_auto": "Temps d’attente (heures)"
+    },
+    "Defaults to 24 hours.": {
+        "fr": "",
+        "fr_auto": "Valeur par défaut de 24 heures."
+    },
+    "This banner will appear for ALL OTTO USERS ON EVERY PAGE until the timeout is reached. Are you sure?": {
+        "fr": "",
+        "fr_auto": "Cette bannière apparaîtra pour TOUS LES UTILISATEURS OTTO SUR CHAQUE PAGE jusqu’à ce que le délai d’attente soit atteint. Es-tu certain?"
+    },
+    "Save banner": {
+        "fr": "",
+        "fr_auto": "Bannière de sauvegarde"
+    },
+    "Preview banner": {
+        "fr": "",
+        "fr_auto": "Bannière d’aperçu"
+    },
+    "Reset preview & cancel": {
+        "fr": "",
+        "fr_auto": "Réinitialiser l’aperçu et annuler"
+    },
+    "Remove banner": {
+        "fr": "",
+        "fr_auto": "Supprimer la bannière"
     }
 }
