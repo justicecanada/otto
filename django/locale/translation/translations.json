@@ -4783,9 +4783,9 @@
         "fr": "",
         "fr_auto": "Extraire du texte de fichiers..."
     },
-    "Error extracting text from file.": {
+    "Error extracting text from file": {
         "fr": "",
-        "fr_auto": "Erreur lors de l’extraction du texte du fichier."
+        "fr_auto": "Erreur lors de l’extraction du texte du fichier"
     },
     "Extracting text from files": {
         "fr": "",
@@ -4858,5 +4858,65 @@
     "Error extracting text from file{file_label}.": {
         "fr": "",
         "fr_auto": "Erreur lors de l’extraction du texte de file{file_label}."
+    },
+    "Manage message banner": {
+        "fr": "",
+        "fr_auto": "Gérer la bannière de message"
+    },
+    "Manage banner - Otto": {
+        "fr": "",
+        "fr_auto": "Gérer la bannière - Otto"
+    },
+    "Manage banner": {
+        "fr": "",
+        "fr_auto": "Gérer la bannière"
+    },
+    "All fields required": {
+        "fr": "",
+        "fr_auto": "Tous les champs obligatoires"
+    },
+    "Banner message (English)": {
+        "fr": "",
+        "fr_auto": "Message de bannière (anglais)"
+    },
+    "Banner message (French)": {
+        "fr": "",
+        "fr_auto": "Message de bannière (français)"
+    },
+    "Category": {
+        "fr": "",
+        "fr_auto": "Catégorie"
+    },
+    "Timeout (hours)": {
+        "fr": "",
+        "fr_auto": "Temps d’attente (heures)"
+    },
+    "Defaults to 24 hours.": {
+        "fr": "",
+        "fr_auto": "Valeur par défaut de 24 heures."
+    },
+    "This banner will appear for ALL OTTO USERS ON EVERY PAGE until the timeout is reached. Are you sure?": {
+        "fr": "",
+        "fr_auto": "Cette bannière apparaîtra pour TOUS LES UTILISATEURS OTTO SUR CHAQUE PAGE jusqu’à ce que le délai d’attente soit atteint. Es-tu certain?"
+    },
+    "Save banner": {
+        "fr": "",
+        "fr_auto": "Bannière de sauvegarde"
+    },
+    "Preview banner": {
+        "fr": "",
+        "fr_auto": "Bannière d’aperçu"
+    },
+    "Reset preview & cancel": {
+        "fr": "",
+        "fr_auto": "Réinitialiser l’aperçu et annuler"
+    },
+    "Remove banner": {
+        "fr": "",
+        "fr_auto": "Supprimer la bannière"
+    },
+    "\n                        <strong>Combine:</strong> Read all selected documents together, write single answer. <em>Essential for comparing documents. Usually less detailed.</em>\n                        <br><br>\n                        <strong>Separate:</strong> Read each selected document individually and write a separate answer for each. <em>Usually more detailed. Expensive.</em>\n                        ": {
+        "fr": "",
+        "fr_auto": "\n<strong>Combiner :</strong> Lisez tous les documents sélectionnés ensemble, rédigez une seule réponse. <em>Essentiel pour comparer des documents. Généralement moins détaillé.</em>\n                        <br><br>\n                        <strong>Séparer :</strong> Lisez chaque document sélectionné individuellement et rédigez une réponse distincte pour chacun. <em>Généralement plus détaillé. Coûteux.</em>\n                        "
     }
 }
