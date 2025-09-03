@@ -10,26 +10,30 @@
   {% else %}
     {% has_perm 'librarian.edit_data_source' user selected_data_source as can_edit_data_source %}
     {% if not selected_library.is_personal_library and can_edit_data_source %}
-      <div class="row mb-2">
-        <div class="col pe-0">
+      <div class="row mb-2 g-2">
+        <div class="col-12 col-xl-6 d-flex">
           <button type="button"
-                  class="btn btn-sm btn-outline-dark w-100"
+                  class="btn btn-sm btn-outline-dark w-100 h-100 d-flex justify-content-center"
                   onclick="document.querySelector('#id_librarian-input_file').click();">
-            <i class="bi bi-upload"></i> {% trans "Upload" %}
+            <span class="d-flex align-items-center gap-1">
+              <i class="bi bi-upload"></i> {% trans "Upload" %}
+            </span>
           </button>
         </div>
-        <div class="col ps-2">
+        <div class="col-12 col-xl-6 d-flex">
           <button type="button"
-                  class="btn btn-sm btn-outline-dark w-100"
+                  class="btn btn-sm btn-outline-dark w-100 h-100 d-flex justify-content-center"
                   hx-get="{% url 'librarian:modal_create_document' data_source_id=selected_data_source.id %}">
-            <i class="bi bi-link"></i> {% trans "Add URL" %}
+            <span class="d-flex align-items-center gap-1">
+              <i class="bi bi-link"></i> {% trans "Add URL" %}
+            </span>
           </button>
         </div>
       </div>
     {% endif %}
-    {% if can_edit_data_source %}
-      <div class="row mb-2 g-2">
-        <div class="col">
+    <div class="row mb-2 g-2">
+      {% if can_edit_data_source %}
+        <div class="col-12 col-xl-6 d-flex">
           <div class="btn-group w-100">
             <button type="button"
                     class="btn btn-sm btn-outline-success dropdown-toggle"
@@ -124,7 +128,7 @@
         </div>
       {% endif %}
 
-      <div class="col">
+      <div class="{% if can_edit_data_source %}col-12 col-xl-6{% else %}col-12{% endif %} d-flex">
         <div class="btn-group w-100">
           <button type="button"
                   class="btn btn-sm btn-outline-secondary dropdown-toggle"
