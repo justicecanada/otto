@@ -53,8 +53,16 @@ document.addEventListener("htmx:afterSettle", function (event) {
 });
 
 function clearAutocomplete(field_name) {
+  const input_wrapper = document.querySelector(`#id_${field_name}`);
+  const result_items = document.querySelector(`#id_${field_name}__items`);
   const chips = document.querySelectorAll(`#id_${field_name}_ac_container li.chip`);
+  const info = document.querySelector(`#id_${field_name}__info`);
+  const sr_desc = document.querySelector(`#id_${field_name}__sr_description`);
+  input_wrapper.innerHTML = '';
+  result_items.innerHTML = '';
   chips.forEach(chip => chip.remove());
+  info.innerHTML = '';
+  sr_desc.innerHTML = '';
 }
 
 function resetQaAutocompletes() {
