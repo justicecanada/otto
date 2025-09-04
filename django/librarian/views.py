@@ -1,5 +1,6 @@
 import os
 from dataclasses import dataclass
+from urllib.parse import urlencode
 
 from django.contrib import messages
 from django.db.models import Q, Sum
@@ -355,6 +356,10 @@ def modal_view(request, item_type=None, item_id=None, parent_id=None, documents=
                 "librarian:data_source_status",
                 kwargs={"data_source_id": selected_data_source.id},
             )
+        # Preserve active search during polling so list doesn't reset
+        active_search = (request.GET.get("search", "") or "").strip()
+        if active_search:
+            poll_url = f"{poll_url}?{urlencode({'search': active_search})}"
     else:
         poll_url = None
 
@@ -447,42 +452,43 @@ def poll_status(request, data_source_id, document_id=None):
     Polling view for data source status updates
     Updates the document list in the modal with updated titles / status icons
     """
-    all_docs_qs = Document.objects.filter(data_source_id=data_source_id)
-    poll = False
-    try:
-        poll = all_docs_qs.filter(status__in=IN_PROGRESS_STATUSES).exists()
-    except Exception:
-        poll = False
-    poll_url = request.path if poll else None
-
-    # Respect current search (if any) for the visible list while polling
-    active_search = (request.GET.get("search", "") or "").strip()
-    docs_qs = all_docs_qs
-    if active_search:
-        docs_qs = docs_qs.filter(
-            Q(filename__icontains=active_search)
-            | Q(manual_title__icontains=active_search)
+    # Preserve current search from query string so the list doesn't reset on poll
+    search = (request.GET.get("search", "") or "").strip()
+    base_qs = Document.objects.filter(data_source_id=data_source_id)
+    documents = base_qs
+    if search:
+        documents = documents.filter(
+            Q(filename__icontains=search)
+            | Q(manual_title__icontains=search)
             | (
-                Q(extracted_title__icontains=active_search)
+                Q(extracted_title__icontains=search)
                 & (Q(manual_title__isnull=True) | Q(manual_title=""))
             )
         )
+    poll = False
+    try:
+        poll = documents.filter(status__in=IN_PROGRESS_STATUSES).exists()
+    except:
+        poll = False
+    poll_url = request.path if poll else None
+    if poll and search:
+        poll_url = f"{poll_url}?{urlencode({'search': search})}"
 
-    # Apply persisted sort to filtered poll results
-    documents = list(docs_qs)
+    # Apply persisted sort to poll results
+    documents = list(documents)
     documents = _sort_documents(documents, _get_sort_pref(request, data_source_id))
     document = Document.objects.get(id=document_id) if document_id else None
 
-    # Compute totals during polling so header can update live (based on all docs)
+    # Compute totals during polling so header can update live (unfiltered)
     try:
-        total_usd = all_docs_qs.aggregate(total=Sum("usd_cost")).get("total") or 0
+        total_usd = base_qs.aggregate(total=Sum("usd_cost")).get("total") or 0
         if not total_usd or float(total_usd) == 0.0:
             total_cost = "$0.00"
         else:
             total_cost = display_cad_cost(total_usd)
-        total_chunks = all_docs_qs.aggregate(total=Sum("num_chunks")).get("total") or 0
-        failed_count = all_docs_qs.filter(status="ERROR").count()
-        blocked_count = all_docs_qs.filter(status="BLOCKED").count()
+        total_chunks = base_qs.aggregate(total=Sum("num_chunks")).get("total") or 0
+        failed_count = base_qs.filter(status="ERROR").count()
+        blocked_count = base_qs.filter(status="BLOCKED").count()
     except Exception:
         total_cost = None
         total_chunks = None
@@ -503,6 +509,8 @@ def poll_status(request, data_source_id, document_id=None):
             "total_chunks": total_chunks,
             "failed_count": failed_count or 0,
             "blocked_count": blocked_count or 0,
+            "current_sort": _get_sort_pref(request, data_source_id),
+            "search": search,
         },
     )
 
@@ -843,6 +851,7 @@ def search_docs(request, data_source_id):
 
     # base queryset from the selected data source (avoid loading extracted_text)
     documents_qs = selected_data_source.documents.defer("extracted_text").all()
+    base_qs = documents_qs  # keep an unfiltered reference for totals
     if query:
         # filename or manual_title always match; extracted_title only if manual_title is empty
         documents_qs = documents_qs.filter(
@@ -864,6 +873,22 @@ def search_docs(request, data_source_id):
         "librarian.edit_data_source", selected_data_source
     )
 
+    # Compute totals from all documents in the data source (not filtered by search)
+    try:
+        total_usd = base_qs.aggregate(total=Sum("usd_cost")).get("total") or 0
+        if not total_usd or float(total_usd) == 0.0:
+            total_cost = "$0.00"
+        else:
+            total_cost = display_cad_cost(total_usd)
+        total_chunks = base_qs.aggregate(total=Sum("num_chunks")).get("total") or 0
+        failed_count = base_qs.filter(status="ERROR").count()
+        blocked_count = base_qs.filter(status="BLOCKED").count()
+    except Exception:
+        total_cost = None
+        total_chunks = None
+        failed_count = 0
+        blocked_count = 0
+
     return render(
         request,
         "librarian/components/document_list.html",
@@ -875,5 +900,9 @@ def search_docs(request, data_source_id):
             "can_edit_data_source": can_edit_data_source,
             "search": query,
             "current_sort": _get_sort_pref(request, data_source_id),
+            "total_cost": total_cost,
+            "total_chunks": total_chunks,
+            "failed_count": failed_count,
+            "blocked_count": blocked_count,
         },
     )
