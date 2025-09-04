@@ -1400,7 +1400,7 @@
         "fr_auto": "Activé par des actes spécifiques..."
     },
     "Select laws to search": {
-        "fr": "",
+        "fr": "Rechercher dans",
         "fr_auto": "Sélectionner des lois à rechercher"
     },
     "Select act(s)/regulation(s)": {
@@ -3500,7 +3500,7 @@
         "fr_auto": "Seule la législation fédérale :"
     },
     "Case law and other legal sources are not included in this tool.": {
-        "fr": "",
+        "fr": "La jurisprudence et les autres sources de droit ne sont pas incluses dans cet outil.",
         "fr_auto": "La jurisprudence et les autres sources juridiques ne sont pas incluses dans cet outil."
     },
     "Inappropriate uses and limitations of Otto": {
