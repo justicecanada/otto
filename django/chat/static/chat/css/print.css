@@ -1,0 +1,110 @@
+/* Print stylesheet: only print a specific selector and its contents */
+
+/* Page setup */
+@page {
+  size: auto;
+  margin: 12mm;
+}
+
+@media print {
+  #messages-container {
+    max-height: none !important;
+    overflow: visible !important;
+    zoom: 90%;
+  }
+
+  #chat-container,
+  #chat-flexbox,
+  #chat-outer,
+  .container.px-5.position-relative {
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    position: static !important;
+  }
+
+  html,
+  body {
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  /* Hide UI elements not needed for print */
+  .chat-sidebar-toggle,
+  #scroll-btn {
+    display: none !important;
+  }
+
+  /* Hide everything by default */
+  body * {
+    visibility: hidden !important;
+  }
+
+  /* Show only the target area and its descendants */
+  /* Change .print-target to your specific selector (e.g., #invoice, .receipt) */
+  .print-target,
+  .print-target * {
+    visibility: visible !important;
+  }
+
+  /* Make the target use full page width, remove decoration */
+  .print-target {
+    position: static !important;
+    float: none !important;
+    overflow: visible !important;
+    width: auto !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    background: transparent !important;
+  }
+
+  /* Hide common non-print elements */
+  .no-print,
+  nav,
+  footer,
+  aside,
+  .btn,
+  button,
+  [role="button"] {
+    display: none !important;
+  }
+
+  /* Avoid awkward breaks */
+  .message-outer,
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  p,
+  /* blockquote, */
+  /* pre, */
+  /* table, */
+  thead,
+  tbody,
+  tfoot,
+  tr,
+  td,
+  th,
+  /* ul, */
+  /* ol, */
+  /* dl, */
+  img {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  /* Show link URLs after text (optional) */
+  a[href^="http"]::after {
+    content: " (" attr(href) ")";
+    font-size: 90%;
+  }
+}
+
+/* Usage:
+   Add class "print-target" to the element you want to print:
+   <div class="print-target"> ... </div>
+*/

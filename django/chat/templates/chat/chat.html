@@ -69,7 +69,7 @@
             </div>
           {% endif %}
           <div id="messages-container"
-               class="{% if pinned_messages %}pt-2{% else %}pt-3{% endif %} px-2">
+               class="{% if pinned_messages %}pt-2{% else %}pt-3{% endif %} px-2 print-target">
             {% if not chat_messages and not pinned_messages %}
               {% include 'chat/components/chat_welcome.html' %}
             {% endif %}
@@ -104,4 +104,5 @@
   <link rel="stylesheet" href="{% static 'thirdparty/css/katex.min.css' %}">
 
   <link rel="stylesheet" href="{% static 'file_form/file_form.css' %}">
+  <link rel="stylesheet" href="{% static 'chat/css/print.css' %}">
 {% endblock %}
