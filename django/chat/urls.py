@@ -85,11 +85,6 @@ urlpatterns = [
         name="share_chat",
     ),
     path(
-        "id/<str:chat_id>/download/",
-        views.download_chat,
-        name="download_chat",
-    ),
-    path(
         "id/<str:current_chat_id>/list_item/<str:chat_id>",
         views.chat_list_item,
         name="chat_list_item",

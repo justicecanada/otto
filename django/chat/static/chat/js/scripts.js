@@ -737,3 +737,21 @@ function afterAccordionSwap() {
     updateQaSourceForms();
   }
 }
+
+// Printing
+function printChat() {
+  // Expand all messages
+  expandAllMessages(chat_id);
+  // Wait a bit for the messages to expand
+  setTimeout(() => {
+    window.print();
+  }, 300);
+}
+
+// Hijack Ctrl+P / Cmd+P to print the chat
+window.addEventListener("keydown", function (event) {
+  if ((event.ctrlKey) && event.key === "p") {
+    event.preventDefault();
+    printChat();
+  }
+});

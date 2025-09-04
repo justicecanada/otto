@@ -4851,6 +4851,10 @@
         "fr": "",
         "fr_auto": "Téléchargé le"
     },
+    "Save as PDF": {
+        "fr": "",
+        "fr_auto": "Enregistrer au format PDF"
+    },
     "Corrupt doc file.": {
         "fr": "",
         "fr_auto": "Fichier doc corrompu."
