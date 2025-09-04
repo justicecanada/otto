@@ -27,10 +27,11 @@ def test_chat_options(client, all_apps_user):
     assert response.status_code == 500
 
     new_chat = Chat.objects.get(id=new_chat.id)
+    new_library = Library.objects.create(name="New library")
     # Change the chat options through the form
     options_form = ChatOptionsForm(instance=new_chat.options, user=user)
     options_form_data = options_form.initial
-    options_form_data["qa_library"] = 1
+    options_form_data["qa_library"] = new_library.id
     options_form_data["chat_system_prompt"] = (
         "You are a cowboy-themed AI, and always start your response with 'Howdy!'"
     )
