@@ -139,3 +139,31 @@ def test_initialize_feedback_for_chat_mode(client, all_apps_user):
     form.initialize_chat_feedback(message.id)
 
     assert form.fields["app"].initial == "translate"
+
+
+@pytest.mark.django_db
+def test_manage_banner(client, all_apps_user):
+    user = all_apps_user()
+    client.force_login(user)
+
+    # Test preview with just an English message
+    response = client.post(
+        reverse("manage_banner"),
+        data={"message_en": "Hello there", "preview": "true", "category": "info"},
+    )
+    assert response.status_code == 200
+    assert (
+        '<div id="message-from-admins" class="info">Hello there</div>'
+        in response.content.decode()
+    )
+
+    # Test banner creation
+    response = client.post(
+        reverse("manage_banner"),
+        data={"message_en": "Hello", "message_fr": "Bonjour", "category": "danger"},
+    )
+    assert response.status_code == 200
+    assert (
+        '<div id="message-from-admins" class="danger">Hello</div>'
+        in response.content.decode()
+    )
