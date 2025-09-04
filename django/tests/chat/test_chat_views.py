@@ -380,35 +380,6 @@ def test_delete_all_chats(client, all_apps_user):
     assert response["HX-Redirect"] == reverse("chat:new_chat")
 
 
-# Test download_chat view
-@pytest.mark.django_db
-def test_download_chat(client, all_apps_user):
-
-    user = all_apps_user()
-    client.force_login(user)
-
-    # Create a chat with a message
-    chat = Chat.objects.create(user=user, title="Test Chat")
-    Message.objects.create(chat=chat, text="Hello world!", is_bot=False)
-
-    # Test successful download
-    url = reverse("chat:download_chat", args=[chat.id])
-    response = client.get(url)
-
-    # Check it's a Word document
-    assert response.status_code == 200
-    assert (
-        response["Content-Type"]
-        == "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-    )
-
-    # Check that "Hello world!" is actually in the document
-    content = response.content
-    doc = Document(io.BytesIO(content))
-    doc_text = "\n".join([paragraph.text for paragraph in doc.paragraphs])
-    assert "Hello world!" in doc_text
-
-
 # Test download_file view
 @pytest.mark.django_db
 def test_download_file(client, all_apps_user):

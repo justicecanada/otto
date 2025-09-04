@@ -1265,6 +1265,20 @@ def manage_banner(request):
             category = request.POST.get("category")
             timeout_hours = int(request.POST.get("timeout_hours", 24))
             timeout = timeout_hours * 3600
+            if request.POST.get("preview"):
+                message = (
+                    message_fr
+                    if getattr(request, "LANGUAGE_CODE", "en") == "fr"
+                    else message_en
+                )
+                return render(
+                    request,
+                    "components/message_from_admins.html",
+                    {
+                        "message_from_admins": message,
+                        "message_from_admins_category": category,
+                    },
+                )
             if message_en and message_fr:
                 banner = {
                     "message_en": message_en,
@@ -1272,20 +1286,6 @@ def manage_banner(request):
                     "category": category,
                     "timeout": timeout,
                 }
-                if request.POST.get("preview"):
-                    message = (
-                        "message_fr"
-                        if getattr(request, "LANGUAGE_CODE", "en") == "fr"
-                        else "message_en"
-                    )
-                    return render(
-                        request,
-                        "components/message_from_admins.html",
-                        {
-                            "message_from_admins": banner[message],
-                            "message_from_admins_category": category,
-                        },
-                    )
                 cache.set(
                     "message_from_admins",
                     banner,
