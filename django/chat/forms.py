@@ -477,7 +477,6 @@ class ChatOptionsForm(ModelForm):
         if not library_id:
             library_id = Library.objects.get_default_library().id
         if pk and original_library_id != library_id:
-            instance.qa_scope = "all"
             instance.qa_data_sources.clear()
             instance.qa_documents.clear()
         if commit:
