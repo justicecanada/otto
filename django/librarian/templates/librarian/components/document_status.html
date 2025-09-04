@@ -188,6 +188,13 @@
           {{ document.file_path }}
         </dd>
       {% endif %}
+      {% if document.file_size %}
+        <dt>{% trans "File size" %}</dt>
+        <dd>
+          {{ document.file_size|filesizeformat }}
+        </dd>
+      {% endif %}
+
     </dl>
   </div>
 </div>
