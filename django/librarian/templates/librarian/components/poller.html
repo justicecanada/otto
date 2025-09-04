@@ -3,6 +3,7 @@
   <div id="libraryModalPoller"
        hx-disinherit="*"
        hx-get="{{ poll_url }}"
+       hx-include="#librarian-search-input"
        hx-trigger="every 2s"
        hx-ext="morph"
        hx-swap="morph:outerHTML"

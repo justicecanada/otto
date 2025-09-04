@@ -447,29 +447,42 @@ def poll_status(request, data_source_id, document_id=None):
     Polling view for data source status updates
     Updates the document list in the modal with updated titles / status icons
     """
-    documents = Document.objects.filter(data_source_id=data_source_id)
+    all_docs_qs = Document.objects.filter(data_source_id=data_source_id)
     poll = False
     try:
-        poll = documents.filter(status__in=IN_PROGRESS_STATUSES).exists()
-    except:
+        poll = all_docs_qs.filter(status__in=IN_PROGRESS_STATUSES).exists()
+    except Exception:
         poll = False
     poll_url = request.path if poll else None
 
-    # Apply persisted sort to poll results
-    documents = list(documents)
+    # Respect current search (if any) for the visible list while polling
+    active_search = (request.GET.get("search", "") or "").strip()
+    docs_qs = all_docs_qs
+    if active_search:
+        docs_qs = docs_qs.filter(
+            Q(filename__icontains=active_search)
+            | Q(manual_title__icontains=active_search)
+            | (
+                Q(extracted_title__icontains=active_search)
+                & (Q(manual_title__isnull=True) | Q(manual_title=""))
+            )
+        )
+
+    # Apply persisted sort to filtered poll results
+    documents = list(docs_qs)
     documents = _sort_documents(documents, _get_sort_pref(request, data_source_id))
     document = Document.objects.get(id=document_id) if document_id else None
 
-    # Compute totals during polling so header can update live
+    # Compute totals during polling so header can update live (based on all docs)
     try:
-        total_usd = documents.aggregate(total=Sum("usd_cost")).get("total") or 0
+        total_usd = all_docs_qs.aggregate(total=Sum("usd_cost")).get("total") or 0
         if not total_usd or float(total_usd) == 0.0:
             total_cost = "$0.00"
         else:
             total_cost = display_cad_cost(total_usd)
-        total_chunks = documents.aggregate(total=Sum("num_chunks")).get("total") or 0
-        failed_count = documents.filter(status="ERROR").count()
-        blocked_count = documents.filter(status="BLOCKED").count()
+        total_chunks = all_docs_qs.aggregate(total=Sum("num_chunks")).get("total") or 0
+        failed_count = all_docs_qs.filter(status="ERROR").count()
+        blocked_count = all_docs_qs.filter(status="BLOCKED").count()
     except Exception:
         total_cost = None
         total_chunks = None
