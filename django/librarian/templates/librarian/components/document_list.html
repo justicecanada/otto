@@ -51,7 +51,8 @@
         <div class="col-12 col-xl-6 d-flex">
           <button type="button"
                   class="btn btn-sm btn-outline-dark w-100 h-100 d-flex justify-content-center"
-                  hx-get="{% url 'librarian:modal_create_document' data_source_id=selected_data_source.id %}">
+                  hx-get="{% url 'librarian:modal_create_document' data_source_id=selected_data_source.id %}"
+                  hx-include="#librarian-search-input">
             <span class="d-flex align-items-center gap-1">
               <i class="bi bi-link"></i> {% trans "Add URL" %}
             </span>
@@ -74,7 +75,8 @@
               <li>
                 <a class="dropdown-item small"
                    href="#"
-                   hx-get="{% url 'librarian:data_source_start' selected_data_source.id 'default' 'all' %}">
+                   hx-get="{% url 'librarian:data_source_start' selected_data_source.id 'default' 'all' %}"
+                   hx-include="#librarian-search-input">
                   <span>{% trans "Text only" %}</span>
                   <span class="text-muted">{% trans "(fastest, $)" %}</span>
                 </a>
@@ -82,7 +84,8 @@
               <li>
                 <a class="dropdown-item small"
                    href="#"
-                   hx-get="{% url 'librarian:data_source_start' selected_data_source.id 'layout' 'all' %}">
+                   hx-get="{% url 'librarian:data_source_start' selected_data_source.id 'layout' 'all' %}"
+                   hx-include="#librarian-search-input">
                   <span>{% trans "PDF layout" %}</span>
                   <span class="text-muted">{% trans "(keeps formatting, $)" %}</span>
                 </a>
@@ -90,7 +93,8 @@
               <li>
                 <a class="dropdown-item small"
                    href="#"
-                   hx-get="{% url 'librarian:data_source_start' selected_data_source.id 'azure_read' 'all' %}">
+                   hx-get="{% url 'librarian:data_source_start' selected_data_source.id 'azure_read' 'all' %}"
+                   hx-include="#librarian-search-input">
                   <span>{% trans "PDF OCR" %}</span>
                   <span class="text-muted">{% trans "(for scans, $$)" %}</span>
                 </a>
@@ -98,7 +102,8 @@
               <li>
                 <a class="dropdown-item small"
                    href="#"
-                   hx-get="{% url 'librarian:data_source_start' selected_data_source.id 'azure_layout' 'all' %}">
+                   hx-get="{% url 'librarian:data_source_start' selected_data_source.id 'azure_layout' 'all' %}"
+                   hx-include="#librarian-search-input">
                   <span>{% trans "PDF layout & OCR" %}</span>
                   <span class="text-muted">{% trans "(for complex scans, $$$)" %}</span>
                 </a>
@@ -112,7 +117,8 @@
               <li>
                 <a class="dropdown-item small"
                    href="#"
-                   hx-get="{% url 'librarian:data_source_start' selected_data_source.id 'default' 'incomplete' %}">
+                   hx-get="{% url 'librarian:data_source_start' selected_data_source.id 'default' 'incomplete' %}"
+                   hx-include="#librarian-search-input">
                   <span>{% trans "Text only" %}</span>
                   <span class="text-muted">{% trans "(fastest, $)" %}</span>
                 </a>
@@ -120,7 +126,8 @@
               <li>
                 <a class="dropdown-item small"
                    href="#"
-                   hx-get="{% url 'librarian:data_source_start' selected_data_source.id 'layout' 'incomplete' %}">
+                   hx-get="{% url 'librarian:data_source_start' selected_data_source.id 'layout' 'incomplete' %}"
+                   hx-include="#librarian-search-input">
                   <span>{% trans "PDF layout" %}</span>
                   <span class="text-muted">{% trans "(keeps formatting, $)" %}</span>
                 </a>
@@ -128,7 +135,8 @@
               <li>
                 <a class="dropdown-item small"
                    href="#"
-                   hx-get="{% url 'librarian:data_source_start' selected_data_source.id 'azure_read' 'incomplete' %}">
+                   hx-get="{% url 'librarian:data_source_start' selected_data_source.id 'azure_read' 'incomplete' %}"
+                   hx-include="#librarian-search-input">
                   <span>{% trans "PDF OCR" %}</span>
                   <span class="text-muted">{% trans "(for scans, $$)" %}</span>
                 </a>
@@ -136,7 +144,8 @@
               <li>
                 <a class="dropdown-item small"
                    href="#"
-                   hx-get="{% url 'librarian:data_source_start' selected_data_source.id 'azure_layout' 'incomplete' %}">
+                   hx-get="{% url 'librarian:data_source_start' selected_data_source.id 'azure_layout' 'incomplete' %}"
+                   hx-include="#librarian-search-input">
                   <span>{% trans "PDF layout & OCR" %}</span>
                   <span class="text-muted">{% trans "(for complex scans, $$$)" %}</span>
                 </a>
@@ -147,7 +156,8 @@
               <li>
                 <a class="dropdown-item small"
                    href="#"
-                   hx-get="{% url 'librarian:data_source_stop' selected_data_source.id %}">
+                   hx-get="{% url 'librarian:data_source_stop' selected_data_source.id %}"
+                   hx-include="#librarian-search-input">
                   <span>{% trans "Stop all processing" %}</span>
                 </a>
               </li>
