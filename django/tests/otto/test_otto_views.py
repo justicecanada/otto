@@ -160,7 +160,7 @@ def test_manage_banner(client, all_apps_user):
     # Test banner creation
     response = client.post(
         reverse("manage_banner"),
-        data={"message_en": "Hello", "message_fr": "Bonjour", "category": "warning"},
+        data={"message_en": "Hello", "message_fr": "Bonjour", "category": "danger"},
     )
     assert response.status_code == 200
     assert (
