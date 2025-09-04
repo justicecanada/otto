@@ -304,7 +304,7 @@ class ChatOptionsForm(ModelForm):
                 choices=QA_MODE_CHOICES,
                 attrs={
                     "class": "form-select form-select-sm",
-                    "onchange": "switchToDocumentScope(); updateQaSourceForms(); toggleRagOptions(this); triggerOptionSave();",
+                    "onchange": "if (this.value=='summarize') {switchToDocumentScope();} updateQaSourceForms(); toggleRagOptions(this); triggerOptionSave();",
                     "data-rag_string": _(
                         """
                         <strong>Combine:</strong> Search once across all selected documents before answer generation. <em>May not include all documents. Cheap, more succint.</em>
@@ -325,7 +325,7 @@ class ChatOptionsForm(ModelForm):
                 choices=QA_PROCESS_MODE_CHOICES,
                 attrs={
                     "class": "form-select form-select-sm",
-                    "onchange": "updateQaSourceForms(); triggerOptionSave();",
+                    "onchange": "if (this.value=='per_doc') {switchToDocumentScope();} updateQaSourceForms(); triggerOptionSave();",
                 },
             ),
             "qa_scope": forms.Select(
@@ -433,7 +433,7 @@ class ChatOptionsForm(ModelForm):
             widget=SelectWithOptionClasses(
                 attrs={
                     "class": "form-select form-select-sm",
-                    "onchange": "resetQaAutocompletes(); triggerOptionSave(); updateLibraryModalButton();",
+                    "onchange": "resetQaElements(); resetQaAutocompletes(); triggerOptionSave(); updateLibraryModalButton();",
                 }
             ),
         )
@@ -479,6 +479,9 @@ class ChatOptionsForm(ModelForm):
         if pk and original_library_id != library_id:
             instance.qa_data_sources.clear()
             instance.qa_documents.clear()
+            instance.qa_mode = "rag"
+            instance.qa_scope = "all"
+            instance.qa_process_mode = "combined_docs"
         if commit:
             instance.save()
         if not (pk and original_library_id != library_id):

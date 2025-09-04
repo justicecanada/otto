@@ -65,6 +65,12 @@ function clearAutocomplete(field_name) {
   sr_desc.innerHTML = '';
 }
 
+function resetQaElements() {
+  document.getElementById('id_qa_mode').value = 'rag';
+  document.getElementById('id_qa_process_mode').value = 'combined_docs';
+  document.getElementById('id_qa_scope').value = 'all';
+}
+
 function resetQaAutocompletes() {
   updateQaSourceForms();
   clearAutocomplete('qa_data_sources');
@@ -73,11 +79,8 @@ function resetQaAutocompletes() {
 
 function switchToDocumentScope() {
   const scope = document.getElementById('id_qa_scope');
-  let search_mode = document.getElementById('id_qa_mode').value;
-  if (search_mode !== "rag") {
-    if (scope.value === "all") {
-      scope.value = "documents";
-    }
+  if (scope.value === "all") {
+    scope.value = "documents";
   }
 }
 

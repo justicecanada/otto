@@ -1065,6 +1065,9 @@ def update_qa_options_from_librarian(request, chat_id, library_id):
     if library != original_library:
         chat.options.qa_data_sources.clear()
         chat.options.qa_documents.clear()
+        chat.options.qa_mode = "rag"
+        chat.options.qa_scope = "all"
+        chat.options.qa_process_mode = "combined_docs"
     chat.options.save()
     # Now return the updated chat options form for swapping
     return render(
