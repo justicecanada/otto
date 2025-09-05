@@ -190,7 +190,7 @@
                     </td>
                     <td>
                       {% if status.details %}
-                        <small title="{{ status.details }}">{{ status.details|truncatechars:40 }}</small>
+                        <small title="{{ status.details_label }}">{{ status.details_label|truncatechars:40 }}</small>
                       {% else %}
                         —
                       {% endif %}
@@ -264,7 +264,7 @@
                       </td>
                       <td>
                         {% if status.details %}
-                          <small title="{{ status.details }}">{{ status.details|truncatechars:40 }}</small>
+                          <small title="{{ status.details_label }}">{{ status.details_label|truncatechars:40 }}</small>
                         {% else %}
                           —
                         {% endif %}
@@ -291,7 +291,7 @@
                       </td>
                       <td>
                         {% if status.details %}
-                          <small title="{{ status.details }}">{{ status.details|truncatechars:40 }}</small>
+                          <small title="{{ status.details_label }}">{{ status.details_label|truncatechars:40 }}</small>
                         {% else %}
                           —
                         {% endif %}

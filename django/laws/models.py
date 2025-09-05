@@ -359,6 +359,35 @@ class JobStatus(models.Model):
 
 
 class LawLoadingStatus(models.Model):
+    @property
+    def details_label(self):
+        from django.utils.translation import get_language
+
+        lang = get_language()
+        details_map = {
+            "NULL hashes - assuming needs update": "Hachages NULL - mise à jour nécessaire",
+            "No changes detected": "Aucun changement détecté",
+            "No changes detected - forced update": "Aucun changement détecté - mise à jour forcée",
+            "Changes detected - update": "Changements détectés - mise à jour",
+            "Existing law deleted due to now being empty": "La loi existante a été supprimée car elle est maintenant vide",
+            "Law updated successfully": "Loi mise à jour avec succès",
+            "New law added successfully": "Nouvelle loi ajoutée avec succès",
+            "Existing law not present in the list of laws to load": "La loi existante n'est pas présente dans la liste des lois à charger",
+        }
+
+        if lang and lang.startswith("fr"):
+            import re
+
+            emebedding_re = re.compile(r"^(.*) \(embedding batch (\d+)/(\d+)\)$")
+            if self.details in details_map:
+                return details_map[self.details]
+            match = emebedding_re.match(self.details or "")
+            if match:
+                base, batch_num, total_batches = match.groups()
+                base_fr = details_map.get(base, base)
+                return f"{base_fr} (intégration {batch_num}/{total_batches})"
+        return self.details
+
     law = models.OneToOneField(
         Law,
         on_delete=models.SET_NULL,
