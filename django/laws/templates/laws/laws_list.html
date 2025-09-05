@@ -60,7 +60,7 @@
           <div class="card text-center">
             <div class="card-body">
               <h4 class="card-title {% if job_status.status == 'finished' %}text-success{% elif job_status.status == 'error' %}text-danger{% elif job_status.status == 'cancelled' %}text-secondary{% else %}text-primary{% endif %} mb-1">
-                {{ job_status.status|title }}
+                {{ job_status.status_label|title }}
               </h4>
               <p class="card-text text-muted">{% trans "Job Status" %}</p>
             </div>
@@ -95,7 +95,7 @@
                       <code class="text-primary">{{ status.eng_law_id }}</code>
                     </td>
                     <td>
-                      <span class="badge bg-success">{{ status.status }}</span>
+                      <span class="badge bg-success">{{ status.status_label }}</span>
                     </td>
                     <td>
                       <div>
@@ -108,7 +108,7 @@
                     </td>
                     <td>
                       {% if status.law %}
-                        {{ status.law.type|capfirst }}
+                        {{ status.law.type_label|capfirst }}
                       {% else %}
                         —
                       {% endif %}
@@ -181,11 +181,11 @@
                     </td>
                     <td>
                       {% if status.status == "error" %}
-                        <span class="badge bg-danger">{{ status.status }}</span>
+                        <span class="badge bg-danger">{{ status.status_label }}</span>
                       {% elif status.status == "deleted" or status.status == "empty" %}
-                        <span class="badge bg-secondary">{{ status.status }}</span>
+                        <span class="badge bg-secondary">{{ status.status_label }}</span>
                       {% else %}
-                        <span class="badge bg-warning">{{ status.status }}</span>
+                        <span class="badge bg-warning">{{ status.status_label }}</span>
                       {% endif %}
                     </td>
                     <td>
@@ -260,7 +260,7 @@
                         <code class="text-primary">{{ status.eng_law_id }}</code>
                       </td>
                       <td>
-                        <span class="badge bg-primary">{{ status.status }}</span>
+                        <span class="badge bg-primary">{{ status.status_label }}</span>
                       </td>
                       <td>
                         {% if status.details %}
@@ -287,7 +287,7 @@
                         <code class="text-primary">{{ status.eng_law_id }}</code>
                       </td>
                       <td>
-                        <span class="badge bg-warning text-dark">{{ status.status }}</span>
+                        <span class="badge bg-warning text-dark">{{ status.status_label }}</span>
                       </td>
                       <td>
                         {% if status.details %}

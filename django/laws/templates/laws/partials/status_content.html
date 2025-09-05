@@ -43,7 +43,7 @@
         <p>
           <strong>{% trans "Status" %}:</strong>
           <span class="badge {% if job_status.status == 'finished' %}bg-success{% elif job_status.status == 'error' %}bg-danger{% elif job_status.status == 'cancelled' %}bg-secondary{% else %}bg-primary{% endif %}">
-            {{ job_status.status|title }}
+            {{ job_status.status }}
           </span>
           /
           <strong>{% trans "Time elapsed" %}:</strong> {{ job_status.elapsed }}
@@ -148,7 +148,7 @@
                 <td>{{ law.eng_law_id }}</td>
                 <td>
                   <span class="badge {% if law.status|slice:":8" == 'finished' %}bg-success{% elif law.status == 'error' %}bg-danger{% elif law.status == 'empty' %}bg-secondary{% elif law.status == 'deleted' %}bg-dark{% elif law.status == 'parsing_xml' or law.status == 'embedding_nodes' %}bg-warning{% elif law.status|slice:":7" == 'pending' %}bg-info{% else %}bg-secondary{% endif %}">
-                    {{ law.status|title }}
+                    {{ law.status_label|title }}
                   </span>
                 </td>
                 <td>

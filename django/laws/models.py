@@ -3,6 +3,7 @@ import time
 from django.conf import settings
 from django.db import models
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 
 from llama_index.core.schema import MediaResource
 from sqlalchemy import create_engine, text
@@ -219,6 +220,10 @@ class Law(models.Model):
 
     objects = LawManager()
 
+    @property
+    def type_label(self):
+        return _("Regulation") if self.type == "regulation" else _("Act")
+
     def __str__(self):
         return self.title
 
@@ -274,7 +279,46 @@ class JobStatusManager(models.Manager):
 class JobStatus(models.Model):
     objects = JobStatusManager()
 
-    status = models.CharField(max_length=50, default="not_started", blank=True)
+    STATUS_CHOICES = [
+        ("cancelled", {"en": "Cancelled", "fr": "Annulé"}),
+        ("started", {"en": "Started", "fr": "Commencé"}),
+        ("downloading", {"en": "Downloading", "fr": "Téléchargement"}),
+        ("resetting", {"en": "Resetting", "fr": "Réinitialisation"}),
+        ("purging", {"en": "Purging", "fr": "Purge"}),
+        ("checking_existing", {"en": "Checking Existing", "fr": "Vérification"}),
+        (
+            "generating_hashes",
+            {"en": "Generating Hashes", "fr": "Génération de hachages"},
+        ),
+        ("loading_laws", {"en": "Loading Laws", "fr": "Chargement des lois"}),
+        (
+            "rebuilding_indexes",
+            {"en": "Rebuilding Indexes", "fr": "Reconstructions des index"},
+        ),
+        ("finished", {"en": "Finished", "fr": "Terminé"}),
+        ("cancelled", {"en": "Cancelled", "fr": "Annulé"}),
+        ("not_started", {"en": "Not started", "fr": "Non commencé"}),
+        ("error", {"en": "Error", "fr": "Erreur"}),
+    ]
+    status = models.CharField(
+        max_length=50,
+        default="not_started",
+        blank=True,
+        choices=[(k, v["en"]) for k, v in STATUS_CHOICES],
+    )
+
+    @property
+    def status_label(self):
+        from django.utils.translation import get_language
+
+        lang = get_language()
+        for k, v in self.STATUS_CHOICES:
+            if k == self.status:
+                if lang and lang.startswith("fr"):
+                    return v["fr"]
+                return v["en"]
+        return self.status
+
     started_at = models.DateTimeField(null=True, blank=True)
     finished_at = models.DateTimeField(null=True, blank=True)
     error_message = models.TextField(null=True, blank=True)
@@ -324,21 +368,42 @@ class LawLoadingStatus(models.Model):
     )
     eng_law_id = models.CharField(max_length=50, null=True, blank=True)
     STATUS_CHOICES = [
-        ("pending_new", "Pending (New)"),
-        ("pending_update", "Pending (Update)"),
-        ("parsing_xml", "Parsing XML"),
-        ("embedding_nodes", "Embedding Nodes"),
-        ("finished_new", "Finished (New)"),
-        ("finished_update", "Finished (Update)"),
-        ("finished_nochange", "Finished (No Change)"),
-        ("error", "Error"),
-        ("deleted", "Deleted"),
-        ("empty", "Empty"),
-        ("cancelled", "Cancelled"),
+        ("pending_new", {"en": "Pending (New)", "fr": "En attente (Nouveau)"}),
+        (
+            "pending_update",
+            {"en": "Pending (Update)", "fr": "En attente (Mise à jour)"},
+        ),
+        ("parsing_xml", {"en": "Parsing XML", "fr": "Analyse XML"}),
+        ("embedding_nodes", {"en": "Embedding Nodes", "fr": "Intégration des nœuds"}),
+        ("finished_new", {"en": "Finished (New)", "fr": "Terminé (Nouveau)"}),
+        ("finished_update", {"en": "Finished (Update)", "fr": "Terminé (Mise à jour)"}),
+        (
+            "finished_nochange",
+            {"en": "Finished (No Change)", "fr": "Terminé (Aucun changement)"},
+        ),
+        ("error", {"en": "Error", "fr": "Erreur"}),
+        ("deleted", {"en": "Deleted", "fr": "Supprimé"}),
+        ("empty", {"en": "Empty", "fr": "Vide"}),
+        ("cancelled", {"en": "Cancelled", "fr": "Annulé"}),
     ]
     status = models.CharField(
-        max_length=50, default="pending_new", choices=STATUS_CHOICES
+        max_length=50,
+        default="pending_new",
+        choices=[(k, v["en"]) for k, v in STATUS_CHOICES],
     )
+
+    @property
+    def status_label(self):
+        from django.utils.translation import get_language
+
+        lang = get_language()
+        for k, v in self.STATUS_CHOICES:
+            if k == self.status:
+                if lang and lang.startswith("fr"):
+                    return v["fr"]
+                return v["en"]
+        return self.status
+
     details = models.TextField(null=True, blank=True)
     started_at = models.DateTimeField(auto_now_add=True)
     finished_at = models.DateTimeField(null=True, blank=True)
