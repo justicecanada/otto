@@ -71,7 +71,8 @@
         {% if document.celery_task_id %}
           <button type="button"
                   class="btn btn-sm btn-outline-secondary"
-                  hx-get="{% url 'librarian:document_stop' document.id %}">{% trans "Stop" %}</button>
+                  hx-get="{% url 'librarian:document_stop' document.id %}"
+                  hx-include="#librarian-search-input">{% trans "Stop" %}</button>
         {% elif document.content_type == "application/pdf" %}
           <div class="btn-group">
             <button type="button"
@@ -82,7 +83,8 @@
               <li>
                 <a class="dropdown-item small"
                    href="#"
-                   hx-get="{% url 'librarian:document_start' document.id 'default' %}">
+                   hx-get="{% url 'librarian:document_start' document.id 'default' %}"
+                   hx-include="#librarian-search-input">
                   <span>{% trans "Text only" %}</span>
                   <span class="text-muted">{% trans "(fastest, $)" %}</span>
                 </a>
@@ -90,7 +92,8 @@
               <li>
                 <a class="dropdown-item small"
                    href="#"
-                   hx-get="{% url 'librarian:document_start' document.id 'layout' %}">
+                   hx-get="{% url 'librarian:document_start' document.id 'layout' %}"
+                   hx-include="#librarian-search-input">
                   <span>{% trans "PDF layout" %}</span>
                   <span class="text-muted">{% trans "(keeps formatting, $)" %}</span>
                 </a>
@@ -98,7 +101,8 @@
               <li>
                 <a class="dropdown-item small"
                    href="#"
-                   hx-get="{% url 'librarian:document_start' document.id 'azure_read' %}">
+                   hx-get="{% url 'librarian:document_start' document.id 'azure_read' %}"
+                   hx-include="#librarian-search-input">
                   <span>{% trans "PDF OCR" %}</span>
                   <span class="text-muted">{% trans "(for scans, $$)" %}</span>
                 </a>
@@ -106,7 +110,8 @@
               <li>
                 <a class="dropdown-item small"
                    href="#"
-                   hx-get="{% url 'librarian:document_start' document.id 'azure_layout' %}">
+                   hx-get="{% url 'librarian:document_start' document.id 'azure_layout' %}"
+                   hx-include="#librarian-search-input">
                   <span>{% trans "PDF layout & OCR" %}</span>
                   <span class="text-muted">{% trans "(for complex scans, $$$)" %}</span>
                 </a>
@@ -116,9 +121,8 @@
         {% else %}
           <button type="button"
                   class="btn btn-sm btn-outline-success"
-                  hx-get="{% url 'librarian:document_start' document.id 'default' %}">
-            {% trans "Process document" %}
-          </button>
+                  hx-get="{% url 'librarian:document_start' document.id 'default' %}"
+                  hx-include="#librarian-search-input">{% trans "Process document" %}</button>
         {% endif %}
       {% endif %}
     </div>
