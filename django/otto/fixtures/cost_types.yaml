@@ -266,3 +266,23 @@
     unit_name_fr: jetons
     unit_cost: 8
     unit_quantity: 1000000
+- model: otto.CostType
+  pk: 27
+  fields:
+    short_name: gpt-5-in
+    name: GPT-5 Global (input)
+    name_fr: GPT-5 Global (entrée)
+    unit_name: tokens
+    unit_name_fr: jetons
+    unit_cost: 1.25
+    unit_quantity: 1000000
+- model: otto.CostType
+  pk: 28
+  fields:
+    short_name: gpt-5-out
+    name: GPT-5 Global (output)
+    name_fr: GPT-5 Global (sortie)
+    unit_name: tokens
+    unit_name_fr: jetons
+    unit_cost: 10
+    unit_quantity: 1000000

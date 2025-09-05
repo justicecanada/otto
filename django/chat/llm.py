@@ -105,6 +105,10 @@ class OttoLLM:
         # Check if mock_llm is enabled via contextvar (for load testing)
         self.use_mock_llm = mock_llm_context.get(False)
 
+        # "minimal" reasoning effort only valid for gpt-5 models
+        if reasoning_effort == "minimal" and not deployment.startswith("gpt-5"):
+            reasoning_effort = "low"
+
         self.llm_config = get_model(deployment)
         if not self.llm_config:
             raise ValueError(f"Invalid deployment: {deployment}")

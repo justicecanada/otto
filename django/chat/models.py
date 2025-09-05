@@ -174,6 +174,7 @@ QA_SOURCE_ORDER_CHOICES = [
 ]
 
 REASONING_EFFORT_CHOICES = [
+    ("minimal", _("Minimal (fastest, cheapest)")),
     ("low", _("Low (faster, cheaper)")),
     ("medium", _("Medium (default)")),
     ("high", _("High (slower, more expensive)")),
