@@ -1384,7 +1384,7 @@
         "fr_auto": "Toutes les lois et tous les règlements"
     },
     "All acts": {
-        "fr": "",
+        "fr": "Toutes les lois",
         "fr_auto": "Tous les actes"
     },
     "All regulations": {
@@ -1396,7 +1396,7 @@
         "fr_auto": "Loi(s)/règlement(s) spécifique(s)..."
     },
     "Enabled by specific act(s)...": {
-        "fr": "",
+        "fr": "Loi(s) habilitante(s)",
         "fr_auto": "Activé par des actes spécifiques..."
     },
     "Select laws to search": {
