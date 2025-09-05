@@ -7,6 +7,5 @@
     onkeypress="if(event.key === 'Enter') { this.click(); }"
     {% if item == selected_item %}aria-selected="true"{% endif %}
     {% if item_type == "library" %}data-library-id="{{ item.id }}"{% endif %}
-    {% if not item.temp %} hx-get="{% get_librarian_modal_url item_type item.id %}" {% endif %}>
-  {% include "librarian/components/list_item_inner.html" %}
-</li>
+    {% if not item.temp %} hx-get="{% get_librarian_modal_url item_type item.id %}" {% if item_type == 'document' %}hx-include="#librarian-search-input"{% endif %}
+    {% endif %}>{% include "librarian/components/list_item_inner.html" %}</li>
