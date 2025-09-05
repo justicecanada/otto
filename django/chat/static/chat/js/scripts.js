@@ -138,8 +138,7 @@ function handleModeChange(mode, element = null) {
   hidden_mode_input.value = mode;
   // Set the #chat-outer class to the selected mode for mode-specific styling
   document.querySelector('#chat-outer').classList = [mode];
-  // Dispatch change event for search mode in order to trigger advance settings options
-  document.getElementById('id_qa_mode').dispatchEvent(new Event("change"));
+  triggerOptionSave();
   updatePlaceholder(mode);
   resizeOtherElements();
   // If the invoking element is an accordion-button we can stop
@@ -227,8 +226,6 @@ document.addEventListener("DOMContentLoaded", function () {
     render_markdown(element);
     checkTruncation(element);
   });
-  // The following line is causing problems. Keeping as a comment in case removing it causes other problems.
-  // limitScopeSelect();
   showHideSidebars();
   document.querySelector('#prompt-form-container').classList.remove("d-none");
   resizeTextarea();
@@ -511,7 +508,8 @@ function cancelChatRename() {
 }
 
 function updateQaModal() {
-  // console.log('Updating QA modal');
+  const qa_mode = document.getElementById('id_qa_mode');
+  toggleRagOptions(qa_mode);
   const qa_modal_elements = document.querySelectorAll('#advanced-qa-modal [data-inputname]');
   qa_modal_elements.forEach((modal_element) => {
     const hidden_input_name = modal_element.dataset.inputname;
@@ -591,14 +589,6 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 });
-
-document.addEventListener("DOMContentLoaded", function () {
-  var select = document.getElementById("id_qa_mode");
-  if (select) {
-    toggleRagOptions(select);
-  }
-});
-
 
 function updatePageTitle(title = null) {
   if (title) {
@@ -726,9 +716,7 @@ function afterAccordionSwap() {
   if (presetLoaded || swap) {
     handleModeChange(mode, null);
     const qa_mode = document.getElementById('id_qa_mode');
-    switchToDocumentScope();
     // Update the advanced settings RAG options visibility
-    toggleRagOptions(qa_mode);
     setTimeout(updateQaSourceForms, 100);
   } else if (triggerLibraryChange) {
     // This function calls updateQaSourceForms, so no need to call it twice
