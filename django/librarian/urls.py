@@ -21,6 +21,8 @@ from librarian.views import (
     modal_view_document,
     modal_view_library,
     poll_status,
+    search_docs,
+    sort_docs,
     upload,
 )
 
@@ -122,5 +124,15 @@ urlpatterns = [
         "library/<int:library_id>/email_admins/",
         email_library_admins,
         name="email_library_admins",
+    ),
+    path(
+        "library/<int:data_source_id>/sort_docs/<str:sort_by>/",
+        sort_docs,
+        name="sort_docs",
+    ),
+    path(
+        "search_docs/<int:data_source_id>",
+        search_docs,
+        name="search_docs",
     ),
 ]
