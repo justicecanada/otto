@@ -304,7 +304,7 @@ class ChatOptionsForm(ModelForm):
                 choices=QA_MODE_CHOICES,
                 attrs={
                     "class": "form-select form-select-sm",
-                    "onchange": "if (this.value=='summarize') {switchToDocumentScope();} updateQaSourceForms(); toggleRagOptions(this); triggerOptionSave();",
+                    "onchange": "if (this.value=='summarize') {switchToDocumentScope();} updateQaSourceForms(); triggerOptionSave();",
                     "data-rag_string": _(
                         """
                         <strong>Combine:</strong> Search once across all selected documents before answer generation. <em>May not include all documents. Cheap, more succint.</em>

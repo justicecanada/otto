@@ -508,7 +508,8 @@ function cancelChatRename() {
 }
 
 function updateQaModal() {
-  // console.log('Updating QA modal');
+  const qa_mode = document.getElementById('id_qa_mode');
+  toggleRagOptions(qa_mode);
   const qa_modal_elements = document.querySelectorAll('#advanced-qa-modal [data-inputname]');
   qa_modal_elements.forEach((modal_element) => {
     const hidden_input_name = modal_element.dataset.inputname;
@@ -588,14 +589,6 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 });
-
-document.addEventListener("DOMContentLoaded", function () {
-  var select = document.getElementById("id_qa_mode");
-  if (select) {
-    toggleRagOptions(select);
-  }
-});
-
 
 function updatePageTitle(title = null) {
   if (title) {
@@ -724,7 +717,6 @@ function afterAccordionSwap() {
     handleModeChange(mode, null);
     const qa_mode = document.getElementById('id_qa_mode');
     // Update the advanced settings RAG options visibility
-    toggleRagOptions(qa_mode);
     setTimeout(updateQaSourceForms, 100);
   } else if (triggerLibraryChange) {
     // This function calls updateQaSourceForms, so no need to call it twice
