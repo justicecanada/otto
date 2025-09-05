@@ -26,6 +26,7 @@
     document.querySelector('#id_chat-input_file').value = null;
     document.querySelector('#id_chat-input_file').files = e.dataTransfer.files;
     document.querySelector('#id_chat-input_file').dispatchEvent(new Event('change'));
+    initRequestAndNavigationMonitoring();
     hideOverlay();
   }
   function handleDragEnter(e) {

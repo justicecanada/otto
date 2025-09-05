@@ -737,3 +737,37 @@ function afterAccordionSwap() {
     updateQaSourceForms();
   }
 }
+
+// Upload monitoring with self-contained event listeners
+let uploadMonitoringActive = false;
+
+// Named handler for link monitoring
+function linkMonitorHandler(event) {
+  if (event.target.closest('#chat-upload-message, #file-dropzone')) {
+    return;
+  }
+  const link = event.target.closest('a[href]');
+  if (link) {
+    if (uploadMonitoringActive && confirm("Are you sure you want to navigate while uploading a file? This may cancel the upload.") == false) {
+      event.preventDefault();
+      console.log('User clicked a link:', link.href);
+    }
+  }
+}
+
+function initRequestAndNavigationMonitoring() {
+  uploadMonitoringActive = true;
+  document.addEventListener('click', linkMonitorHandler);;
+
+  // Disable monitoring after upload completes via HTMX
+  document.addEventListener('htmx:afterSwap', function (event) {
+    if (event.target && event.target.id === 'chat-upload-message') {
+      disableRequestAndNavigationMonitoring();
+    }
+  });
+}
+
+function disableRequestAndNavigationMonitoring() {
+  uploadMonitoringActive = false;
+  document.removeEventListener('click', linkMonitorHandler);
+}
