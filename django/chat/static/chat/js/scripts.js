@@ -762,12 +762,8 @@ function initRequestAndNavigationMonitoring() {
   // Disable monitoring after upload completes via HTMX
   document.addEventListener('htmx:afterSwap', function (event) {
     if (event.target && event.target.id === 'chat-upload-message') {
-      disableRequestAndNavigationMonitoring();
+      uploadMonitoringActive = false;
+      document.removeEventListener('click', linkMonitorHandler);
     }
   });
-}
-
-function disableRequestAndNavigationMonitoring() {
-  uploadMonitoringActive = false;
-  document.removeEventListener('click', linkMonitorHandler);
 }
