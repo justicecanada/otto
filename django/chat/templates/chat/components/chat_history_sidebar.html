@@ -4,20 +4,45 @@
      aria-label='{% trans "Chat history" %}'>
   <div class="border-end h-100 overflow-hidden d-flex flex-column">
     <div id="new-chat-button-outer">
-      <div class="offcanvas-header d-flex pb-2 p-3">
-        <a class="btn btn-outline-dark new-chat-btn fw-semibold w-100 text-start me-3"
+      <div class="offcanvas-header d-flex align-items-center gap-2 p-3 pb-2">
+        <a class="btn btn-outline-dark new-chat-btn fw-semibold flex-grow-1 text-start"
            id="new-chat-button"
            href="{% url 'chat:new_chat' %}">
           <i class="bi bi-plus-square me-2"></i>
           {% trans "New chat" %}
         </a>
-        <div class="col-auto">
+        <button type="button"
+                id="chat-search-toggle"
+                class="btn btn-sm d-flex align-items-center justify-content-center"
+                style="width:2rem;
+                       height:2rem"
+                aria-label="{% trans 'Show search' %}">
+          <i class="bi bi-search" aria-hidden="true"></i>
+        </button>
+        <button type="button"
+                class="btn-close"
+                id="close-left-sidebar"
+                aria-controls="left-sidebar"
+                style="margin-top: -4px"
+                aria-label='{% trans "Close" %}'></button>
+      </div>
+      <div id="chat-search-container" class="px-3 pb-2 " style="display:none;">
+        <div class="input-group input-group-sm">
+          <input type="text"
+                 class="form-control border-none"
+                 placeholder="{% trans 'Search...' %}"
+                 aria-label="{% trans 'Search...' %}"
+                 id="chat-history-search-input"
+                 name="search"
+                 autocomplete="off"
+                 value="{{ search|default:'' }}">
           <button type="button"
-                  class="btn-close"
-                  id="close-left-sidebar"
-                  aria-controls="left-sidebar"
-                  style="margin-top: -4px"
-                  aria-label='{% trans "Close" %}'></button>
+                  class="btn btn-outline-secondary"
+                  id="chat-search-clear"
+                  aria-label="{% trans 'Clear search' %}"
+                  style="display:none">
+            <i class="bi bi-x" aria-hidden="true"></i>
+          </button>
         </div>
       </div>
     </div>
@@ -75,6 +100,35 @@
   <script>
   document.addEventListener('DOMContentLoaded', () => {
     scrollToListItem();
+    const toggleBtn = document.getElementById('chat-search-toggle');
+    const container = document.getElementById('chat-search-container');
+    const input = document.getElementById('chat-history-search-input');
+    const clearBtn = document.getElementById('chat-search-clear');
+    if (toggleBtn && container && input) {
+      toggleBtn.addEventListener('click', () => {
+        const visible = container.style.display !== 'none';
+        if (!visible) {
+          container.style.display = '';
+          input.focus();
+          toggleBtn.setAttribute('aria-label', '{% trans 'Hide search' %}');
+        } else {
+          container.style.display = 'none';
+          input.value = '';
+          clearBtn.style.display = 'none';
+          toggleBtn.setAttribute('aria-label', '{% trans 'Show search' %}');
+        }
+      });
+      input.addEventListener('input', () => {
+        clearBtn.style.display = input.value ? '' : 'none';
+        // TODO: Hook up actual search request if endpoint available
+      });
+      clearBtn.addEventListener('click', () => {
+        input.value = '';
+        clearBtn.style.display = 'none';
+        input.dispatchEvent(new Event('input'));
+        input.focus();
+      });
+    }
   });
   </script>
 {% endblock %}
