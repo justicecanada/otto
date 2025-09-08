@@ -16,8 +16,8 @@
 
   function handleLibraryInput() {
     var libraryList = document.getElementById("id_qa_library");
-    const is_personal_library = libraryList.options[libraryList.selectedIndex].getAttribute("class");
-    if (is_personal_library == "True") {
+    const is_personal_library = libraryList.options[libraryList.selectedIndex].dataset["is_personal_library"];
+    if (is_personal_library == "true") {
       document.getElementById("id_qa_data_sources__textinput").labels[0].innerHTML = chat_select_string;
       document.getElementById("id_qa_scope").options[0].label = entire_chat_string;
       document.getElementById("id_qa_scope").options[1].label = chat_filter_string

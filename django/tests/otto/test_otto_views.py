@@ -167,3 +167,11 @@ def test_manage_banner(client, all_apps_user):
         '<div id="message-from-admins" class="danger">Hello</div>'
         in response.content.decode()
     )
+
+    # Clear the banner
+    response = client.post(
+        reverse("manage_banner"),
+        data={"remove": "1"},
+    )
+    assert response.status_code == 200
+    assert "Hello" not in response.content.decode()
