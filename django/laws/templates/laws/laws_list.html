@@ -60,7 +60,7 @@
           <div class="card text-center">
             <div class="card-body">
               <h4 class="card-title {% if job_status.status == 'finished' %}text-success{% elif job_status.status == 'error' %}text-danger{% elif job_status.status == 'cancelled' %}text-secondary{% else %}text-primary{% endif %} mb-1">
-                {{ job_status.status_label|title }}
+                {{ job_status.status_label }}
               </h4>
               <p class="card-text text-muted">{% trans "Job Status" %}</p>
             </div>

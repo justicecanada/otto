@@ -378,9 +378,10 @@ class LawLoadingStatus(models.Model):
         if lang and lang.startswith("fr"):
             import re
 
-            emebedding_re = re.compile(r"^(.*) \(embedding batch (\d+)/(\d+)\)$")
             if self.details in details_map:
                 return details_map[self.details]
+
+            emebedding_re = re.compile(r"^(.*) \(embedding batch (\d+)/(\d+)\)$")
             match = emebedding_re.match(self.details or "")
             if match:
                 base, batch_num, total_batches = match.groups()
