@@ -373,6 +373,7 @@ class LawLoadingStatus(models.Model):
             "Law updated successfully": "Loi mise à jour avec succès",
             "New law added successfully": "Nouvelle loi ajoutée avec succès",
             "Existing law not present in the list of laws to load": "La loi existante n'est pas présente dans la liste des lois à charger",
+            "New law": "Nouvelle loi",
         }
 
         if lang and lang.startswith("fr"):
@@ -404,7 +405,7 @@ class LawLoadingStatus(models.Model):
             {"en": "Pending (Update)", "fr": "En attente (Mise à jour)"},
         ),
         ("parsing_xml", {"en": "Parsing XML", "fr": "Analyse XML"}),
-        ("embedding_nodes", {"en": "Embedding Nodes", "fr": "Intégration des nœuds"}),
+        ("embedding_nodes", {"en": "Embedding Nodes", "fr": "Intégration des noeuds"}),
         ("finished_new", {"en": "Finished (New)", "fr": "Terminé (Nouveau)"}),
         ("finished_update", {"en": "Finished (Update)", "fr": "Terminé (Mise à jour)"}),
         (
