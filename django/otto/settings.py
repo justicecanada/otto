@@ -353,6 +353,8 @@ LOCALE_PATHS = [
     os.path.join(BASE_DIR, "locale"),
 ]
 
+MODELTRANSLATION_FALLBACK_LANGUAGES = ("en", "fr")
+
 USE_TZ = True
 
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
