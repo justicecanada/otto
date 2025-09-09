@@ -261,8 +261,10 @@ def summarize_response(chat, response_message):
                                         and hasattr(failed_file, "filename")
                                         else ""
                                     )
-                                    error_str = _(
-                                        f"Error extracting text from file{file_label}."
+                                    error_str = (
+                                        _("Error extracting text from file")
+                                        + file_label
+                                        + "."
                                     )
                                     error_str += f" _({_('Error ID:')} {error_id})_"
                                     error_files.append((error_str, failed_file))
@@ -901,15 +903,14 @@ def qa_response(chat, response_message, switch_mode=False):
 
 
 def full_doc_answer(chat, response_message, llm, documents, batch_size=5):
-    template = chat.options.qa_prompt_combined
+    def combined_file_path_string(document):
+        return str(document.file_path) + "\n" if document.file_path else ""
+
+    def single_doc_file_path_string(document):
+        return (str(document.file_path) + "\n---\n") if document.file_path else ""
+
     query = response_message.parent.text
     document_titles = [document.name for document in documents]
-
-    doc_responses = [
-        llm.tree_summarize(context=doc, query=query, template=template)
-        for doc in documents
-        if not cache.get(f"stop_response_{response_message.id}", False)
-    ]
 
     if chat.options.qa_process_mode == "combined_docs":
         # Combine all documents into one text, including the titles
@@ -917,8 +918,8 @@ def full_doc_answer(chat, response_message, llm, documents, batch_size=5):
             "<document>\n"
             + "\n</document>\n<document>\n".join(
                 [
-                    f"# {title}\n---\n{document.extracted_text}"
-                    for title, document in zip(document_titles, documents)
+                    f"# {document.name}\n{combined_file_path_string(document)}---\n{document.extracted_text}"
+                    for document in documents
                 ]
             )
             + "\n</document>"
@@ -932,7 +933,7 @@ def full_doc_answer(chat, response_message, llm, documents, batch_size=5):
         title_batches = create_batches(document_titles, batch_size)
         doc_responses = [
             llm.tree_summarize(
-                context=document.extracted_text,
+                context=f"{single_doc_file_path_string(document)}{document.extracted_text}",
                 query=query,
                 template=chat.options.qa_prompt_combined,
             )

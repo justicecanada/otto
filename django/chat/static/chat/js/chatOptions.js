@@ -65,36 +65,22 @@ function clearAutocomplete(field_name) {
   sr_desc.innerHTML = '';
 }
 
+function resetQaElements() {
+  document.getElementById('id_qa_mode').value = 'rag';
+  document.getElementById('id_qa_process_mode').value = 'combined_docs';
+  document.getElementById('id_qa_scope').value = 'all';
+}
+
 function resetQaAutocompletes() {
-  const mode = document.getElementById('id_qa_mode');
-  const e = new Event("change");
-  mode.value = 'rag';
-  mode.dispatchEvent(e);
-  limitScopeSelect();
   updateQaSourceForms();
   clearAutocomplete('qa_data_sources');
   clearAutocomplete('qa_documents');
 }
 
-function limitScopeSelect() {
-  const scope = document.getElementById('id_qa_scope');
-  let search_mode = document.getElementById('id_qa_mode').value;
-  if (search_mode === "rag") {
-    scope.value = 'all';
-    // scope.removeAttribute('disabled');
-  } else {
-    scope.value = "documents";
-    // scope.setAttribute('disabled', 'disabled');
-  }
-}
-
 function switchToDocumentScope() {
   const scope = document.getElementById('id_qa_scope');
-  let search_mode = document.getElementById('id_qa_mode').value;
-  if (search_mode !== "rag") {
-    if (scope.value === "all") {
-      scope.value = "documents";
-    }
+  if (scope.value === "all") {
+    scope.value = "documents";
   }
 }
 

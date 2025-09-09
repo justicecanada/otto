@@ -1242,6 +1242,73 @@ def reset_completion_flags(request):
     return redirect("welcome")
 
 
+@permission_required("otto.manage_banner")
+def manage_banner(request):
+    categories = [
+        ("info", "Info"),
+        ("success", "Success"),
+        ("warning", "Warning"),
+        ("danger", "Danger"),
+    ]
+    banner = cache.get("message_from_admins", None)
+    timeout_hours = 24
+    if banner and "timeout" in banner:
+        timeout_hours = int(banner["timeout"]) // 3600
+    if request.method == "POST":
+        if request.POST.get("remove"):
+            cache.delete("message_from_admins")
+            banner = None
+            timeout_hours = 24
+        else:
+            message_en = request.POST.get("message_en")
+            message_fr = request.POST.get("message_fr")
+            category = request.POST.get("category")
+            timeout_hours = int(request.POST.get("timeout_hours", 24))
+            timeout = timeout_hours * 3600
+            if request.POST.get("preview"):
+                message = (
+                    message_fr
+                    if getattr(request, "LANGUAGE_CODE", "en") == "fr"
+                    else message_en
+                )
+                return render(
+                    request,
+                    "components/message_from_admins.html",
+                    {
+                        "message_from_admins": message,
+                        "message_from_admins_category": category,
+                    },
+                )
+            if message_en and message_fr:
+                banner = {
+                    "message_en": message_en,
+                    "message_fr": message_fr,
+                    "category": category,
+                    "timeout": timeout,
+                }
+                cache.set(
+                    "message_from_admins",
+                    banner,
+                    timeout=timeout,
+                )
+            else:
+                cache.delete("message_from_admins")
+                banner = None
+                timeout_hours = 24
+    # Prepare banner for form
+    banner_for_form = banner or {}
+    banner_for_form["timeout_hours"] = timeout_hours
+    return render(
+        request,
+        "manage_banner.html",
+        {
+            "banner": banner_for_form,
+            "categories": categories,
+            "hide_breadcrumbs": True,
+        },
+    )
+
+
 def mark_tour_completed(request, tour_name):
     # Tour properties on user object like this:
     # homepage_tour_completed = models.BooleanField(default=False)
