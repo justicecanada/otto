@@ -137,7 +137,8 @@ def translate_file(
         result = poller.result()
 
         usage = poller.details.total_characters_charged
-        Cost.objects.new(cost_type="translate-file", count=usage)
+        cost_type = "translate-custom" if custom_translator_id else "translate-file"
+        Cost.objects.new(cost_type=cost_type, count=usage)
 
         request_context = get_contextvars()
         out_message = Message.objects.get(id=request_context.get("message_id"))

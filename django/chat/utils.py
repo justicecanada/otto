@@ -1163,7 +1163,10 @@ def translate_text_with_azure(text, target_language, custom_translator_id=None):
 
                 # Track usage for cost calculation
                 char_count = len(text)
-                Cost.objects.new(cost_type="translate-text", count=char_count)
+                cost_type = (
+                    "translate-custom" if custom_translator_id else "translate-text"
+                )
+                Cost.objects.new(cost_type=cost_type, count=char_count)
 
                 return translated_text
 
