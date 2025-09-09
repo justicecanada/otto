@@ -1,17 +1,27 @@
 {% load i18n %}
-<div class="px-3 mt-3"
+<div class="px-3 mt-2"
      id="glossary-upload-fragment"
      {% if swap %}hx-swap-oob="true"{% endif %}>
   <label class="col-form-label col-form-label-sm"
          for="id_translation_glossary">{% trans "Glossary CSV (optional)" %}</label>
+  <button class="p-0 border-0 bg-transparent"
+          type="button"
+          data-bs-toggle="tooltip"
+          data-bs-html="true"
+          data-bs-title='{% trans "<strong>Glossary affects file translation only</strong><br>Must be a CSV file with 2 columns and no header row. Each row must consist of <em>source term</em>, <em>target term</em>." %}'
+          id="glossary_info">
+    <i class="bi-info-circle-fill small text-secondary"></i>
+  </button>
+</div>
+<div class="px-3">
   {% if options_form.instance.translation_glossary %}
-    <div class="mt-2 d-flex align-items-center gap-2">
-      {{ options_form.instance.translation_glossary.name }}
+    <div class="d-flex small align-items-center justify-content-between gap-2 w-100">
+      <a href="{% url 'chat:download_glossary' chat_id=chat.id %}"
+         class="btn btn-link btn-sm px-0 mx-0"
+         target="_blank">{{ options_form.instance.translation_glossary.name }}</a>
       <button type="button"
               class="btn btn-link btn-sm text-danger"
-              hx-post="{% url 'chat:chat_options' chat_id=chat.id %}?remove_glossary=1"
-              hx-target="#glossary-upload-fragment"
-              hx-swap="outerHTML oob">{% trans "Remove" %}</button>
+              hx-post="{% url 'chat:chat_options' chat_id=chat.id %}?remove_glossary=1">{% trans "Remove" %}</button>
     </div>
   {% else %}
     <input type="file"

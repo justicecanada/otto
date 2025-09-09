@@ -8,7 +8,7 @@ from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
 from django.db.models import Q
-from django.http import HttpRequest, HttpResponse, JsonResponse
+from django.http import FileResponse, HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 from django.urls import reverse
@@ -110,6 +110,18 @@ def delete_chat(request, chat_id, current_chat=None):
         response["HX-Redirect"] = reverse("chat:new_chat")
         return response
     return HttpResponse(status=200)
+
+
+@permission_required("chat.access_chat", objectgetter(Chat, "chat_id"))
+def download_glossary(request, chat_id):
+    chat = get_object_or_404(Chat, id=chat_id)
+    glossary = getattr(chat.options, "translation_glossary", None)
+    if not glossary:
+        return HttpResponse(status=404)
+    response = FileResponse(
+        glossary.open("rb"), as_attachment=True, filename=glossary.name
+    )
+    return response
 
 
 @app_access_required("chat")
@@ -662,10 +674,47 @@ def chat_options(request, chat_id, action=None, preset_id=None):
             chat_options.save(update_fields=["translation_glossary"])
             glossary_removed = True
 
+        # Validate glossary CSV if uploaded
+        glossary_file = request.FILES.get("translation_glossary")
+        glossary_error = None
+        if glossary_file:
+            import csv
+            from io import TextIOWrapper
+
+            try:
+                wrapper = TextIOWrapper(glossary_file, encoding="utf-8")
+                reader = csv.reader(wrapper)
+                for idx, row in enumerate(reader, 1):
+                    if len(row) != 2 or not row[0].strip() or not row[1].strip():
+                        glossary_error = _(
+                            "Glossary file is invalid:\nEach row must consist of 'source term, target term' and no cell can be empty.\nError on line: "
+                        ) + str(idx)
+                        break
+                wrapper.detach()
+            except Exception as e:
+                glossary_error = _(f"Glossary file could not be read: {str(e)}")
+
+        if glossary_error:
+            messages.error(request, glossary_error)
+            # Remove the invalid file from request.FILES so it is not saved
+            if "translation_glossary" in request.FILES:
+                del request.FILES["translation_glossary"]
+            # Remove the file from the model instance as well
+            if getattr(chat_options, "translation_glossary", None):
+                chat_options.translation_glossary = None
+                chat_options.save(update_fields=["translation_glossary"])
+            # Create a fresh form so the upload field is empty
+            fresh_form = ChatOptionsForm(instance=chat_options, user=request.user)
+            return render(
+                request,
+                "chat/components/glossary_upload_fragment.html",
+                {"options_form": fresh_form, "chat": chat, "swap": True},
+            )
+
         chat_options_form.save()
 
         # HTMX: If glossary was uploaded or removed, return only the fragment
-        if glossary_removed or "translation_glossary" in request.FILES:
+        if "translation_glossary" in request.FILES or glossary_removed:
             return render(
                 request,
                 "chat/components/glossary_upload_fragment.html",
