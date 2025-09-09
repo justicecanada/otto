@@ -6,10 +6,13 @@ from unittest import mock
 from django.urls import reverse
 
 import pytest
+import pytest_asyncio
 
 from chat._views.load_test import exhaust_streaming_response
 from chat.models import Chat, Message
 from chat.tasks import translate_file
+
+pytest_plugins = ("pytest_asyncio",)
 
 
 @pytest.mark.django_db
@@ -112,6 +115,7 @@ def test_translate_text_with_gpt(client, all_apps_user):
     )
 
 
+@pytest_asyncio.fixture(scope="session")
 @pytest.mark.django_db(transaction=True)
 def test_translate_text_with_azure(client, all_apps_user):
     """Test Azure text translation through the translate_response function."""
