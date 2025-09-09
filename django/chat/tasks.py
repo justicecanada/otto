@@ -73,7 +73,7 @@ def azure_delete(path):
 
 
 @shared_task(soft_time_limit=ten_minutes)
-def translate_file(file_path, target_language):
+def translate_file(file_path, target_language, custom_translator_id=None):
     if target_language == "fr":
         target_language = "fr-ca"
     input_file_path = None
@@ -113,7 +113,7 @@ def translate_file(file_path, target_language):
             target_url,
             target_language,
             storage_type="File",
-            category_id=settings.CUSTOM_TRANSLATOR_ID,
+            category_id=custom_translator_id,
         )
         result = poller.result()
 

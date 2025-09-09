@@ -459,7 +459,7 @@ def summarize_response(chat, response_message):
     )
 
 
-def translate_text_with_azure(text, target_language):
+def translate_text_with_azure(text, target_language, custom_translator_id=None):
     """
     Translate text using Azure Text Translation service.
     Returns the translated text.
@@ -477,7 +477,9 @@ def translate_text_with_azure(text, target_language):
         )
 
         # Translate the text
-        response = text_translator.translate(body=[text], to_language=[target_lang])
+        response = text_translator.translate(
+            body=[text], to_language=[target_lang], category=custom_translator_id
+        )
 
         if response and len(response) > 0:
             translation = response[0]
@@ -511,6 +513,13 @@ def translate_response(chat, response_message):
     user_message = response_message.parent
     files = user_message.sorted_files if user_message is not None else []
     language = chat.options.translate_language
+    custom_translator_id = (
+        settings.CUSTOM_TRANSLATOR_ID
+        if chat.options.translate_model == "azure_custom"
+        else None
+    )
+    translation_method = chat.options.translate_model
+    target_language = {"en": "English", "fr": "French"}[language]
 
     def file_msg(response_message, total_files):
         return render_to_string(
@@ -552,13 +561,27 @@ def translate_response(chat, response_message):
             # raise Exception(_("Error translating files."))
 
     if len(files) > 0:
-        # Initiate the Celery task for translating each file with Azure
+        if "gpt" in translation_method:
+            # Use summarize mode for file translation, to reuse text extraction etc.
+            chat.options.summarize_prompt = (
+                "<document>\n"
+                "{docs}\n"
+                "</document>\n"
+                "<instruction>\n"
+                f"Translate the document above to Canadian {target_language}. Output the translated text only.\n"
+                "</instruction>"
+            )
+            response = summarize_response(chat, response_message)
+            return response
+
+        # Otherwise, initiate the Celery task for translating each file with Azure
         task_ids = []
         for file in files:
             # file is a django ChatFile object with property "file" that is a FileField
             # We need the path of the file to pass to the Celery task
             file_path = file.saved_file.file.path
-            task = translate_file.delay(file_path, language)
+            # Use custom translator if selected
+            task = translate_file.delay(file_path, language, custom_translator_id)
             task_ids.append(task.id)
         return StreamingHttpResponse(
             # No cost because file translation costs are calculated in Celery task
@@ -574,13 +597,11 @@ def translate_response(chat, response_message):
             content_type="text/event-stream",
         )
 
-    # Plain text translation - check translation method
-    translation_method = chat.options.translate_method
-
-    if translation_method == "azure":
-        # Use Azure Translator for plain text - faster and cheaper
+    if "azure" in translation_method:
         try:
-            translated_text = translate_text_with_azure(user_message.text, language)
+            translated_text = translate_text_with_azure(
+                user_message.text, language, custom_translator_id
+            )
 
             return StreamingHttpResponse(
                 streaming_content=htmx_stream(
@@ -598,8 +619,6 @@ def translate_response(chat, response_message):
             translation_method = "gpt"
 
     if translation_method == "gpt":
-        # Use GPT for translation - more expensive but may handle context better
-        target_language = {"en": "English", "fr": "French"}[language]
         translate_prompt = (
             "Translate the following text to English (Canada):\n"
             "Bonjour, comment ça va?"
@@ -611,7 +630,6 @@ def translate_response(chat, response_message):
             f"<content_to_translate>\n{user_message.text}\n</content_to_translate>"
             "\n---\nTranslation: "
         )
-
         return StreamingHttpResponse(
             streaming_content=htmx_stream(
                 chat,

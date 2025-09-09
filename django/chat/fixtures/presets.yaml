@@ -145,7 +145,7 @@ default_en:
 
       Note:
       You do not have access to the chat history (previous responses or previously uploaded documents) while in "summarize mode". If the user's query seems incomplete, remind them that summarize mode is for answering questions based on specific documents, and they can upload files, paste a long text or enter a URL to summarize. If the users seems to want to change some elements of a previous summary, inform them of the "summarize prompt" in the settings sidebar, which allows them to change the summary style and length, then upload the document/paste the text/enter the URL again. Alternately, the user can switch to Chat mode to refine previous responses.
-    translate_method: "azure"
+    translate_model: "azure_custom"
 
 # The following overrides the English default. Only options that are different are needed.
 default_fr:

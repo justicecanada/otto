@@ -186,8 +186,9 @@ REASONING_EFFORT_CHOICES = [
     ("high", _("High (slower, more expensive)")),
 ]
 
-TRANSLATE_METHOD_CHOICES = [
-    ("azure", _("Azure Translator")),
+TRANSLATE_MODEL_CHOICES = [
+    ("azure_custom", _("Azure Translator (JUS custom)")),
+    ("azure", _("Azure Translator (standard)")),
     ("gpt", _("GPT-4.1-mini")),
 ]
 
@@ -228,8 +229,8 @@ class ChatOptions(models.Model):
 
     # Translate-specific options
     translate_language = models.CharField(max_length=255, default="fr")
-    translate_method = models.CharField(
-        max_length=20, default="azure", choices=TRANSLATE_METHOD_CHOICES
+    translate_model = models.CharField(
+        max_length=20, default="azure_custom", choices=TRANSLATE_MODEL_CHOICES
     )
 
     # QA-specific options

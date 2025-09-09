@@ -23,7 +23,7 @@ from chat.models import (
     QA_PROCESS_MODE_CHOICES,
     QA_SCOPE_CHOICES,
     REASONING_EFFORT_CHOICES,
-    TRANSLATE_METHOD_CHOICES,
+    TRANSLATE_MODEL_CHOICES,
     Chat,
     ChatOptions,
     Preset,
@@ -400,10 +400,10 @@ class ChatOptionsForm(ModelForm):
                 },
             )
 
-        # translate_method has choices for translation service
-        for field in ["translate_method"]:
+        # translate_model has choices for translation service
+        for field in ["translate_model"]:
             self.fields[field].widget = forms.Select(
-                choices=TRANSLATE_METHOD_CHOICES,
+                choices=TRANSLATE_MODEL_CHOICES,
                 attrs={
                     "class": "form-select form-select-sm",
                     "onchange": "triggerOptionSave();",

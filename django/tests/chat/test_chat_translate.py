@@ -93,7 +93,7 @@ def test_translate_text_with_gpt(client, all_apps_user):
     # Create a chat using the route to create it with appropriate options
     response = client.get(reverse("chat:translate"), follow=True)
     chat = Chat.objects.filter(user=user).order_by("-created_at").first()
-    chat.options.translate_method = "gpt"
+    chat.options.translate_model = "gpt"
     chat.options.save()
 
     # Test chat_response with Translate mode
@@ -122,7 +122,7 @@ def test_translate_text_with_azure(client, all_apps_user):
     # Create a chat using the route to create it with appropriate options
     response = client.get(reverse("chat:translate"), follow=True)
     chat = Chat.objects.filter(user=user).order_by("-created_at").first()
-    chat.options.translate_method = "azure"
+    chat.options.translate_model = "azure"
     chat.options.save()
 
     # Test chat_response with Translate mode
