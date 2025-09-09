@@ -230,7 +230,13 @@ class ChatOptions(models.Model):
     # Translate-specific options
     translate_language = models.CharField(max_length=255, default="fr")
     translate_model = models.CharField(max_length=20, default="azure_custom")
-    translation_glossary = models.FileField(blank=True, null=True)
+    translation_glossary = models.ForeignKey(
+        "librarian.SavedFile",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="glossary_options",
+    )
 
     # QA-specific options
     qa_model = models.CharField(max_length=255, default=DEFAULT_QA_MODEL_ID)
@@ -682,6 +688,16 @@ def delete_saved_file(sender, instance, **kwargs):
         instance.saved_file.safe_delete()
     except Exception as e:
         logger.error(f"Failed to delete saved file: {e}")
+
+
+@receiver(post_delete, sender=ChatOptions)
+def delete_glossary_saved_file(sender, instance, **kwargs):
+    """Delete SavedFile when ChatOptions is deleted, if no other references exist"""
+    try:
+        if instance.translation_glossary:
+            instance.translation_glossary.safe_delete()
+    except Exception as e:
+        logger.error(f"Failed to delete glossary saved file: {e}")
 
 
 @receiver(post_save, sender=Message)

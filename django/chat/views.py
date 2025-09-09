@@ -115,11 +115,13 @@ def delete_chat(request, chat_id, current_chat=None):
 @permission_required("chat.access_chat", objectgetter(Chat, "chat_id"))
 def download_glossary(request, chat_id):
     chat = get_object_or_404(Chat, id=chat_id)
-    glossary = getattr(chat.options, "translation_glossary", None)
-    if not glossary:
+    glossary_saved_file = getattr(chat.options, "translation_glossary", None)
+    if not glossary_saved_file:
         return HttpResponse(status=404)
     response = FileResponse(
-        glossary.open("rb"), as_attachment=True, filename=glossary.name
+        glossary_saved_file.file.open("rb"),
+        as_attachment=True,
+        filename=glossary_saved_file.file.name.split("/")[-1],
     )
     return response
 
@@ -556,6 +558,7 @@ def chat_options(request, chat_id, action=None, preset_id=None):
                 "options_form": chat_options_form,
                 "preset_loaded": "true",
                 "prompt": preset.options.prompt,
+                "chat": chat,
             },
         )
     elif action == "create_preset":
@@ -659,14 +662,6 @@ def chat_options(request, chat_id, action=None, preset_id=None):
         chat_options = chat.options
         post_data = request.POST.copy()
 
-        chat_options_form = ChatOptionsForm(
-            post_data, request.FILES, instance=chat_options, user=request.user
-        )
-        # Check for errors and print them to console
-        if not chat_options_form.is_valid():
-            logger.error(chat_options_form.errors)
-            return HttpResponse(status=500)
-
         # Handle file removal for translation_glossary
         glossary_removed = False
         if request.GET.get("remove_glossary") == "1":
@@ -674,12 +669,15 @@ def chat_options(request, chat_id, action=None, preset_id=None):
             chat_options.save(update_fields=["translation_glossary"])
             glossary_removed = True
 
-        # Validate glossary CSV if uploaded
-        glossary_file = request.FILES.get("translation_glossary")
+        # Process translation_glossary file BEFORE form validation
         glossary_error = None
+        glossary_file = request.FILES.get("translation_glossary")
         if glossary_file:
             import csv
             from io import TextIOWrapper
+
+            from librarian.models import SavedFile
+            from librarian.utils.process_engine import generate_hash
 
             try:
                 wrapper = TextIOWrapper(glossary_file, encoding="utf-8")
@@ -691,6 +689,23 @@ def chat_options(request, chat_id, action=None, preset_id=None):
                         ) + str(idx)
                         break
                 wrapper.detach()
+
+                # If validation passed, create/get SavedFile
+                if not glossary_error:
+                    file_hash = generate_hash(glossary_file)
+                    saved_file = SavedFile.objects.filter(sha256_hash=file_hash).first()
+                    if not saved_file:
+                        saved_file = SavedFile.objects.create(
+                            file=glossary_file,
+                            sha256_hash=file_hash,
+                            content_type=glossary_file.content_type or "text/csv",
+                        )
+
+                    # Set the SavedFile reference on the instance BEFORE form validation
+                    chat_options.translation_glossary = saved_file
+                    # Remove the file from request.FILES so form doesn't try to process it
+                    del request.FILES["translation_glossary"]
+
             except Exception as e:
                 glossary_error = _(f"Glossary file could not be read: {str(e)}")
                 print(e)
@@ -712,6 +727,14 @@ def chat_options(request, chat_id, action=None, preset_id=None):
                 {"options_form": fresh_form, "chat": chat, "swap": True},
             )
 
+        # Now validate the form (without the file field)
+        chat_options_form = ChatOptionsForm(
+            post_data, request.FILES, instance=chat_options, user=request.user
+        )
+        # Check for errors and print them to console
+        if not chat_options_form.is_valid():
+            logger.error(chat_options_form.errors)
+            return HttpResponse(status=500)
         chat_options_form.save()
 
         # HTMX: If glossary was uploaded or removed, return only the fragment

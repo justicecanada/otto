@@ -286,7 +286,7 @@ def summarize_response(chat, response_message):
                             yield f"{_('Extracting text from files')} ({completed_count}/{total_count} {_('complete')})..."
 
                     # Now all extraction is complete, start summarization
-                    yield f"{_('Text extraction complete. Starting summarization...')}"
+                    yield f"{_('Text extraction complete. Starting processing...')}"
 
                     # Build responses for successful files
                     all_files = completed_files + [
@@ -589,7 +589,7 @@ def translate_response(chat, response_message):
         # Otherwise, initiate the Celery task for translating each file with Azure
         task_ids = []
         glossary_path = (
-            chat.options.translation_glossary.path
+            chat.options.translation_glossary.file.path
             if chat.options.translation_glossary
             else None
         )

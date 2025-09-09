@@ -46,16 +46,21 @@ md = markdown.Markdown(
 def copy_options(source_options, target_options, user=None, chat=None, mode=None):
     # Check the source_options for deprecated models
     ChatOptions.objects.check_and_update_models(source_options)
-    source_options = model_to_dict(source_options)
+
+    source_options_dict = model_to_dict(source_options)
     # Remove the fields that are not part of the preset
     for field in ["id", "chat"]:
-        source_options.pop(field)
+        source_options_dict.pop(field, None)
+
     # Update the preset options with the dictionary
-    fk_fields = ["qa_library"]
+    fk_fields = [
+        "qa_library",
+        "translation_glossary",
+    ]  # Include translation_glossary as FK
     m2m_fields = ["qa_data_sources", "qa_documents"]
     # Remove None values
-    source_options = {k: v for k, v in source_options.items()}
-    for key, value in source_options.items():
+    source_options_dict = {k: v for k, v in source_options_dict.items()}
+    for key, value in source_options_dict.items():
         if key in fk_fields:
             setattr(target_options, f"{key}_id", int(value) if value else None)
         elif key in m2m_fields:

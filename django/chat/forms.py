@@ -285,7 +285,13 @@ class ChatOptionsForm(ModelForm):
     class Meta:
         model = ChatOptions
         fields = "__all__"
-        exclude = ["chat", "english_default", "french_default", "prompt"]
+        exclude = [
+            "chat",
+            "english_default",
+            "french_default",
+            "prompt",
+            "translation_glossary",
+        ]
         widgets = {
             "mode": forms.HiddenInput(attrs={"onchange": "triggerOptionSave();"}),
             "chat_temperature": forms.Select(
@@ -412,6 +418,15 @@ class ChatOptionsForm(ModelForm):
                     "onchange": "triggerOptionSave();",
                 },
             )
+
+        # Add translation_glossary as a separate FileField (not bound to model)
+        self.fields["translation_glossary"] = forms.FileField(
+            required=False,
+            widget=forms.FileInput(
+                attrs={"accept": ".csv", "onchange": "triggerOptionSave();"}
+            ),
+            label="Glossary CSV (optional)",
+        )
 
         # Text areas
         self.fields["chat_system_prompt"].widget = forms.Textarea(

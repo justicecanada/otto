@@ -8,7 +8,7 @@
             type="button"
             data-bs-toggle="tooltip"
             data-bs-html="true"
-            data-bs-title='{% trans "<strong>File translation only</strong><br>Must be a CSV file with 2 columns and no header row. Each row must consist of <em>source term</em>, <em>target term</em>." %}'
+            data-bs-title='{% trans "(Azure file translation only) CSV file with 2 columns and no header row. Each row must consist of <em>source term</em>, <em>target term</em>. Terms are case-sensitive." %}'
             id="glossary_info">
       <i class="bi-info-circle-fill small text-secondary"></i>
     </button>
@@ -17,10 +17,10 @@
     {% if options_form.instance.translation_glossary %}
       <div class="d-flex small align-items-center justify-content-between gap-2 w-100">
         <a href="{% url 'chat:download_glossary' chat_id=chat.id %}"
-           class="btn btn-link btn-sm px-0 mx-0"
-           target="_blank">{{ options_form.instance.translation_glossary.name }}</a>
+           class="btn btn-link btn-sm px-0 mx-0 text-body"
+           target="_blank">{{ options_form.instance.translation_glossary.file.name|default:"glossary.csv" }}</a>
         <button type="button"
-                class="btn btn-link btn-sm text-danger"
+                class="btn btn-sm btn-outline-dark"
                 hx-post="{% url 'chat:chat_options' chat_id=chat.id %}?remove_glossary=1">{% trans "Remove" %}</button>
       </div>
     {% else %}

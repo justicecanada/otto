@@ -80,6 +80,7 @@ def translate_file(
         target_language = "fr-ca"
     input_file_path = None
     output_file_path = None
+    glossary_file_path = None
     try:
         from chat.models import ChatFile, Message
 
@@ -113,7 +114,7 @@ def translate_file(
 
             glossaries = [
                 TranslationGlossary(
-                    glossary_url=f"https://{settings.AZURE_ACCOUNT_NAME}.blob.core.windows.net/{settings.AZURE_CONTAINER}/{glossary_path}",
+                    glossary_url=f"https://{settings.AZURE_ACCOUNT_NAME}.blob.core.windows.net/{settings.AZURE_CONTAINER}/{glossary_file_path}",
                     file_format="CSV",
                 )
             ]
@@ -167,3 +168,5 @@ def translate_file(
             Thread(target=azure_delete, args=(input_file_path,)).start()
         if output_file_path:
             Thread(target=azure_delete, args=(output_file_path,)).start()
+        if glossary_file_path:
+            Thread(target=azure_delete, args=(glossary_file_path,)).start()
