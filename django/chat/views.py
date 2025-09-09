@@ -671,6 +671,7 @@ def chat_options(request, chat_id, action=None, preset_id=None):
 
         # Process translation_glossary file BEFORE form validation
         glossary_error = None
+        glossary_uploaded = False
         glossary_file = request.FILES.get("translation_glossary")
         if glossary_file:
             import csv
@@ -703,6 +704,8 @@ def chat_options(request, chat_id, action=None, preset_id=None):
 
                     # Set the SavedFile reference on the instance BEFORE form validation
                     chat_options.translation_glossary = saved_file
+                    # Mark that we successfully uploaded a glossary
+                    glossary_uploaded = True
                     # Remove the file from request.FILES so form doesn't try to process it
                     del request.FILES["translation_glossary"]
 
@@ -738,7 +741,7 @@ def chat_options(request, chat_id, action=None, preset_id=None):
         chat_options_form.save()
 
         # HTMX: If glossary was uploaded or removed, return only the fragment
-        if "translation_glossary" in request.FILES or glossary_removed:
+        if glossary_uploaded or glossary_removed:
             return render(
                 request,
                 "chat/components/glossary_upload_fragment.html",
