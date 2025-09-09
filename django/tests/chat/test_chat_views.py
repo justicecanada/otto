@@ -10,6 +10,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 import pytest
+import pytest_asyncio
 from asgiref.sync import async_to_sync, sync_to_async
 from docx import Document
 
@@ -251,6 +252,7 @@ def test_cost_warning(mock_estimate_cost, client, all_apps_user):
 
 
 @pytest.mark.asyncio
+@pytest_asyncio.fixture(scope="session")
 @pytest.mark.django_db(transaction=True)
 async def test_htmx_stream_stop(client, all_apps_user):
     llm = OttoLLM()
