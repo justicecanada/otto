@@ -5,7 +5,7 @@ from threading import Thread
 
 from django.conf import settings
 
-from azure.ai.translation.document import DocumentTranslationClient
+from azure.ai.translation.document import DocumentTranslationClient, TranslationGlossary
 from azure.core.credentials import AzureKeyCredential
 from celery import shared_task
 from celery.exceptions import SoftTimeLimitExceeded

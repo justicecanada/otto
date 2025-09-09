@@ -187,10 +187,14 @@ REASONING_EFFORT_CHOICES = [
 ]
 
 TRANSLATE_MODEL_CHOICES = [
-    ("azure_custom", _("Azure Translator (JUS custom)")),
-    ("azure", _("Azure Translator (standard)")),
+    ("azure", _("Azure Translator - standard)")),
     ("gpt", _("GPT-4.1-mini")),
 ]
+
+if settings.CUSTOM_TRANSLATOR_ID:
+    TRANSLATE_MODEL_CHOICES.insert(
+        0, ("azure_custom", _("Azure Translator - JUS custom"))
+    )
 
 
 class ChatOptions(models.Model):

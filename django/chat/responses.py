@@ -10,9 +10,6 @@ from django.template.loader import render_to_string
 from django.utils.translation import gettext as _
 
 from asgiref.sync import sync_to_async
-from azure.ai.translation.text import TextTranslationClient
-from azure.core.credentials import AzureKeyCredential
-from azure.core.exceptions import HttpResponseError
 from data_fetcher.util import get_request
 from llama_index.core.vector_stores.types import MetadataFilter, MetadataFilters
 from rules.contrib.views import objectgetter
@@ -461,56 +458,13 @@ def summarize_response(chat, response_message):
     )
 
 
-def translate_text_with_azure(text, target_language, custom_translator_id=None):
-    """
-    Translate text using Azure Text Translation service.
-    Returns the translated text.
-    """
-    try:
-        # Map language codes to Azure Translator format
-        language_mapping = {"en": "en", "fr": "fr-ca"}  # Use Canadian French
-
-        target_lang = language_mapping.get(target_language, target_language)
-
-        # Create translation client
-        credential = AzureKeyCredential(settings.AZURE_COGNITIVE_SERVICE_KEY)
-        text_translator = TextTranslationClient(
-            credential=credential, region=settings.AZURE_COGNITIVE_SERVICE_REGION
-        )
-
-        # Translate the text
-        response = text_translator.translate(
-            body=[text], to_language=[target_lang], category=custom_translator_id
-        )
-
-        if response and len(response) > 0:
-            translation = response[0]
-            if translation.translations and len(translation.translations) > 0:
-                translated_text = translation.translations[0].text
-
-                # Track usage for cost calculation
-                char_count = len(text)
-                Cost.objects.new(cost_type="translate-text", count=char_count)
-
-                return translated_text
-
-        raise Exception("No translation received from Azure Translator")
-
-    except HttpResponseError as exception:
-        logger.exception(f"Azure Translator API error: {exception}")
-        if exception.error is not None:
-            raise Exception(f"Azure Translator Error: {exception.error.message}")
-        raise Exception("Azure Translator API error")
-    except Exception as e:
-        logger.exception(f"Error translating text with Azure: {e}")
-        raise Exception(f"Translation failed: {str(e)}")
-
-
 def translate_response(chat, response_message):
     """
     Translate the user's input text and stream the response.
     If the translation technique does not support streaming, send final response only.
     """
+    from chat.utils import translate_text_with_azure
+
     llm = OttoLLM()
     user_message = response_message.parent
     files = user_message.sorted_files if user_message is not None else []

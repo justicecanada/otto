@@ -33,7 +33,7 @@ from chat.forms import ChatOptionsForm
 from chat.llm import OttoLLM
 from chat.models import AnswerSource, Chat, ChatOptions, Message
 from chat.prompts import QA_PRUNING_INSTRUCTIONS, current_time_prompt
-from otto.models import CostType
+from otto.models import Cost, CostType
 from otto.utils.common import cad_cost, display_cad_cost
 
 logger = get_logger(__name__)
@@ -1123,3 +1123,52 @@ def chat_to_history(chat):
         history.pop()
 
     return history
+
+
+def translate_text_with_azure(text, target_language, custom_translator_id=None):
+    """
+    Translate text using Azure Text Translation service.
+    Returns the translated text.
+    """
+    from azure.ai.translation.text import TextTranslationClient
+    from azure.core.credentials import AzureKeyCredential
+    from azure.core.exceptions import HttpResponseError
+
+    try:
+        # Map language codes to Azure Translator format
+        language_mapping = {"en": "en", "fr": "fr-ca"}  # Use Canadian French
+
+        target_lang = language_mapping.get(target_language, target_language)
+
+        # Create translation client
+        credential = AzureKeyCredential(settings.AZURE_COGNITIVE_SERVICE_KEY)
+        text_translator = TextTranslationClient(
+            credential=credential, region=settings.AZURE_COGNITIVE_SERVICE_REGION
+        )
+
+        # Translate the text
+        response = text_translator.translate(
+            body=[text], to_language=[target_lang], category=custom_translator_id
+        )
+
+        if response and len(response) > 0:
+            translation = response[0]
+            if translation.translations and len(translation.translations) > 0:
+                translated_text = translation.translations[0].text
+
+                # Track usage for cost calculation
+                char_count = len(text)
+                Cost.objects.new(cost_type="translate-text", count=char_count)
+
+                return translated_text
+
+        raise Exception("No translation received from Azure Translator")
+
+    except HttpResponseError as exception:
+        logger.exception(f"Azure Translator API error: {exception}")
+        if exception.error is not None:
+            raise Exception(f"Azure Translator Error: {exception.error.message}")
+        raise Exception("Azure Translator API error")
+    except Exception as e:
+        logger.exception(f"Error translating text with Azure: {e}")
+        raise Exception(f"Translation failed: {str(e)}")
