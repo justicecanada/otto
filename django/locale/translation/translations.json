@@ -4998,5 +4998,17 @@
     "Glossary file is invalid:\nEach row must consist of 'source term, target term' and no cell can be empty.\nError on line: ": {
         "fr": "",
         "fr_auto": "Le fichier du glossaire est invalide :\nChaque ligne doit contenir « terme source, terme cible » et aucune cellule ne peut être vide.\nErreur en ligne : "
+    },
+    "Text extraction complete. Starting processing...": {
+        "fr": "",
+        "fr_auto": "Extraction de texte terminée. Début du traitement..."
+    },
+    "Error processing translation tasks.": {
+        "fr": "",
+        "fr_auto": "Tâches de traduction en traitement des erreurs."
+    },
+    "(Azure file translation only) CSV file with 2 columns and no header row. Each row must consist of <em>source term</em>, <em>target term</em>. Terms are case-sensitive.": {
+        "fr": "",
+        "fr_auto": "(Traduction de fichiers Azure seulement) Fichier CSV avec 2 colonnes et sans ligne d’en-tête. Chaque ligne doit contenir le <em>terme source</em>, <em>le terme cible</em>. Les termes sont sensibles à la casse."
     }
 }
