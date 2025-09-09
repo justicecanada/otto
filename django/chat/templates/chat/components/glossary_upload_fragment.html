@@ -1,0 +1,24 @@
+{% load i18n %}
+<div class="px-3 mt-3"
+     id="glossary-upload-fragment"
+     {% if swap %}hx-swap-oob="true"{% endif %}>
+  <label class="col-form-label col-form-label-sm"
+         for="id_translation_glossary">{% trans "Glossary CSV (optional)" %}</label>
+  {% if options_form.instance.translation_glossary %}
+    <div class="mt-2 d-flex align-items-center gap-2">
+      {{ options_form.instance.translation_glossary.name }}
+      <button type="button"
+              class="btn btn-link btn-sm text-danger"
+              hx-post="{% url 'chat:chat_options' chat_id=chat.id %}?remove_glossary=1"
+              hx-target="#glossary-upload-fragment"
+              hx-swap="outerHTML oob">{% trans "Remove" %}</button>
+    </div>
+  {% else %}
+    <input type="file"
+           name="translation_glossary"
+           id="id_translation_glossary"
+           accept=".csv"
+           class="form-control form-control-sm"
+           onchange="triggerOptionSave();">
+  {% endif %}
+</div>

@@ -648,13 +648,30 @@ def chat_options(request, chat_id, action=None, preset_id=None):
         post_data = request.POST.copy()
 
         chat_options_form = ChatOptionsForm(
-            post_data, instance=chat_options, user=request.user
+            post_data, request.FILES, instance=chat_options, user=request.user
         )
         # Check for errors and print them to console
         if not chat_options_form.is_valid():
             logger.error(chat_options_form.errors)
             return HttpResponse(status=500)
+
+        # Handle file removal for translation_glossary
+        glossary_removed = False
+        if request.GET.get("remove_glossary") == "1":
+            chat_options.translation_glossary = None
+            chat_options.save(update_fields=["translation_glossary"])
+            glossary_removed = True
+
         chat_options_form.save()
+
+        # HTMX: If glossary was uploaded or removed, return only the fragment
+        if glossary_removed or "translation_glossary" in request.FILES:
+            return render(
+                request,
+                "chat/components/glossary_upload_fragment.html",
+                {"options_form": chat_options_form, "chat": chat, "swap": True},
+            )
+
         # Return a simple success response
         return HttpResponse(status=200)
 

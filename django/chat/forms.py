@@ -365,6 +365,9 @@ class ChatOptionsForm(ModelForm):
                 attrs={"onchange": "triggerOptionSave();"}
             ),
             "qa_rewrite": forms.HiddenInput(attrs={"onchange": "triggerOptionSave();"}),
+            "translation_glossary": forms.FileInput(
+                attrs={"accept": ".csv", "onchange": "triggerOptionSave();"}
+            ),
         }
 
     def __init__(self, *args, **kwargs):

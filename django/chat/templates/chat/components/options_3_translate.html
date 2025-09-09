@@ -18,4 +18,6 @@
            for="{{ options_form.translate_model.auto_id }}">{% trans "Model" %}</label>
   </div>
   <div class="px-3">{{ options_form.translate_model }}</div>
+
+  {% include 'chat/components/glossary_upload_fragment.html' with swap=swap %}
 {% endblock %}
