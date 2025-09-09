@@ -693,6 +693,7 @@ def chat_options(request, chat_id, action=None, preset_id=None):
                 wrapper.detach()
             except Exception as e:
                 glossary_error = _(f"Glossary file could not be read: {str(e)}")
+                print(e)
 
         if glossary_error:
             messages.error(request, glossary_error)

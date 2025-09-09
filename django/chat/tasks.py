@@ -73,7 +73,9 @@ def azure_delete(path):
 
 
 @shared_task(soft_time_limit=ten_minutes)
-def translate_file(file_path, target_language, custom_translator_id=None):
+def translate_file(
+    file_path, target_language, custom_translator_id=None, glossary_path=None
+):
     if target_language == "fr":
         target_language = "fr-ca"
     input_file_path = None
@@ -98,10 +100,25 @@ def translate_file(file_path, target_language, custom_translator_id=None):
         input_file_path = f"{settings.AZURE_STORAGE_TRANSLATION_INPUT_URL_SEGMENT}/{file_uuid}/{input_file_name}"
         output_file_path = f"{settings.AZURE_STORAGE_TRANSLATION_OUTPUT_URL_SEGMENT}/{file_uuid}/{output_file_name}"
 
-        # Upload to Azure Blob Storage
+        # Upload input file to Azure Blob Storage
         azure_storage = settings.AZURE_STORAGE
         with open(file_path, "rb") as f:
             azure_storage.save(input_file_path, f)
+
+        # Upload glossary to Azure Blob Storage
+        if glossary_path:
+            glossary_file_path = f"{settings.AZURE_STORAGE_TRANSLATION_INPUT_URL_SEGMENT}/{file_uuid}/glossary/glossary.csv"
+            with open(glossary_path, "rb") as f:
+                azure_storage.save(glossary_file_path, f)
+
+            glossaries = [
+                TranslationGlossary(
+                    glossary_url=f"https://{settings.AZURE_ACCOUNT_NAME}.blob.core.windows.net/{settings.AZURE_CONTAINER}/{glossary_path}",
+                    file_format="CSV",
+                )
+            ]
+        else:
+            glossaries = None
 
         # Set up translation parameters
         source_url = f"https://{settings.AZURE_ACCOUNT_NAME}.blob.core.windows.net/{settings.AZURE_CONTAINER}/{input_file_path}"
@@ -114,6 +131,7 @@ def translate_file(file_path, target_language, custom_translator_id=None):
             target_language,
             storage_type="File",
             category_id=custom_translator_id,
+            glossaries=glossaries,
         )
         result = poller.result()
 
