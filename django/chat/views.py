@@ -201,11 +201,19 @@ def chat(request, chat_id):
     for user_chat in user_chats:
         user_chat.current_chat = user_chat.id == chat.id
         if user_chat.title.strip() == "":
+            # Lazily generate a title without forcing; avoid mass-renaming to a
+            # default like "Untitled chat". Only persist if we get a meaningful title.
             if not llm:
                 llm = OttoLLM()
-            user_chat.title = title_chat(user_chat.id, llm=llm)
-            if not user_chat.current_chat:
-                user_chat.save()
+            generated_title = title_chat(user_chat.id, llm=llm, force_title=False)
+            if (
+                generated_title
+                and generated_title.strip()
+                and generated_title != _("Untitled chat")
+            ):
+                user_chat.title = generated_title
+                if not user_chat.current_chat:
+                    user_chat.save()
     if llm:
         llm.create_costs()
 
@@ -255,6 +263,35 @@ def chat(request, chat_id):
         "upload_form": UploadForm(prefix="chat"),
     }
     return render(request, "chat/chat.html", context=context)
+
+
+@app_access_required("chat")
+def search_chats(request):
+    """Simple HTMX endpoint returning chat history sections filtered by title only.
+
+    Does not trigger rename, pin/unpin or any write actions. Returns a partial
+    rendering of the chat history list grouped into sections.
+    """
+    query = (request.GET.get("search", "") or "").strip()
+    active_chat_id = request.GET.get("current_chat_id") or None
+
+    qs = Chat.objects.filter(user=request.user, messages__isnull=False).distinct()
+    if query:
+        qs = qs.filter(title__icontains=query)
+    qs = qs.order_by("-last_modification_date")
+
+    sections = get_chat_history_sections(qs)
+    # Return a simplified, non-interactive partial to avoid including
+    # rename forms or other interactive write controls during search.
+    return render(
+        request,
+        "chat/components/chat_history_list_inner_search.html",
+        {
+            "chat_history_sections": sections,
+            "search": query,
+            "current_chat_id": active_chat_id,
+        },
+    )
 
 
 @require_POST
@@ -776,6 +813,17 @@ def rename_chat(request, chat_id, current_chat_id):
     chat.current_chat = chat_id == current_chat_id
 
     if request.method == "POST":
+        # Only proceed if this POST originated from the inline rename form.
+        if request.POST.get("rename_intent") != "1":
+            return render(
+                request,
+                "chat/components/chat_list_item.html",
+                {
+                    "chat": chat,
+                    "current_chat_id": current_chat_id,
+                    "section_index": label_section_index(chat.last_modification_date),
+                },
+            )
         chat_rename_form = ChatRenameForm(request.POST)
         if chat_rename_form.is_valid():
             chat.title = chat_rename_form.cleaned_data["title"]

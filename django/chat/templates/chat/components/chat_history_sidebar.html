@@ -28,6 +28,10 @@
       </div>
       <div id="chat-search-container" class="px-3 pb-2 " style="display:none;">
         <div class="input-group input-group-sm">
+          <input type="hidden"
+                 name="current_chat_id"
+                 id="current-chat-hidden-field"
+                 value="{{ chat.id }}">
           <input type="text"
                  class="form-control border-none"
                  placeholder="{% trans 'Search...' %}"
@@ -35,12 +39,18 @@
                  id="chat-history-search-input"
                  name="search"
                  autocomplete="off"
-                 value="{{ search|default:'' }}">
+                 value="{{ search|default:'' }}"
+                 hx-get="{% url 'chat:search_chats' %}"
+                 hx-include="#current-chat-hidden-field"
+                 hx-trigger="keyup changed delay:400ms"
+                 hx-target="#chat-history-list"
+                 hx-swap="outerHTML">
           <button type="button"
                   class="btn btn-outline-secondary"
                   id="chat-search-clear"
                   aria-label="{% trans 'Clear search' %}"
-                  style="display:none">
+                  style="display:none"
+                  onclick="document.getElementById('chat-history-search-input').value=''; document.getElementById('chat-history-search-input').dispatchEvent(new Event('input'))">
             <i class="bi bi-x" aria-hidden="true"></i>
           </button>
         </div>
