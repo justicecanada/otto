@@ -21,7 +21,6 @@ from rules.contrib.views import objectgetter
 from structlog import get_logger
 from structlog.contextvars import bind_contextvars
 
-from chat._views.download_chat import download_chat  # Do not remove - used in urls.py
 from chat._views.pin_chat import pin_chat, unpin_chat  # Do not remove - used in urls.py
 from chat.forms import ChatOptionsForm, ChatRenameForm, PresetForm, UploadForm
 from chat.llm import OttoLLM
@@ -1066,6 +1065,9 @@ def update_qa_options_from_librarian(request, chat_id, library_id):
     if library != original_library:
         chat.options.qa_data_sources.clear()
         chat.options.qa_documents.clear()
+        chat.options.qa_mode = "rag"
+        chat.options.qa_scope = "all"
+        chat.options.qa_process_mode = "combined_docs"
     chat.options.save()
     # Now return the updated chat options form for swapping
     return render(
@@ -1073,7 +1075,7 @@ def update_qa_options_from_librarian(request, chat_id, library_id):
         "chat/components/chat_options_accordion.html",
         {
             "options_form": ChatOptionsForm(instance=chat.options, user=request.user),
-            "preset_loaded": "true",
+            "preset_loaded": "false",
             "trigger_library_change": "true" if library != original_library else None,
         },
     )

@@ -353,6 +353,8 @@ LOCALE_PATHS = [
     os.path.join(BASE_DIR, "locale"),
 ]
 
+MODELTRANSLATION_FALLBACK_LANGUAGES = ("en", "fr")
+
 USE_TZ = True
 
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
@@ -538,7 +540,7 @@ ALLOWED_FETCH_URLS = [
     "wikipedia.org",
 ]
 
-WARN_COST = 1.0
+WARN_COST = 0.5
 
 FILE_FORM_UPLOAD_DIR = "tmp_uploads_dir"
 FILE_FORM_MUST_LOGIN = True

@@ -102,7 +102,9 @@ def laws_loading_status(request):
                     {
                         "eng_law_id": ls.eng_law_id or "-",
                         "status": ls.status,
+                        "status_label": ls.status_label,
                         "details": ls.details or "",
+                        "details_label": ls.details_label or "",
                         "error_message": ls.error_message or "",
                         "is_current": ls == current_law,
                         "cost": display_cad_cost(cad_cost(ls.cost) if ls.cost else 0),
@@ -278,23 +280,12 @@ def laws_list(request):
 
     # Calculate some basic statistics for the page header
     total_statuses = all_statuses.count()
-    if job_status.status == "finished":
-        job_status_translated = _("finished")
-    elif job_status.status == "error":
-        job_status_translated = _("error")
-    elif job_status.status == "cancelled":
-        job_status_translated = _("cancelled")
-    elif job_status.status == "not_started":
-        job_status_translated = _("not started")
-    else:
-        job_status_translated = job_status.status
 
     context = {
         "loaded_statuses": loaded_statuses,
         "exception_statuses": exception_statuses,
         "pending_statuses": pending_statuses,
         "job_status": job_status,
-        "job_status_translated": job_status_translated,
         "total_laws": total_statuses,
     }
     return render(request, "laws/laws_list.html", context)

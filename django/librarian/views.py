@@ -1,7 +1,9 @@
 import os
 from dataclasses import dataclass
+from urllib.parse import urlencode
 
 from django.contrib import messages
+from django.db.models import Q, Sum
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
@@ -14,7 +16,7 @@ from structlog.contextvars import bind_contextvars
 
 from chat.forms import UploadForm
 from librarian.utils.process_engine import generate_hash
-from otto.utils.common import generate_mailto
+from otto.utils.common import display_cad_cost, generate_mailto
 from otto.utils.decorators import budget_required, permission_required
 
 from .forms import (
@@ -28,6 +30,41 @@ from .models import DataSource, Document, Library, LibraryUserRole, SavedFile
 logger = get_logger(__name__)
 IN_PROGRESS_STATUSES = ["PENDING", "INIT", "PROCESSING"]
 END_STATUSES = ["SUCCESS", "ERROR", "BLOCKED"]
+
+
+# ---- Sorting helpers (persist per data source in session) ----
+def _set_sort_pref(request, data_source_id: int, key: str):
+    prefs = request.session.get("librarian_sort", {})
+    prefs[str(data_source_id)] = key
+    request.session["librarian_sort"] = prefs
+    # Mark the session as modified so Django saves it
+    request.session.modified = True
+
+
+def _get_sort_pref(request, data_source_id: int) -> str:
+    prefs = request.session.get("librarian_sort", {})
+    # default newest first
+    return prefs.get(str(data_source_id), "date_desc")
+
+
+def _sort_documents(documents, key: str):
+    # documents: list[Document]
+    if not documents:
+        return documents
+    if key == "date_desc":
+        return sorted(
+            documents,
+            key=lambda doc: (doc.extracted_modified_at or doc.created_at or doc.id),
+            reverse=True,
+        )
+    if key == "filename_asc":
+        return sorted(documents, key=lambda doc: (doc.filename or "").lower())
+    if key == "filetype_asc":
+        return sorted(documents, key=lambda doc: (doc.content_type or "").lower())
+    if key == "chunks_desc":
+        return sorted(documents, key=lambda doc: (doc.num_chunks or 0), reverse=True)
+    # fallback
+    return documents
 
 
 def get_editable_libraries(user):
@@ -47,7 +84,7 @@ def get_viewable_libraries(user):
 
 
 # AC-20: Implements role-based access control for interacting with data sources
-def modal_view(request, item_type=None, item_id=None, parent_id=None):
+def modal_view(request, item_type=None, item_id=None, parent_id=None, documents=None):
     """
     !!! This is not to be called directly, but rather through the wrapper functions
         which implement permission checking (see below) !!!
@@ -76,6 +113,10 @@ def modal_view(request, item_type=None, item_id=None, parent_id=None):
     show_document_status = False
     focus_el = None
     has_error = False
+    total_cost = None
+    total_chunks = None
+    failed_count = None
+    blocked_count = None
 
     if item_type == "document":
         if request.method == "POST":
@@ -118,7 +159,22 @@ def modal_view(request, item_type=None, item_id=None, parent_id=None):
                 show_document_status = True
             else:
                 selected_data_source = get_object_or_404(DataSource, id=parent_id)
-        documents = list(selected_data_source.documents.defer("extracted_text").all())
+        # Always fetch, filter by active search (if any), and then apply persisted sort
+        active_search = (request.GET.get("search", "") or "").strip()
+        qs = selected_data_source.documents.defer("extracted_text").all()
+        if active_search:
+            qs = qs.filter(
+                Q(filename__icontains=active_search)
+                | Q(manual_title__icontains=active_search)
+                | (
+                    Q(extracted_title__icontains=active_search)
+                    & (Q(manual_title__isnull=True) | Q(manual_title=""))
+                )
+            )
+        documents = list(qs)
+        documents = _sort_documents(
+            documents, _get_sort_pref(request, selected_data_source.id)
+        )
         selected_library = selected_data_source.library
         data_sources = selected_library.folders
         if not item_id and not request.method == "DELETE":
@@ -164,7 +220,22 @@ def modal_view(request, item_type=None, item_id=None, parent_id=None):
             if item_id:
                 selected_data_source = get_object_or_404(DataSource, id=item_id)
                 selected_library = selected_data_source.library
-                documents = selected_data_source.documents.defer("extracted_text").all()
+                # fetch, optionally filter by search, and sort per preference
+                active_search = (request.GET.get("search", "") or "").strip()
+                qs = selected_data_source.documents.defer("extracted_text").all()
+                if active_search:
+                    qs = qs.filter(
+                        Q(filename__icontains=active_search)
+                        | Q(manual_title__icontains=active_search)
+                        | (
+                            Q(extracted_title__icontains=active_search)
+                            & (Q(manual_title__isnull=True) | Q(manual_title=""))
+                        )
+                    )
+                documents = list(qs)
+                documents = _sort_documents(
+                    documents, _get_sort_pref(request, selected_data_source.id)
+                )
             else:
                 selected_library = get_object_or_404(Library, id=parent_id)
         data_sources = list(selected_library.folders)
@@ -285,6 +356,10 @@ def modal_view(request, item_type=None, item_id=None, parent_id=None):
                 "librarian:data_source_status",
                 kwargs={"data_source_id": selected_data_source.id},
             )
+        # Preserve active search during polling so list doesn't reset
+        active_search = (request.GET.get("search", "") or "").strip()
+        if active_search:
+            poll_url = f"{poll_url}?{urlencode({'search': active_search})}"
     else:
         poll_url = None
 
@@ -294,6 +369,40 @@ def modal_view(request, item_type=None, item_id=None, parent_id=None):
 
     # Create view-only libraries list (viewable but not editable)
     view_only_libraries = [lib for lib in libraries if lib not in editable_libraries]
+
+    # Compute totals for the selected data source
+    try:
+        if selected_data_source and getattr(selected_data_source, "id", None):
+            total_usd = (
+                Document.objects.filter(data_source_id=selected_data_source.id)
+                .aggregate(total=Sum("usd_cost"))
+                .get("total")
+                or 0
+            )
+            # Show $0.00 when there is no cost yet; otherwise format normally
+            if not total_usd or float(total_usd) == 0.0:
+                total_cost = "$0.00"
+            else:
+                total_cost = display_cad_cost(total_usd)
+            # Sum total chunks (ignore nulls); default to 0
+            total_chunks = (
+                Document.objects.filter(data_source_id=selected_data_source.id)
+                .aggregate(total=Sum("num_chunks"))
+                .get("total")
+                or 0
+            )
+            # Failed and blocked counts
+            failed_count = Document.objects.filter(
+                data_source_id=selected_data_source.id, status="ERROR"
+            ).count()
+            blocked_count = Document.objects.filter(
+                data_source_id=selected_data_source.id, status="BLOCKED"
+            ).count()
+    except Exception:
+        total_cost = None
+        total_chunks = None
+        failed_count = None
+        blocked_count = None
 
     context = {
         "editable_libraries": editable_libraries,
@@ -311,7 +420,27 @@ def modal_view(request, item_type=None, item_id=None, parent_id=None):
         "poll_response": "poll" in request.GET,
         "has_error": has_error,
         "upload_form": UploadForm(prefix="librarian"),
+        "total_cost": total_cost,
+        "total_chunks": total_chunks,
+        "failed_count": failed_count or 0,
+        "blocked_count": blocked_count or 0,
     }
+
+    if documents is not None:
+        context["documents"] = documents
+        # Keep current search in the input if present
+        try:
+            context["search"] = (request.GET.get("search", "") or "").strip()
+        except Exception:
+            pass
+
+    # Expose current sort key for template radios when a data source is selected
+    try:
+        if selected_data_source:
+            context["current_sort"] = _get_sort_pref(request, selected_data_source.id)
+    except Exception:
+        pass
+
     return render(request, "librarian/modal_inner.html", context)
 
 
@@ -323,15 +452,48 @@ def poll_status(request, data_source_id, document_id=None):
     Polling view for data source status updates
     Updates the document list in the modal with updated titles / status icons
     """
-    documents = Document.objects.filter(data_source_id=data_source_id)
+    # Preserve current search from query string so the list doesn't reset on poll
+    search = (request.GET.get("search", "") or "").strip()
+    base_qs = Document.objects.filter(data_source_id=data_source_id)
+    documents = base_qs
+    if search:
+        documents = documents.filter(
+            Q(filename__icontains=search)
+            | Q(manual_title__icontains=search)
+            | (
+                Q(extracted_title__icontains=search)
+                & (Q(manual_title__isnull=True) | Q(manual_title=""))
+            )
+        )
     poll = False
     try:
         poll = documents.filter(status__in=IN_PROGRESS_STATUSES).exists()
     except:
         poll = False
     poll_url = request.path if poll else None
+    if poll and search:
+        poll_url = f"{poll_url}?{urlencode({'search': search})}"
 
+    # Apply persisted sort to poll results
+    documents = list(documents)
+    documents = _sort_documents(documents, _get_sort_pref(request, data_source_id))
     document = Document.objects.get(id=document_id) if document_id else None
+
+    # Compute totals during polling so header can update live (unfiltered)
+    try:
+        total_usd = base_qs.aggregate(total=Sum("usd_cost")).get("total") or 0
+        if not total_usd or float(total_usd) == 0.0:
+            total_cost = "$0.00"
+        else:
+            total_cost = display_cad_cost(total_usd)
+        total_chunks = base_qs.aggregate(total=Sum("num_chunks")).get("total") or 0
+        failed_count = base_qs.filter(status="ERROR").count()
+        blocked_count = base_qs.filter(status="BLOCKED").count()
+    except Exception:
+        total_cost = None
+        total_chunks = None
+        failed_count = None
+        blocked_count = None
     return render(
         request,
         "librarian/components/poll_update.html",
@@ -343,6 +505,12 @@ def poll_status(request, data_source_id, document_id=None):
             "selected_library": Library.objects.get(
                 id=DataSource.objects.get(id=data_source_id).library_id
             ),
+            "total_cost": total_cost,
+            "total_chunks": total_chunks,
+            "failed_count": failed_count or 0,
+            "blocked_count": blocked_count or 0,
+            "current_sort": _get_sort_pref(request, data_source_id),
+            "search": search,
         },
     )
 
@@ -653,4 +821,88 @@ def email_library_admins(request, library_id):
 
     return HttpResponse(
         f"<a href='{generate_mailto(to,cc,subject,body)}'>mailto link</a>"
+    )
+
+
+def sort_docs(request, data_source_id, sort_by):
+    mapping = {
+        "date": "date_desc",
+        "filename": "filename_asc",
+        "filetype": "filetype_asc",
+        "chunks": "chunks_desc",
+    }
+    key = mapping.get(sort_by)
+    if key:
+        _set_sort_pref(request, data_source_id, key)
+
+    # If there's an active search term, reuse search_docs so sort+search work together
+    query = (request.GET.get("search", "") or "").strip()
+    if query:
+        return search_docs(request, data_source_id)
+
+    return modal_view(request, item_type="data_source", item_id=data_source_id)
+
+
+def search_docs(request, data_source_id):
+    selected_data_source = get_object_or_404(DataSource, id=data_source_id)
+
+    # basic query
+    query = (request.GET.get("search", "") or "").strip()
+
+    # base queryset from the selected data source (avoid loading extracted_text)
+    documents_qs = selected_data_source.documents.defer("extracted_text").all()
+    base_qs = documents_qs  # keep an unfiltered reference for totals
+    if query:
+        # filename or manual_title always match; extracted_title only if manual_title is empty
+        documents_qs = documents_qs.filter(
+            Q(filename__icontains=query)
+            | Q(manual_title__icontains=query)
+            | (
+                Q(extracted_title__icontains=query)
+                & (Q(manual_title__isnull=True) | Q(manual_title=""))
+            )
+        )
+
+    documents = list(documents_qs)
+    # Apply persisted sort to search results
+    documents = _sort_documents(documents, _get_sort_pref(request, data_source_id))
+
+    selected_library = selected_data_source.library
+    data_sources = selected_library.folders
+    can_edit_data_source = request.user.has_perm(
+        "librarian.edit_data_source", selected_data_source
+    )
+
+    # Compute totals from all documents in the data source (not filtered by search)
+    try:
+        total_usd = base_qs.aggregate(total=Sum("usd_cost")).get("total") or 0
+        if not total_usd or float(total_usd) == 0.0:
+            total_cost = "$0.00"
+        else:
+            total_cost = display_cad_cost(total_usd)
+        total_chunks = base_qs.aggregate(total=Sum("num_chunks")).get("total") or 0
+        failed_count = base_qs.filter(status="ERROR").count()
+        blocked_count = base_qs.filter(status="BLOCKED").count()
+    except Exception:
+        total_cost = None
+        total_chunks = None
+        failed_count = 0
+        blocked_count = 0
+
+    return render(
+        request,
+        "librarian/components/document_list.html",
+        {
+            "selected_data_source": selected_data_source,
+            "selected_library": selected_library,
+            "data_sources": data_sources,
+            "documents": documents,
+            "can_edit_data_source": can_edit_data_source,
+            "search": query,
+            "current_sort": _get_sort_pref(request, data_source_id),
+            "total_cost": total_cost,
+            "total_chunks": total_chunks,
+            "failed_count": failed_count,
+            "blocked_count": blocked_count,
+        },
     )
