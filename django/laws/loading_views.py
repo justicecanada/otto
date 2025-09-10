@@ -3,6 +3,7 @@ from datetime import timedelta
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.utils.timezone import localtime, now
+from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
 from structlog import get_logger
@@ -246,7 +247,6 @@ def laws_recreate_indexes(request):
     Recreate database indexes for laws.
     """
     from django.contrib import messages
-    from django.utils.translation import gettext as _
 
     try:
         recreate_indexes()
@@ -278,12 +278,23 @@ def laws_list(request):
 
     # Calculate some basic statistics for the page header
     total_statuses = all_statuses.count()
+    if job_status.status == "finished":
+        job_status_translated = _("finished")
+    elif job_status.status == "error":
+        job_status_translated = _("error")
+    elif job_status.status == "cancelled":
+        job_status_translated = _("cancelled")
+    elif job_status.status == "not_started":
+        job_status_translated = _("not started")
+    else:
+        job_status_translated = job_status.status
 
     context = {
         "loaded_statuses": loaded_statuses,
         "exception_statuses": exception_statuses,
         "pending_statuses": pending_statuses,
         "job_status": job_status,
+        "job_status_translated": job_status_translated,
         "total_laws": total_statuses,
     }
     return render(request, "laws/laws_list.html", context)
