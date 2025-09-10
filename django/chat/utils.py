@@ -1,12 +1,10 @@
 import asyncio
 import html
-import io
 import json
 import re
 import sys
 import uuid
 from collections.abc import Iterable
-from decimal import Decimal
 from itertools import groupby
 from typing import AsyncGenerator, Generator
 
@@ -29,12 +27,13 @@ from newspaper import Article
 from structlog import get_logger
 from structlog.contextvars import bind_contextvars
 
+from chat._utils.estimate_cost import estimate_cost_of_request  # Do not remove!
 from chat.forms import ChatOptionsForm
 from chat.llm import OttoLLM
 from chat.models import AnswerSource, Chat, ChatOptions, Message
 from chat.prompts import QA_PRUNING_INSTRUCTIONS, current_time_prompt
-from otto.models import Cost, CostType
-from otto.utils.common import cad_cost, display_cad_cost
+from otto.models import Cost
+from otto.utils.common import display_cad_cost
 
 logger = get_logger(__name__)
 # Markdown instance
@@ -942,148 +941,6 @@ def get_chat_history_sections(user_chats):
 
 def is_text_to_summarize(message):
     return message.mode == "summarize" and not message.is_bot
-
-
-def estimate_cost_of_string(text, cost_type):
-    if cost_type.startswith("translate-"):
-        count = len(text)
-    else:
-        # we estimate every 4 characters as 1 token
-        count = len(text) // 4
-
-    cost_type = CostType.objects.get(short_name=cost_type)
-    usd_cost = (count * cost_type.unit_cost) / cost_type.unit_quantity
-
-    return usd_cost
-
-
-def estimate_cost_of_request(chat, response_message, response_estimation_count=512):
-    user_message_text = response_message.parent.text
-    model = chat.options.chat_model
-    mode = chat.options.mode
-    cost_type = model + "-in"
-
-    # estimate the cost of the user message
-    cost = estimate_cost_of_string(
-        user_message_text,
-        "translate-text" if mode == "translate" else model + "-in",
-    )
-
-    # estimate the cost of the documents
-    if mode == "qa":
-        model = chat.options.qa_model
-
-        # gather the documents
-        if chat.options.qa_scope == "documents":
-            docs = chat.options.qa_documents.all()
-        else:
-            if chat.options.qa_scope == "all":
-                data_sources = chat.options.qa_library.sorted_data_sources
-            else:
-                data_sources = chat.options.qa_data_sources
-            docs = [
-                doc
-                for data_source in data_sources.all()
-                for doc in data_source.documents.all()
-            ]
-
-        # estimate number of chunks if in rag mode, else estimate the cost of the texts
-        if chat.options.qa_mode == "rag":
-            total_chunks_of_library = 0
-            for doc in docs:
-                if doc.num_chunks is not None:
-                    total_chunks_of_library += doc.num_chunks
-                else:
-                    continue
-            chunk_count = min(total_chunks_of_library, chat.options.qa_topk)
-            count = 768 * chunk_count
-            cost_type = CostType.objects.get(short_name=model + "-in")
-            cost += (count * cost_type.unit_cost) / cost_type.unit_quantity
-        else:
-            for doc in docs:
-                if doc.extracted_text is not None:
-                    cost += estimate_cost_of_string(doc.extracted_text, model + "-in")
-
-    elif mode == "summarize" or mode == "translate":
-        model = chat.options.summarize_model
-        for file in response_message.parent.sorted_files.all():
-            if file.text:
-                # If file already has extracted text, use it for cost estimation
-                cost += estimate_cost_of_string(
-                    file.text,
-                    "translate-file" if mode == "translate" else model + "-in",
-                )
-            else:
-                # If file doesn't have text yet, estimate based on page count for PDFs
-                # or file size for other file types
-                try:
-                    # First try to get page count for PDFs
-                    if (
-                        file.saved_file.content_type == "application/pdf"
-                        or file.filename.lower().endswith(".pdf")
-                    ):
-                        try:
-                            import pymupdf
-
-                            with file.saved_file.file.open("rb") as pdf_file:
-                                doc = pymupdf.open(stream=pdf_file.read())
-                                page_count = doc.page_count
-                                doc.close()
-                                # Estimate ~300 tokens per page (conservative estimate)
-                                estimated_tokens = page_count * 300
-                        except Exception as pdf_error:
-                            # Fall back to file size estimation if PyMuPDF fails
-                            logger.warning(
-                                f"Failed to get page count for PDF {file.filename}: {pdf_error}"
-                            )
-                            file_size = file.saved_file.file.size
-                            estimated_tokens = file_size // 5  # Very rough estimate
-                    else:
-                        # For non-PDF files, use file size estimation
-                        file_size = file.saved_file.file.size
-                        estimated_tokens = file_size // 5  # Very rough estimate
-
-                    cost_type = CostType.objects.get(
-                        short_name=(
-                            "translate-file" if mode == "translate" else model + "-in"
-                        )
-                    )
-                    cost += (
-                        estimated_tokens * cost_type.unit_cost
-                    ) / cost_type.unit_quantity
-                except:
-                    # If we can't estimate, use a conservative high estimate
-                    cost_type = CostType.objects.get(
-                        short_name=(
-                            "translate-file" if mode == "translate" else model + "-in"
-                        )
-                    )
-                    cost += (
-                        5000 * cost_type.unit_cost
-                    ) / cost_type.unit_quantity  # Conservative default: 5000 tokens
-
-    elif mode == "chat":
-
-        system_prompt = current_time_prompt() + chat.options.chat_system_prompt
-        history_text = system_prompt
-        for message in chat.messages.all():
-            if not is_text_to_summarize(message):
-                history_text += message.text
-            else:
-                history_text += "<text to summarize...>"
-
-        cost += estimate_cost_of_string(history_text, model + "-in")
-
-    # estimate the cost of the response message
-    if mode != "translate":
-        cost_type = CostType.objects.get(short_name=model + "-out")
-        cost += (
-            response_estimation_count * cost_type.unit_cost
-        ) / cost_type.unit_quantity
-
-        # testing has shown that for modes that are not translations, the estimation is 20% below
-        cost = cost + (cost * Decimal("0.2"))
-    return cad_cost(cost)
 
 
 def chat_to_history(chat):
