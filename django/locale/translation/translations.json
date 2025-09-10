@@ -1384,7 +1384,7 @@
         "fr_auto": "Toutes les lois et tous les règlements"
     },
     "All acts": {
-        "fr": "",
+        "fr": "Toutes les lois",
         "fr_auto": "Tous les actes"
     },
     "All regulations": {
@@ -1396,7 +1396,7 @@
         "fr_auto": "Loi(s)/règlement(s) spécifique(s)..."
     },
     "Enabled by specific act(s)...": {
-        "fr": "",
+        "fr": "Loi(s) habilitante(s)",
         "fr_auto": "Activé par des actes spécifiques..."
     },
     "Select laws to search": {
@@ -3952,7 +3952,7 @@
         "fr_auto": "Mode de débogage"
     },
     "Start Job": {
-        "fr": "",
+        "fr": "Démarrer la tâcher",
         "fr_auto": "Commencer l’emploi"
     },
     "Are you sure you want to cancel the running job?": {
@@ -3960,7 +3960,7 @@
         "fr_auto": "Êtes-vous sûr de vouloir annuler la tâche en cours d’exécution?"
     },
     "Cancel Job": {
-        "fr": "",
+        "fr": "Annuler la tâche",
         "fr_auto": "Annuler l’emploi"
     },
     "All Laws (Detailed View)": {
@@ -4048,7 +4048,7 @@
         "fr_auto": "Liste des lois chargées - Otto"
     },
     "See when each act or regulation was last loaded into Otto": {
-        "fr": "",
+        "fr": "Voyez la dernière fois que chaque loi ou règlement a été chargé dans Otto",
         "fr_auto": "Voyez quand chaque loi ou règlement a été chargé pour la dernière fois dans Otto"
     },
     "Loading Monitor": {
@@ -4268,7 +4268,7 @@
         "fr_auto": "Exceptions"
     },
     "Description": {
-        "fr": "",
+        "fr": "Description",
         "fr_auto": "Désignation des marchandises"
     },
     "No exceptions found": {

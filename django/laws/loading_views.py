@@ -101,7 +101,9 @@ def laws_loading_status(request):
                     {
                         "eng_law_id": ls.eng_law_id or "-",
                         "status": ls.status,
+                        "status_label": ls.status_label,
                         "details": ls.details or "",
+                        "details_label": ls.details_label or "",
                         "error_message": ls.error_message or "",
                         "is_current": ls == current_law,
                         "cost": display_cad_cost(cad_cost(ls.cost) if ls.cost else 0),
