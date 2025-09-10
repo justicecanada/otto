@@ -113,7 +113,11 @@ def _estimate_qa_documents_cost(chat: Any, model: str) -> Decimal:
             if doc.num_chunks is not None:
                 total_chunks_of_library += doc.num_chunks
 
-        chunk_count = min(total_chunks_of_library, chat.options.qa_topk)
+        chunk_count = chat.options.qa_topk
+        if chat.options.qa_process_mode == "per_doc":
+            chunk_count = chunk_count * len(docs)
+
+        chunk_count = min(total_chunks_of_library, chunk_count)
         token_count = 768 * chunk_count
         cost += _calculate_cost_for_units(model + "-in", token_count)
     else:
