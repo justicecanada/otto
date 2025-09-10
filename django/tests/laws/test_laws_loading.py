@@ -1,17 +1,12 @@
 import json
 import os
-import urllib.parse
-from datetime import datetime
 from unittest import mock
 
-from django.conf import settings
-from django.core.cache import cache
-from django.test import TransactionTestCase
 from django.urls import reverse
+from django.utils import translation
 from django.utils.timezone import now
 
 import pytest
-import requests
 
 from laws.loading_utils import get_dict_from_xml, get_sha_256_hash
 from laws.models import JobStatus, Law, LawLoadingStatus
@@ -214,6 +209,48 @@ def test_law_loading_status_choices():
 
     status.refresh_from_db()
     assert status.status == "finished_new"
+
+
+# Translation label tests
+def test_law_loading_status_label_translation():
+    status = LawLoadingStatus.objects.create(eng_law_id="S-14.3", status="finished_new")
+
+    # English (default)
+    with translation.override("en"):
+        assert status.status_label == "Finished (New)"
+
+    # French
+    with translation.override("fr"):
+        assert status.status_label == "Terminé (Nouveau)"
+
+
+@pytest.mark.django_db
+def test_law_loading_details_label_translation():
+    # Static details
+    status = LawLoadingStatus.objects.create(
+        eng_law_id="S-14.3", status="finished_new", details="No changes detected"
+    )
+
+    with translation.override("en"):
+        assert status.details_label == "No changes detected"
+    with translation.override("fr"):
+        assert status.details_label == "Aucun changement détecté"
+
+    # Dynamic batch details
+    details = "No changes detected (embedding batch 2/5)"
+    status.details = details
+    status.save()
+
+    with translation.override("en"):
+        assert status.details_label == details
+    with translation.override("fr"):
+        assert status.details_label == "Aucun changement détecté (intégration 2/5)"
+
+    # Unknown details (should fallback to original)
+    status.details = "Some unknown detail"
+    status.save()
+    with translation.override("fr"):
+        assert status.details_label == "Some unknown detail"
 
 
 def test_get_sha_256_hash():
