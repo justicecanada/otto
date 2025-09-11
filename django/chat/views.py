@@ -205,15 +205,10 @@ def chat(request, chat_id):
             # default like "Untitled chat". Only persist if we get a meaningful title.
             if not llm:
                 llm = OttoLLM()
-            generated_title = title_chat(user_chat.id, llm=llm, force_title=False)
-            if (
-                generated_title
-                and generated_title.strip()
-                and generated_title != _("Untitled chat")
-            ):
-                user_chat.title = generated_title
-                if not user_chat.current_chat:
-                    user_chat.save()
+            user_chat.title = title_chat(user_chat.id, llm=llm)
+            if not user_chat.current_chat:
+                user_chat.save()
+
     if llm:
         llm.create_costs()
 

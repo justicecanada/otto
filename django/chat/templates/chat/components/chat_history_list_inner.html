@@ -1,0 +1,26 @@
+{% load i18n %}
+<div id="chat-history-list">
+  {% for section in chat_history_sections %}
+    {% if section.chats|length %}
+      {% with section_index=forloop.counter0 %}
+        <div id="section-{{ section_index }}">
+          <div class="chat-history-section-header small text-muted d-flex align-items-center">
+            <span class="me-auto">{{ section.label }}</span>
+            {% if section_index == 0 %}
+              <i class="bi bi-pin-angle"
+                 aria-hidden="true"
+                 title="{% trans 'Pinned chats' %}"></i>
+            {% endif %}
+          </div>
+          <ul class="list-unstyled" id="chat-list-{{ section_index }}">
+            {% for chat in section.chats %}
+              {% include 'chat/components/chat_list_item.html' with current_chat_id=current_chat_id %}
+            {% endfor %}
+          </ul>
+        </div>
+      {% endwith %}
+    {% endif %}
+  {% empty %}
+    <div class="text-muted small px-2 py-1">{% trans "No chats match your search." %}</div>
+  {% endfor %}
+</div>
