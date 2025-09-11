@@ -726,47 +726,6 @@ function afterAccordionSwap() {
   }
 }
 
-// Upload monitoring with self-contained event listeners
-let uploadMonitoringActive = false;
-
-// Named handler for link monitoring
-function linkMonitorHandler(event) {
-  console.log('Link monitor handler triggered');
-  console.log('Event:', event);
-  console.log(event.target.closest('a[href]'));
-  if (event.target.closest('#chat-upload-message, #file-dropzone')) {
-    return;
-  }
-  const link = event.target.closest('a[href]');
-  console.log("classlist:", event.target.id);
-  const isNavigationRequest = event.target.id.includes("list-item-content");
-  console.log('isNavigationRequest:', isNavigationRequest);
-  if (link || isNavigationRequest) {
-    event.stopPropagation();
-    event.preventDefault();
-    if (uploadMonitoringActive && confirm("Are you sure you want to navigate while uploading a file? This may cancel the upload.") == false) {
-      event.stopPropagation();
-      event.preventDefault();
-      console.log("stopping propagation, immediate propagation and preventing default");
-    }
-  }
-}
-
-function initRequestAndNavigationMonitoring() {
-  uploadMonitoringActive = true;
-  document.addEventListener('click', linkMonitorHandler);;
-
-  // Disable monitoring after upload completes via HTMX;
-  document.addEventListener('htmx:afterSwap', function (event) {
-    console.log('elt:', event.detail);
-    console.log('htmx afterSwap event:', event.detail.elt.matches('div#librarian-upload-message'));
-    if (event.target && (event.target.id === 'chat-upload-message' || event.detail.elt.matches('div#librarian-upload-message'))) {
-      console.log("disabling upload monitoring after HTMX swap");
-      uploadMonitoringActive = false;
-      document.removeEventListener('click', linkMonitorHandler);
-    }
-  });
-}
 // Printing
 function printChat() {
   // Expand all messages
