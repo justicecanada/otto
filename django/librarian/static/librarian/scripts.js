@@ -6,6 +6,36 @@ function toggleWarning(public_checkbox) {
   }
 }
 
+let uploadsInProgress = false;
+
+function setUploadsInProgress(state) {
+  uploadsInProgress = state;
+  if (uploadsInProgress) {
+    console.log("Uploads in progress, adding click listener");
+    document.addEventListener('click', navigationClickHandler, true);
+  } else {
+    console.log("No uploads in progress, removing click listener");
+    document.removeEventListener('click', navigationClickHandler, true);
+  }
+}
+
+function navigationClickHandler(e) {
+  // Only intercept clicks on navigation elements
+  const target = e.target.closest('a, button[hx-get], button[hx-post], [data-bs-toggle], .nav-link, .list-group-item');
+
+  if (target && uploadsInProgress) {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const confirmLeave = confirm("Uploads are still in progress. Are you sure you want to leave?");
+    if (confirmLeave) {
+      setUploadsInProgress(false);
+      // Re-trigger the click
+      target.click();
+    }
+  }
+}
+
 let librarianModalCloseHandler = event => {
   // Stop polling on element id="libraryModalPoller"
   // by replacing it with empty div
@@ -89,6 +119,11 @@ function initLibrarianUploadForm() {
       onError: (upload) => submitUploadsIfComplete(),
       onDelete: (upload) => submitUploadsIfComplete(),
       onProgress: (bytesUploaded, bytesTotal, upload) => {
+        // Set uploads in progress when any file starts uploading
+        if (bytesUploaded > 0 && !uploadsInProgress) {
+          setUploadsInProgress(true);
+        }
+
         if (bytesTotal > LIBRARIAN_MAX_UPLOAD_SIZE) {
           // Find the .dff-file which contains span.dff-filename with text `upload.name`;
           const fileElements = document.querySelectorAll('#librarian-upload-form .dff-file');
