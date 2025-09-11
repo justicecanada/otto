@@ -257,6 +257,34 @@ def chat(request, chat_id):
     return render(request, "chat/chat.html", context=context)
 
 
+@app_access_required("chat")
+def search_chats(request):
+    """Simple HTMX endpoint returning chat history sections filtered by title only.
+    Does not trigger rename, pin/unpin or any write actions. Returns a partial
+    rendering of the chat history list grouped into sections.
+    """
+    query = (request.GET.get("search", "") or "").strip()
+    active_chat_id = request.GET.get("current_chat_id") or None
+
+    qs = Chat.objects.filter(user=request.user, messages__isnull=False).distinct()
+    if query:
+        qs = qs.filter(title__icontains=query)
+    qs = qs.order_by("-last_modification_date")
+
+    sections = get_chat_history_sections(qs)
+    # Return a simplified, non-interactive partial to avoid including
+    # rename forms or other interactive write controls during search.
+    return render(
+        request,
+        "chat/components/chat_history_list_inner_search.html",
+        {
+            "chat_history_sections": sections,
+            "search": query,
+            "current_chat_id": active_chat_id,
+        },
+    )
+
+
 @require_POST
 @permission_required("chat.access_chat", objectgetter(Chat, "chat_id"))
 @budget_required
@@ -776,6 +804,17 @@ def rename_chat(request, chat_id, current_chat_id):
     chat.current_chat = chat_id == current_chat_id
 
     if request.method == "POST":
+        # Only proceed if this POST originated from the inline rename form.
+        if request.POST.get("rename_intent") != "1":
+            return render(
+                request,
+                "chat/components/chat_list_item.html",
+                {
+                    "chat": chat,
+                    "current_chat_id": current_chat_id,
+                    "section_index": label_section_index(chat.last_modification_date),
+                },
+            )
         chat_rename_form = ChatRenameForm(request.POST)
         if chat_rename_form.is_valid():
             chat.title = chat_rename_form.cleaned_data["title"]
@@ -1114,3 +1153,31 @@ def email_author(request, chat_id):
     )
     mailto_link = generate_mailto(to=chat.user.email, subject=subject, body=body)
     return HttpResponse(f"<a href='{mailto_link}'>mailto link</a>")
+
+
+@app_access_required("chat")
+def search_chats(request):
+    """Simple HTMX endpoint returning chat history sections filtered by title only.
+    Does not trigger rename, pin/unpin or any write actions. Returns a partial
+    rendering of the chat history list grouped into sections.
+    """
+    query = (request.GET.get("search", "") or "").strip()
+    active_chat_id = request.GET.get("current_chat_id") or None
+
+    qs = Chat.objects.filter(user=request.user, messages__isnull=False).distinct()
+    if query:
+        qs = qs.filter(title__icontains=query)
+    qs = qs.order_by("-last_modification_date")
+
+    sections = get_chat_history_sections(qs)
+    # Return a simplified, non-interactive partial to avoid including
+    # rename forms or other interactive write controls during search.
+    return render(
+        request,
+        "chat/components/chat_history_list_inner_search.html",
+        {
+            "chat_history_sections": sections,
+            "search": query,
+            "current_chat_id": active_chat_id,
+        },
+    )
