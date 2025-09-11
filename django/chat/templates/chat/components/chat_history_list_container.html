@@ -1,0 +1,12 @@
+{% load i18n %}
+
+<div class="overflow-y-auto overflow-x-hidden p-3 pt-0 flex-grow-1"
+     id="chat-history-list">
+  {% if search %}
+    {# Simplified results (no interactive controls) #}
+    {% include 'chat/components/chat_history_list_inner_search.html' %}
+  {% else %}
+    {# Full interactive list #}
+    {% include 'chat/components/chat_history_list_inner.html' %}
+  {% endif %}
+</div>
