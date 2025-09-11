@@ -271,12 +271,22 @@ def search_chats(request):
         qs = qs.filter(title__icontains=query)
     qs = qs.order_by("-last_modification_date")
 
-    sections = get_chat_history_sections(qs)
-    # Return a simplified, non-interactive partial to avoid including
-    # rename forms or other interactive write controls during search.
+    # Ensure current chat is marked for proper highlighting and menu logic
+    chats = list(qs)
+    if active_chat_id is not None:
+        for c in chats:
+            try:
+                c.current_chat = str(c.id) == str(active_chat_id)
+            except Exception:
+                c.current_chat = False
+
+    sections = get_chat_history_sections(chats)
+    # Return a container that decides which inner to load based on `search`.
+    # When search is empty, it will render the full interactive list; otherwise
+    # it renders a simplified, non-interactive partial.
     return render(
         request,
-        "chat/components/chat_history_list_inner_search.html",
+        "chat/components/chat_history_list_container.html",
         {
             "chat_history_sections": sections,
             "search": query,
@@ -1159,7 +1169,8 @@ def email_author(request, chat_id):
 def search_chats(request):
     """Simple HTMX endpoint returning chat history sections filtered by title only.
     Does not trigger rename, pin/unpin or any write actions. Returns a partial
-    rendering of the chat history list grouped into sections.
+    rendering of the chat history list grouped into sections. When search is
+    empty, it restores the full interactive list.
     """
     query = (request.GET.get("search", "") or "").strip()
     active_chat_id = request.GET.get("current_chat_id") or None
@@ -1170,11 +1181,9 @@ def search_chats(request):
     qs = qs.order_by("-last_modification_date")
 
     sections = get_chat_history_sections(qs)
-    # Return a simplified, non-interactive partial to avoid including
-    # rename forms or other interactive write controls during search.
     return render(
         request,
-        "chat/components/chat_history_list_inner_search.html",
+        "chat/components/chat_history_list_container.html",
         {
             "chat_history_sections": sections,
             "search": query,
