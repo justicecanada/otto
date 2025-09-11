@@ -4950,5 +4950,9 @@
     "File size": {
         "fr": "",
         "fr_auto": "Taille du fichier"
+    },
+    "Minimal (fastest, cheapest)": {
+        "fr": "",
+        "fr_auto": "Minimal (le plus rapide, le moins cher)"
     }
 }
