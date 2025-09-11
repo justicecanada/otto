@@ -38,43 +38,47 @@
           <span class="ms-2">{% trans 'Collapse all' %}</span>
         </button>
       {% endif %}
-      <button type="button"
-              hx-get="{% url 'chat:rename_chat' current_chat_id=current_chat_id chat_id=chat.id %}"
-              hx-swap="innerHTML"
-              hx-target="closest li"
-              class="d-flex align-items-center px-3 dropdown-item py-2"
-              role="menuitem"
-              onkeydown="if (event.key === 'Enter') { event.preventDefault()}"
-              onkeyup="if (event.key === 'Enter') { this.click() }">
-        <i class="bi bi-pencil me-1"></i>
-        <span class="ms-2">{% trans 'Rename' %}</span>
-      </button>
-      {% if chat.pinned %}
+      {% if current_chat_id %}
         <button type="button"
-                id="unpin-chat-{{ chat.id }}"
-                class="d-flex align-items-center px-3 py-2 chat-unpin dropdown-item"
-                data-section-number="{{ section_index }}"
-                hx-post="{% url 'chat:unpin_chat' current_chat_id=current_chat_id chat_id=chat.id %}"
-                hx-target="#chat-history-list"
-                hx-select="#chat-history-list"
-                hx-swap="outerHTML"
-                role="menuitem">
-          <i class="bi bi-pin-angle-fill me-1"></i>
-          <span class="ms-2">{% trans 'Unpin' %}</span>
+                hx-get="{% url 'chat:rename_chat' current_chat_id=current_chat_id chat_id=chat.id %}"
+                hx-swap="innerHTML"
+                hx-target="closest li"
+                class="d-flex align-items-center px-3 dropdown-item py-2"
+                role="menuitem"
+                onkeydown="if (event.key === 'Enter') { event.preventDefault()}"
+                onkeyup="if (event.key === 'Enter') { this.click() }">
+          <i class="bi bi-pencil me-1"></i>
+          <span class="ms-2">{% trans 'Rename' %}</span>
         </button>
-      {% else %}
-        <button type="button"
-                id="pin-chat-{{ chat.id }}"
-                class="d-flex align-items-center px-3 py-2 chat-pin dropdown-item"
-                data-section-number="{{ section_index }}"
-                hx-post="{% url 'chat:pin_chat' current_chat_id=current_chat_id chat_id=chat.id %}"
-                hx-target="#chat-history-list"
-                hx-select="#chat-history-list"
-                hx-swap="outerHTML"
-                role="menuitem">
-          <i class="bi bi-pin-angle me-1"></i>
-          <span class="ms-2">{% trans 'Pin' %}</span>
-        </button>
+      {% endif %}
+      {% if current_chat_id %}
+        {% if chat.pinned %}
+          <button type="button"
+                  id="unpin-chat-{{ chat.id }}"
+                  class="d-flex align-items-center px-3 py-2 chat-unpin dropdown-item"
+                  data-section-number="{{ section_index }}"
+                  hx-post="{% url 'chat:unpin_chat' current_chat_id=current_chat_id chat_id=chat.id %}"
+                  hx-target="#chat-history-list"
+                  hx-select="#chat-history-list"
+                  hx-swap="outerHTML"
+                  role="menuitem">
+            <i class="bi bi-pin-angle-fill me-1"></i>
+            <span class="ms-2">{% trans 'Unpin' %}</span>
+          </button>
+        {% else %}
+          <button type="button"
+                  id="pin-chat-{{ chat.id }}"
+                  class="d-flex align-items-center px-3 py-2 chat-pin dropdown-item"
+                  data-section-number="{{ section_index }}"
+                  hx-post="{% url 'chat:pin_chat' current_chat_id=current_chat_id chat_id=chat.id %}"
+                  hx-target="#chat-history-list"
+                  hx-select="#chat-history-list"
+                  hx-swap="outerHTML"
+                  role="menuitem">
+            <i class="bi bi-pin-angle me-1"></i>
+            <span class="ms-2">{% trans 'Pin' %}</span>
+          </button>
+        {% endif %}
       {% endif %}
       {% if chat.messages.count > 0 %}
         <button type="button"
