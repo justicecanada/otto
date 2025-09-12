@@ -15,7 +15,7 @@
        style="padding: 0.25rem 0"
        role="menu">
     <div class="list-group list-group-flush options-menu">
-      {% if chat.current_chat %}
+      {% if chat.id == current_chat_id %}
         <button type="button"
                 id="expand-all-btn-{{ chat.id }}"
                 class="d-flex align-items-center px-3 dropdown-item py-2"
@@ -49,56 +49,59 @@
         <i class="bi bi-pencil me-1"></i>
         <span class="ms-2">{% trans 'Rename' %}</span>
       </button>
-      {% if chat.pinned %}
-        <button type="button"
-                id="unpin-chat-{{ chat.id }}"
-                class="d-flex align-items-center px-3 py-2 chat-unpin dropdown-item"
-                data-section-number="{{ section_index }}"
-                hx-post="{% url 'chat:unpin_chat' current_chat_id=current_chat_id chat_id=chat.id %}"
-                hx-target="#chat-history-list"
-                hx-select="#chat-history-list"
-                hx-swap="outerHTML"
-                role="menuitem">
-          <i class="bi bi-pin-angle-fill me-1"></i>
-          <span class="ms-2">{% trans 'Unpin' %}</span>
-        </button>
-      {% else %}
-        <button type="button"
-                id="pin-chat-{{ chat.id }}"
-                class="d-flex align-items-center px-3 py-2 chat-pin dropdown-item"
-                data-section-number="{{ section_index }}"
-                hx-post="{% url 'chat:pin_chat' current_chat_id=current_chat_id chat_id=chat.id %}"
-                hx-target="#chat-history-list"
-                hx-select="#chat-history-list"
-                hx-swap="outerHTML"
-                role="menuitem">
-          <i class="bi bi-pin-angle me-1"></i>
-          <span class="ms-2">{% trans 'Pin' %}</span>
-        </button>
-      {% endif %}
-      {% if chat.messages.count > 0 %}
-        <button type="button"
-                id="share-chat-{{ chat.id }}"
-                class="d-flex align-items-center px-3 py-2 chat-share dropdown-item"
-                data-section-number="{{ section_index }}"
-                hx-get="{% url 'chat:share_chat' chat_id=chat.id %}"
-                hx-on::after-request="copyChatURL(event, this)"
-                hx-swap="none"
-                onclick="event.stopPropagation();"
-                role="menuitem">
-          <i class="bi bi-link me-1"></i><i class="bi bi-check-lg"></i>
-          <span class="ms-2">{% trans 'Copy link' %}</span>
-        </button>
-        {% if chat.current_chat %}
+      {% if current_chat_id %}
+        {% if chat.pinned %}
           <button type="button"
-                  onclick="printChat();"
-                  id="download-chat-{{ chat.id }}"
-                  class="d-flex align-items-center px-3 py-2 chat-download dropdown-item"
+                  id="unpin-chat-{{ chat.id }}"
+                  class="d-flex align-items-center px-3 py-2 chat-unpin dropdown-item"
                   data-section-number="{{ section_index }}"
+                  hx-post="{% url 'chat:unpin_chat' current_chat_id=current_chat_id chat_id=chat.id %}"
+                  hx-target="#chat-history-list"
+                  hx-select="#chat-history-list"
+                  hx-swap="outerHTML"
                   role="menuitem">
-            <i class="bi bi-download me-1"></i>
-            <span class="ms-2">{% trans 'Save as PDF' %}</span>
+            <i class="bi bi-pin-angle-fill me-1"></i>
+            <span class="ms-2">{% trans 'Unpin' %}</span>
           </button>
+        {% else %}
+          <button type="button"
+                  id="pin-chat-{{ chat.id }}"
+                  class="d-flex align-items-center px-3 py-2 chat-pin dropdown-item"
+                  data-section-number="{{ section_index }}"
+                  hx-post="{% url 'chat:pin_chat' current_chat_id=current_chat_id chat_id=chat.id %}"
+                  hx-target="#chat-history-list"
+                  hx-select="#chat-history-list"
+                  hx-swap="outerHTML"
+                  role="menuitem">
+            <i class="bi bi-pin-angle me-1"></i>
+            <span class="ms-2">{% trans 'Pin' %}</span>
+          </button>
+        {% endif %}
+
+        {% if chat.messages.count > 0 %}
+          <button type="button"
+                  id="share-chat-{{ chat.id }}"
+                  class="d-flex align-items-center px-3 py-2 chat-share dropdown-item"
+                  data-section-number="{{ section_index }}"
+                  hx-get="{% url 'chat:share_chat' chat_id=chat.id %}"
+                  hx-on::after-request="copyChatURL(event, this)"
+                  hx-swap="none"
+                  onclick="event.stopPropagation();"
+                  role="menuitem">
+            <i class="bi bi-link me-1"></i><i class="bi bi-check-lg"></i>
+            <span class="ms-2">{% trans 'Copy link' %}</span>
+          </button>
+          {% if chat.id == current_chat_id %}
+            <button type="button"
+                    onclick="printChat();"
+                    id="download-chat-{{ chat.id }}"
+                    class="d-flex align-items-center px-3 py-2 chat-download dropdown-item"
+                    data-section-number="{{ section_index }}"
+                    role="menuitem">
+              <i class="bi bi-download me-1"></i>
+              <span class="ms-2">{% trans 'Save as PDF' %}</span>
+            </button>
+          {% endif %}
         {% endif %}
       {% endif %}
       <button type="button"

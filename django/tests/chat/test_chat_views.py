@@ -826,7 +826,7 @@ def test_rename_chat_title(client, all_apps_user):
                 "current_chat_id": str(chat.id),
             },
         ),
-        data={"title": new_title},
+        data={"title": new_title, "rename_intent": "1"},
     )
     assert response.status_code == 200
     assert new_title in response.content.decode("utf-8")
@@ -841,7 +841,7 @@ def test_rename_chat_title(client, all_apps_user):
                 "current_chat_id": str(chat.id),
             },
         ),
-        data={"title": invalid_title},
+        data={"title": invalid_title, "rename_intent": "1"},
     )
     assert response.status_code == 200
     assert f'value="{invalid_title}"' in response.content.decode("utf-8")
