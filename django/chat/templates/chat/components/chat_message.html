@@ -34,7 +34,7 @@
         <div class="message-text">{% include "chat/components/streaming_response.html" %}</div>
       {% elif file_upload %}
         <div class="message-text">{% include "chat/components/file_upload_progress.html" %}</div>
-      {% elif message.num_files %}
+      {% elif message.num_files or message.is_bot and message.parent and message.parent.num_files and message.mode == "translate" and "azure" in message.chat.options.translate_model %}
         <div class="message-text">{% include "chat/components/message_files.html" %}</div>
       {% elif message.is_bot %}
         <div class="message-text">

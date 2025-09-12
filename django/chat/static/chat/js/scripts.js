@@ -232,6 +232,7 @@ document.addEventListener("DOMContentLoaded", function () {
   let mode = document.querySelector('#chat-outer').classList[0];
   updateAccordion(mode);
   updateQaSourceForms();
+  updateTranslateForms();
   updatePlaceholder(mode);
   document.querySelector("#chat-prompt").focus();
   if (document.querySelector("#no-messages-placeholder") === null) {
@@ -722,6 +723,7 @@ function afterAccordionSwap() {
     // This function calls updateQaSourceForms, so no need to call it twice
     resetQaAutocompletes();
   } else {
+    updateTranslateForms();
     updateQaSourceForms();
   }
 }

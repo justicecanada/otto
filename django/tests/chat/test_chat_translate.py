@@ -3,9 +3,16 @@ import tempfile
 from decimal import Decimal
 from unittest import mock
 
-import pytest
+from django.urls import reverse
 
+import pytest
+import pytest_asyncio
+
+from chat._views.load_test import exhaust_streaming_response
+from chat.models import Chat, Message
 from chat.tasks import translate_file
+
+pytest_plugins = ("pytest_asyncio",)
 
 
 @pytest.mark.django_db
@@ -77,3 +84,62 @@ def test_translate_file():
         azure_delete.assert_called()
         # Clean up the temporary file
     os.remove(file_path)
+
+
+@pytest.mark.django_db(transaction=True)
+def test_translate_text_with_gpt(client, all_apps_user):
+    """Test GPT text translation through the translate_response function."""
+
+    user = all_apps_user()
+    client.force_login(user)
+
+    # Create a chat using the route to create it with appropriate options
+    response = client.get(reverse("chat:translate"), follow=True)
+    chat = Chat.objects.filter(user=user).order_by("-created_at").first()
+    chat.options.translate_model = "gpt"
+    chat.options.save()
+
+    # Test chat_response with Translate mode
+    message = Message.objects.create(chat=chat, text="Hello", mode="translate")
+    message = Message.objects.create(
+        chat=chat, mode="translate", is_bot=True, parent=message
+    )
+    response = client.get(reverse("chat:chat_response", args=[message.id]))
+    assert response.status_code == 200
+    content, _ = exhaust_streaming_response(response)
+    assert (
+        "Bonjour" in content
+        or "Salut" in content
+        or "Coucou" in content
+        or "Allo" in content
+    )
+
+
+@pytest_asyncio.fixture(scope="session")
+@pytest.mark.django_db(transaction=True)
+def test_translate_text_with_azure(client, all_apps_user):
+    """Test Azure text translation through the translate_response function."""
+
+    user = all_apps_user()
+    client.force_login(user)
+
+    # Create a chat using the route to create it with appropriate options
+    response = client.get(reverse("chat:translate"), follow=True)
+    chat = Chat.objects.filter(user=user).order_by("-created_at").first()
+    chat.options.translate_model = "azure"
+    chat.options.save()
+
+    # Test chat_response with Translate mode
+    message = Message.objects.create(chat=chat, text="Hello", mode="translate")
+    message = Message.objects.create(
+        chat=chat, mode="translate", is_bot=True, parent=message
+    )
+    response = client.get(reverse("chat:chat_response", args=[message.id]))
+    assert response.status_code == 200
+    content, _ = exhaust_streaming_response(response)
+    assert (
+        "Bonjour" in content
+        or "Salut" in content
+        or "Coucou" in content
+        or "Allo" in content
+    )

@@ -32,6 +32,13 @@ logger = get_logger(__name__)
 
 DEFAULT_MODE = "chat"
 
+MODE_CHOICES = [
+    ("chat", _("Chat")),
+    ("qa", _("Q&A")),
+    ("summarize", _("Summarize")),
+    ("translate", _("Translate")),
+]
+
 
 def create_chat_data_source(user, chat):
     if not user.personal_library:
@@ -179,6 +186,13 @@ REASONING_EFFORT_CHOICES = [
     ("high", _("High (slower, more expensive)")),
 ]
 
+TRANSLATE_MODEL_CHOICES = [
+    ("azure_custom", _("Azure Translator - JUS custom")),
+    ("azure", _("Azure Translator - standard")),
+    ("gpt-4.1", _("GPT-4.1 (no file output)")),
+    ("gpt-4.1-mini", _("GPT-4.1-mini (no file output)")),
+]
+
 
 class ChatOptions(models.Model):
     """
@@ -216,6 +230,15 @@ class ChatOptions(models.Model):
 
     # Translate-specific options
     translate_language = models.CharField(max_length=255, default="fr")
+    translate_model = models.CharField(max_length=20, default="azure_custom")
+    translation_glossary = models.ForeignKey(
+        "librarian.SavedFile",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="glossary_options",
+    )
+    translate_prompt = models.TextField(blank=True)
 
     # QA-specific options
     qa_model = models.CharField(max_length=255, default=DEFAULT_QA_MODEL_ID)
@@ -667,6 +690,16 @@ def delete_saved_file(sender, instance, **kwargs):
         instance.saved_file.safe_delete()
     except Exception as e:
         logger.error(f"Failed to delete saved file: {e}")
+
+
+@receiver(post_delete, sender=ChatOptions)
+def delete_glossary_saved_file(sender, instance, **kwargs):
+    """Delete SavedFile when ChatOptions is deleted, if no other references exist"""
+    try:
+        if instance.translation_glossary:
+            instance.translation_glossary.safe_delete()
+    except Exception as e:
+        logger.error(f"Failed to delete glossary saved file: {e}")
 
 
 @receiver(post_save, sender=Message)

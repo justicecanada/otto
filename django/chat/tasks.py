@@ -5,7 +5,7 @@ from threading import Thread
 
 from django.conf import settings
 
-from azure.ai.translation.document import DocumentTranslationClient
+from azure.ai.translation.document import DocumentTranslationClient, TranslationGlossary
 from azure.core.credentials import AzureKeyCredential
 from celery import shared_task
 from celery.exceptions import SoftTimeLimitExceeded
@@ -73,11 +73,14 @@ def azure_delete(path):
 
 
 @shared_task(soft_time_limit=ten_minutes)
-def translate_file(file_path, target_language):
+def translate_file(
+    file_path, target_language, custom_translator_id=None, glossary_path=None
+):
     if target_language == "fr":
         target_language = "fr-ca"
     input_file_path = None
     output_file_path = None
+    glossary_file_path = None
     try:
         from chat.models import ChatFile, Message
 
@@ -98,10 +101,25 @@ def translate_file(file_path, target_language):
         input_file_path = f"{settings.AZURE_STORAGE_TRANSLATION_INPUT_URL_SEGMENT}/{file_uuid}/{input_file_name}"
         output_file_path = f"{settings.AZURE_STORAGE_TRANSLATION_OUTPUT_URL_SEGMENT}/{file_uuid}/{output_file_name}"
 
-        # Upload to Azure Blob Storage
+        # Upload input file to Azure Blob Storage
         azure_storage = settings.AZURE_STORAGE
         with open(file_path, "rb") as f:
             azure_storage.save(input_file_path, f)
+
+        # Upload glossary to Azure Blob Storage
+        if glossary_path:
+            glossary_file_path = f"{settings.AZURE_STORAGE_TRANSLATION_INPUT_URL_SEGMENT}/{file_uuid}/glossary/glossary.csv"
+            with open(glossary_path, "rb") as f:
+                azure_storage.save(glossary_file_path, f)
+
+            glossaries = [
+                TranslationGlossary(
+                    glossary_url=f"https://{settings.AZURE_ACCOUNT_NAME}.blob.core.windows.net/{settings.AZURE_CONTAINER}/{glossary_file_path}",
+                    file_format="CSV",
+                )
+            ]
+        else:
+            glossaries = None
 
         # Set up translation parameters
         source_url = f"https://{settings.AZURE_ACCOUNT_NAME}.blob.core.windows.net/{settings.AZURE_CONTAINER}/{input_file_path}"
@@ -113,12 +131,14 @@ def translate_file(file_path, target_language):
             target_url,
             target_language,
             storage_type="File",
-            category_id=settings.CUSTOM_TRANSLATOR_ID,
+            category_id=custom_translator_id,
+            glossaries=glossaries,
         )
         result = poller.result()
 
         usage = poller.details.total_characters_charged
-        Cost.objects.new(cost_type="translate-file", count=usage)
+        cost_type = "translate-custom" if custom_translator_id else "translate-file"
+        Cost.objects.new(cost_type=cost_type, count=usage)
 
         request_context = get_contextvars()
         out_message = Message.objects.get(id=request_context.get("message_id"))
@@ -149,3 +169,5 @@ def translate_file(file_path, target_language):
             Thread(target=azure_delete, args=(input_file_path,)).start()
         if output_file_path:
             Thread(target=azure_delete, args=(output_file_path,)).start()
+        if glossary_file_path:
+            Thread(target=azure_delete, args=(glossary_file_path,)).start()

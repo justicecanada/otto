@@ -18,10 +18,12 @@ from structlog import get_logger
 
 from chat.llm_models import get_grouped_chat_model_choices
 from chat.models import (
+    MODE_CHOICES,
     QA_MODE_CHOICES,
     QA_PROCESS_MODE_CHOICES,
     QA_SCOPE_CHOICES,
     REASONING_EFFORT_CHOICES,
+    TRANSLATE_MODEL_CHOICES,
     Chat,
     ChatOptions,
     Preset,
@@ -283,7 +285,13 @@ class ChatOptionsForm(ModelForm):
     class Meta:
         model = ChatOptions
         fields = "__all__"
-        exclude = ["chat", "english_default", "french_default", "prompt"]
+        exclude = [
+            "chat",
+            "english_default",
+            "french_default",
+            "prompt",
+            "translation_glossary",
+        ]
         widgets = {
             "mode": forms.HiddenInput(attrs={"onchange": "triggerOptionSave();"}),
             "chat_temperature": forms.Select(
@@ -363,6 +371,9 @@ class ChatOptionsForm(ModelForm):
                 attrs={"onchange": "triggerOptionSave();"}
             ),
             "qa_rewrite": forms.HiddenInput(attrs={"onchange": "triggerOptionSave();"}),
+            "translation_glossary": forms.FileInput(
+                attrs={"accept": ".csv", "onchange": "triggerOptionSave();"}
+            ),
         }
 
     def __init__(self, *args, **kwargs):
@@ -398,6 +409,25 @@ class ChatOptionsForm(ModelForm):
                 },
             )
 
+        # translate_model has choices for translation service
+        for field in ["translate_model"]:
+            self.fields[field].widget = forms.Select(
+                choices=TRANSLATE_MODEL_CHOICES,
+                attrs={
+                    "class": "form-select form-select-sm",
+                    "onchange": "updateTranslateForms();triggerOptionSave();",
+                },
+            )
+
+        # Add translation_glossary as a separate FileField (not bound to model)
+        self.fields["translation_glossary"] = forms.FileField(
+            required=False,
+            widget=forms.FileInput(
+                attrs={"accept": ".csv", "onchange": "triggerOptionSave();"}
+            ),
+            label="Glossary CSV (optional)",
+        )
+
         # Text areas
         self.fields["chat_system_prompt"].widget = forms.Textarea(
             attrs={
@@ -408,6 +438,14 @@ class ChatOptionsForm(ModelForm):
         )
 
         self.fields["summarize_prompt"].widget = forms.Textarea(
+            attrs={
+                "class": "form-control form-control-sm",
+                "rows": 10,
+                "onkeyup": "triggerOptionSave();",
+            }
+        )
+
+        self.fields["translate_prompt"].widget = forms.Textarea(
             attrs={
                 "class": "form-control form-control-sm",
                 "rows": 10,
