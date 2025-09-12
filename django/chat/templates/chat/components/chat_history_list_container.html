@@ -4,10 +4,8 @@
      id="chat-history-list"
      {% if search %}data-search-active="true"{% endif %}>
   {% if search %}
-    {# Simplified results (no interactive controls) #}
     {% include 'chat/components/chat_history_list_inner_search.html' %}
   {% else %}
-    {# Full interactive list #}
     {% include 'chat/components/chat_history_list_inner.html' %}
   {% endif %}
 </div>
