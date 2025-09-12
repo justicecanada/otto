@@ -87,13 +87,24 @@
 
 {% block page_script %}
   <script>
-   document.addEventListener('DOMContentLoaded', () => {
+  document.addEventListener('DOMContentLoaded', () => {
     scrollToListItem();
     const toggleBtn = document.getElementById('chat-search-toggle');
     const container = document.getElementById('chat-search-container');
     const input = document.getElementById('chat-history-search-input');
     const clearBtn = document.getElementById('chat-search-clear');
     if (toggleBtn && container && input) {
+      // If arriving with ?search= in URL, apply it and show search box
+      const params = new URLSearchParams(window.location.search);
+      const initialSearch = params.get('search');
+      if (initialSearch) {
+        container.style.display = '';
+        input.value = initialSearch;
+        clearBtn.style.display = '';
+        // Trigger HTMX search to render filtered list
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+        toggleBtn.setAttribute('aria-label', '{% trans 'Hide search' %}');
+      }
       toggleBtn.addEventListener('click', () => {
         const visible = container.style.display !== 'none';
         if (!visible) {

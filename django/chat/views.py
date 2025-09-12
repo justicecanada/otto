@@ -154,11 +154,20 @@ def chat(request, chat_id):
         .order_by("date_created")
         .prefetch_related("answersource_set", "files")
     )
+    # Highlight a specific matched message if requested
+    highlight_message_id = request.GET.get("highlight_message") or None
+    anchor_message_id = request.GET.get("anchor_message") or None
+    if not highlight_message_id and anchor_message_id:
+        highlight_message_id = anchor_message_id
+
     for message in chat_messages:
         if message.is_bot:
             message.json = json.dumps(message.text)
         else:
             message.text = message.text.strip()
+        # Mark the target message for the template/JS to act on
+        if highlight_message_id and str(message.id) == str(highlight_message_id):
+            message.details = {**(message.details or {}), "flash_highlight": True}
 
     if not request.user.has_perm("chat.access_chat", chat):
         context = {
@@ -253,6 +262,7 @@ def chat(request, chat_id):
         or request.user.ai_assistant_tour_completed,
         "start_tour": request.GET.get("start_tour") == "true",
         "upload_form": UploadForm(prefix="chat"),
+        "highlight_message_id": highlight_message_id,
     }
     return render(request, "chat/chat.html", context=context)
 
@@ -1175,10 +1185,44 @@ def search_chats(request):
     query = (request.GET.get("search", "") or "").strip()
     active_chat_id = request.GET.get("current_chat_id") or None
 
-    qs = Chat.objects.filter(user=request.user, messages__isnull=False).distinct()
+    base_qs = Chat.objects.filter(user=request.user, messages__isnull=False)
     if query:
-        qs = qs.filter(title__icontains=query)
-    qs = qs.order_by("-last_modification_date")
+        qs = base_qs.filter(
+            Q(title__icontains=query) | Q(messages__text__icontains=query)
+        )
+    else:
+        qs = base_qs
+
+    qs = qs.distinct().order_by("-last_modification_date")
+
+    # For chats with message matches, append a concise snippet and store the
+    # earliest matching message id so anchors and highlights are deterministic
+    if query:
+        for chat in qs:
+            matched = (
+                Message.objects.filter(chat=chat, text__icontains=query)
+                .order_by("date_created", "id")
+                .first()
+            )
+            if matched:
+                # Build a short snippet around the first occurrence
+                text = matched.text or ""
+                lower_text = text.lower()
+                idx = lower_text.find(query.lower()) if query else -1
+                if idx != -1:
+                    start = max(0, idx - 40)
+                    end = min(len(text), idx + len(query) + 40)
+                    snippet = text[start:end].strip()
+                    if start > 0:
+                        snippet = "…" + snippet
+                    if end < len(text):
+                        snippet = snippet + "…"
+                else:
+                    # Fallback: simple head snippet
+                    snippet = (text[:80] + ("…" if len(text) > 80 else "")).strip()
+
+                chat.title = f"{chat.title} ({snippet})"
+                chat.matched_message_id = matched.id
 
     sections = get_chat_history_sections(qs)
     return render(

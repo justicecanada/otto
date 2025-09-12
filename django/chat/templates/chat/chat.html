@@ -99,10 +99,26 @@
   <script src="{% static 'chat/js/scripts.js' %}"></script>
   <script src="{% static 'librarian/scripts.js' %}"></script>
   <script src="{% static 'chat/js/presetModal.js' %}"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      try {
+        const urlHash = window.location.hash;
+        const anchor = urlHash && urlHash.startsWith('#message_') ? document.querySelector(urlHash) : null;
+        if (anchor) {
+          anchor.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          anchor.classList.add('flash-highlight');
+          setTimeout(() => anchor.classList.remove('flash-highlight'), 2000);
+        }
+      } catch (_) { /* noop */ }
+    });
+  </script>
 
   <link rel="stylesheet" href="{% static 'chat/css/highlightjs.css' %}">
   <link rel="stylesheet" href="{% static 'thirdparty/css/katex.min.css' %}">
 
   <link rel="stylesheet" href="{% static 'file_form/file_form.css' %}">
   <link rel="stylesheet" href="{% static 'chat/css/print.css' %}">
+  <style>
+    .flash-highlight { box-shadow: 0 0 0 3px rgba(255, 196, 0, .65) inset; transition: box-shadow .3s ease; }
+  </style>
 {% endblock %}
