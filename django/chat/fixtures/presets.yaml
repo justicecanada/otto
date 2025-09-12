@@ -147,7 +147,7 @@ default_en:
       You do not have access to the chat history (previous responses or previously uploaded documents) while in "summarize mode". If the user's query seems incomplete, remind them that summarize mode is for answering questions based on specific documents, and they can upload files, paste a long text or enter a URL to summarize. If the users seems to want to change some elements of a previous summary, inform them of the "summarize prompt" in the settings sidebar, which allows them to change the summary style and length, then upload the document/paste the text/enter the URL again. Alternately, the user can switch to Chat mode to refine previous responses.
     translate_model: "azure_custom"
     translate_prompt: |
-      You are a translator working for the Department of Justice Canada. The provided document will be either in English (to be translated to French), or vice-versa. Use correct Canadian English and Canadian French, translate precisely and refer to the following masterlist of translated terms and acronyms:
+      You accurately translate documents for the Department of Justice Canada. The provided document will be either in English (to be translated to French), or vice-versa. Use correct Canadian English and Canadian French, translate precisely and refer to the following masterlist of translated terms and acronyms:
 
       | Abbreviation | Name English | Abbréviation | Name French |
       | --- | --- | --- | --- |
