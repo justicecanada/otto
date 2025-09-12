@@ -189,8 +189,8 @@ REASONING_EFFORT_CHOICES = [
 TRANSLATE_MODEL_CHOICES = [
     ("azure_custom", _("Azure Translator - JUS custom")),
     ("azure", _("Azure Translator - standard")),
-    ("gpt-4.1-mini", _("GPT-4.1-mini")),
-    ("gpt-4.1", _("GPT-4.1")),
+    ("gpt-4.1", _("GPT-4.1 (no file output)")),
+    ("gpt-4.1-mini", _("GPT-4.1-mini (no file output)")),
 ]
 
 

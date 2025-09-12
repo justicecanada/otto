@@ -184,8 +184,8 @@ def get_model_name(chat_options):
 
     model_key = ""
     if chat_options.mode == "translate":
-        if chat_options.translate_model == "gpt":
-            model_key = settings.DEFAULT_TRANSLATE_MODEL
+        if "gpt" in chat_options.translate_model:
+            model_key = chat_options.translate_model
         elif chat_options.translate_model == "azure":
             return _("Azure Translator - standard")
         elif chat_options.translate_model == "azure_custom":

@@ -5034,5 +5034,13 @@
     "(optional, file translation only)": {
         "fr": "",
         "fr_auto": "(optionnel, traduction de fichiers seulement)"
+    },
+    "GPT-4.1 (no file output)": {
+        "fr": "",
+        "fr_auto": "GPT-4.1 (pas de sortie de fichier)"
+    },
+    "GPT-4.1-mini (no file output)": {
+        "fr": "",
+        "fr_auto": "GPT-4.1-mini (pas de sortie de fichier)"
     }
 }
