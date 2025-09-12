@@ -145,9 +145,11 @@ def _estimate_file_processing_cost(files: List[Any], cost_type: str) -> Decimal:
     return cost
 
 
-def _estimate_chat_mode_cost(chat: Any, model: str) -> Decimal:
+def _estimate_chat_mode_cost(chat: Any, user_message: Any) -> Decimal:
     """Estimate cost for chat mode including system prompt and history."""
     from chat.utils import current_time_prompt, is_text_to_summarize
+
+    model = chat.options.chat_model
 
     system_prompt = current_time_prompt() + chat.options.chat_system_prompt
     history_text = system_prompt
@@ -176,7 +178,6 @@ def estimate_cost_of_request(
         Decimal: Estimated cost in CAD
     """
     user_message = response_message.parent
-    model = chat.options.chat_model
     mode = chat.options.mode
     cost = Decimal("0")
 
@@ -190,10 +191,22 @@ def estimate_cost_of_request(
     if mode in mode_to_func:
         cost += mode_to_func[mode](chat, user_message)
     else:
+        # For unknown modes, use chat model as fallback
+        model = chat.options.chat_model
         cost += _estimate_cost_of_string(user_message.text, model + "-in")
 
     # Add response cost (except for translate mode)
     if mode != "translate":
+        # Get the appropriate model based on mode
+        if mode == "qa":
+            model = chat.options.qa_model
+        elif mode == "summarize":
+            model = chat.options.summarize_model
+        elif mode == "chat":
+            model = chat.options.chat_model
+        else:
+            model = chat.options.chat_model  # fallback
+
         cost += _calculate_cost_for_units(model + "-out", response_estimation_count)
         # Testing has shown that for non-translation modes, estimation is 20% below actual
         cost = cost + (cost * Decimal("0.2"))

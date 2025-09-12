@@ -465,7 +465,10 @@ def translate_response(chat, response_message):
     """
     from chat.utils import translate_text_with_azure
 
-    llm = OttoLLM()
+    if "gpt" in chat.options.translate_model:
+        llm = OttoLLM(chat.options.translate_model)
+    else:
+        llm = OttoLLM()
     user_message = response_message.parent
     files = user_message.sorted_files if user_message is not None else []
     language = chat.options.translate_language
@@ -572,21 +575,20 @@ def translate_response(chat, response_message):
             file_content = await sync_to_async(file_msg)(response_message, len(files))
             yield file_content + f"<div class='alert alert-danger mt-2'>{error_str}</div>"
 
-    if len(files) > 0:
-        if "gpt" in translation_method:
-            # Use summarize mode for file translation, to reuse text extraction etc.
-            chat.options.summarize_prompt = (
-                "<document>\n"
-                "{docs}\n"
-                "</document>\n"
-                "<instruction>\n"
-                f"Translate the document above to Canadian {target_language}. Output the translated text only.\n"
-                "</instruction>"
-            )
-            response = summarize_response(chat, response_message)
-            return response
+    if "gpt" in translation_method:
+        translate_prompt = (
+            "<document>\n{docs}\n</document>\n<instruction>\n"
+            + chat.options.translate_prompt
+            + f"\nTranslate the document above to Canadian {target_language}. Output the translated text only.\n"
+            + "</instruction>"
+        )
+        # Use summarize mode for file translation, to reuse text extraction etc.
+        chat.options.summarize_prompt = translate_prompt
+        response = summarize_response(chat, response_message)
+        return response
 
-        # Otherwise, initiate the Celery task for translating each file with Azure
+    elif "azure" in translation_method and len(files) > 0:
+        # Initiate the Celery task for translating each file with Azure
         task_ids = []
         glossary_path = (
             chat.options.translation_glossary.file.path
@@ -616,7 +618,7 @@ def translate_response(chat, response_message):
             content_type="text/event-stream",
         )
 
-    if "azure" in translation_method:
+    elif "azure" in translation_method:
         try:
             translated_text = translate_text_with_azure(
                 user_message.text, language, custom_translator_id
@@ -636,28 +638,6 @@ def translate_response(chat, response_message):
             # If Azure translation fails, fall back to GPT
             logger.warning(f"Azure translation failed, falling back to GPT: {e}")
             translation_method = "gpt"
-
-    if translation_method == "gpt":
-        translate_prompt = (
-            "Translate the following text to English (Canada):\n"
-            "Bonjour, comment ça va?"
-            "\n---\nTranslation: Hello, how are you?\n"
-            "Translate the following text to French (Canada):\n"
-            "What size is the file?\nPlease answer in bytes."
-            "\n---\nTranslation: Quelle est la taille du fichier?\nVeuillez répondre en octets.\n"
-            f"Translate the following text to {target_language} (Canada):\n"
-            f"<content_to_translate>\n{user_message.text}\n</content_to_translate>"
-            "\n---\nTranslation: "
-        )
-        return StreamingHttpResponse(
-            streaming_content=htmx_stream(
-                chat,
-                response_message.id,
-                llm,
-                response_replacer=llm.stream(translate_prompt),
-            ),
-            content_type="text/event-stream",
-        )
 
     # Fallback in case of invalid translation method
     raise Exception(f"Invalid translation method: {translation_method}")

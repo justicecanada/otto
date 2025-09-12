@@ -415,7 +415,7 @@ class ChatOptionsForm(ModelForm):
                 choices=TRANSLATE_MODEL_CHOICES,
                 attrs={
                     "class": "form-select form-select-sm",
-                    "onchange": "triggerOptionSave();",
+                    "onchange": "updateTranslateForms();triggerOptionSave();",
                 },
             )
 
@@ -438,6 +438,14 @@ class ChatOptionsForm(ModelForm):
         )
 
         self.fields["summarize_prompt"].widget = forms.Textarea(
+            attrs={
+                "class": "form-control form-control-sm",
+                "rows": 10,
+                "onkeyup": "triggerOptionSave();",
+            }
+        )
+
+        self.fields["translate_prompt"].widget = forms.Textarea(
             attrs={
                 "class": "form-control form-control-sm",
                 "rows": 10,

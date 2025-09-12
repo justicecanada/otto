@@ -146,6 +146,605 @@ default_en:
       Note:
       You do not have access to the chat history (previous responses or previously uploaded documents) while in "summarize mode". If the user's query seems incomplete, remind them that summarize mode is for answering questions based on specific documents, and they can upload files, paste a long text or enter a URL to summarize. If the users seems to want to change some elements of a previous summary, inform them of the "summarize prompt" in the settings sidebar, which allows them to change the summary style and length, then upload the document/paste the text/enter the URL again. Alternately, the user can switch to Chat mode to refine previous responses.
     translate_model: "azure_custom"
+    translate_prompt: |
+      You are a translator working for the Department of Justice Canada. The provided document will be either in English (to be translated to French), or vice-versa. Use correct Canadian English and Canadian French, translate precisely and refer to the following masterlist of translated terms and acronyms:
+
+      | Abbreviation | Name English | Abbréviation | Name French |
+      | --- | --- | --- | --- |
+      | 2SLGBTQI+ | Two-Sprit, Lesbian, Gay, Bisexual, Transgender, Queer, Intersex, and +is  inclusive of people who identify as part of sexual and gender diverse communities, who use additional terminologies (source) | 2ELGBTQI+ | Les personnes deux esprits, Lesbienne, Gai, Bisexuel, Transgenre, Queer, Intersexuel, et + comprend les personnes qui indiquent leur appartenance à divers groupes sexuels et de genre et emploient d’autres terminologies |
+      | AAP | Aboriginal Affairs Portfolio | PAA | Portefeuille des affaires autochtones |
+      | AC | Acquisition Card | CA | Carte d'achat |
+      | ACIP | Advisory Committee on Indigenous Peoples | CCDA | Comité consultatif des Autochtones |
+      | ACP | Indigenous Courtwork Program | PAPA | Programme d’assistance parajudiciaire aux Autochtones |
+      | ACPD | Advisory Committee on Persons with Disabilities | CCPSH | Comité consultatif concernant les personnes en situation de handicap |
+      | ACRP | Advisory Committee for Racialized Persons | CCPR | Comité consultatif des personnes racisées |
+      | ACSOGIE | Advisory Committee on Sexual Orientation, Gender Identity and Expression | CCOSIEG | Comité consultatif sur l’orientation sexuelle, l’identité et l’expression de genre |
+      | ACWJ | Advisory Committee on Women at Justice | CCFJ | Comité consultatif des femmes à Justice |
+      | ADAG | Assistant Deputy Attorney General | SPGA | Sous-procureur général adjoint |
+      | ADM | Assistant Deputy Minister | SMA | Sous-ministre adjoint |
+      | ADM | Associate Deputy Minister | SMD | Sous-ministre délégué(e) |
+      | ADMO | Assistant Deputy Minister’s Office | BSMA | Bureau du sous-ministre adjoint |
+      | AG | Attorney General | PG | Procureur Général |
+      | AGC | Attorney General of Canada | PGC | Procureur Général du Canada |
+      | AI | Artificial Intelligence | IA | Intelligence artificielle |
+      | AJS | Aboriginal Justice Strategy | SRJAA | Stratégie relative à la justice applicable aux Autochtones |
+      | ALG | Aboriginal Law Group | GDA | Groupe des droits autochtone |
+      | ALS | Aboriginal Law Services | SDA | Service du droit des Autochtones |
+      | AMR | Asset Master Record | FI | Fiche immobilisation |
+      | AOCS | Accounting Operations Client Services | OCSC | Opérations comptables et services à la clientèle |
+      | AOD | Accounting Operations Division | DOC | Division des opérations comptables |
+      | APEX | Association of Professional Executives of the Public Service of Canada | APEX | Association professionnelle des Cadres de la fonction publique du Canada |
+      | APOL | Action Plan for Official Languages | PALO | Plan d’action pour les langues officielles |
+      | AR | Annual Report | RA | Rapport annuel |
+      | ARADS | Anti-Discrimination and Anti-Racism Secretariat | SLCRD | Secrétariat de lutte contre le racisme et la discrimination |
+      | ARO | Atlantic Region Office (Halifax) | BRA | Bureau des régions de l'Atlantique (Halifax) |
+      | ARO | Atlantic Regional Office | BRA | Bureau régional de l'Atlantique |
+      | AS | Administrative Services (AS) | SA | Services administratifs (SA) |
+      | AS | Administrative Support | SA | Support administratif |
+      | ATIP | Access to Information and Privacy | AIPRP | Accès à l'information et protection des renseignments personnels |
+      | ATO | Authority to Operate | APO | Autorisation pour opérer |
+      | ATSSC | Administrative Tribunals Support Service of Canada | SCDATA | Service canadien d’appui aux tribunaux administratifs |
+      | BAC | Business Analytics Center | CAA | Centre d'analytiques des affaires |
+      | BC | Business Centre | CA | Centre d'affaires |
+      | BCM | Business Continuity Management | GCA | Gestion de la continuité des activités |
+      | BCP | Business Continuity Plan | PCA | Plan de continuité des activités |
+      | BCRO | British Columbia Regional Office | BRCB | Bureau régional de la Colombie-Britannique |
+      | BEET | Building Emergency Evacuation Teams | ÉUÉI | Équipes d’urgence et d’évacuation des immeubles |
+      | BGIS | Brookfield Global Integrated Solutions | BGIS | Brookfield Global Integrated Solutions |
+      | BHA | Blanket Hospitality Authority | AGA | Autorisation générale pour l'accueil  |
+      | BMC | Business Management Centre (BMC) | CGA | Centre de la gestion des affaires (CGA) |
+      | BMF | Budget Management Framework | CGB | Cadre de gestion de budget |
+      | BMG | Business Management & Governance | GAG | Gestion des affaires et de la gouvernance |
+      | BMO | Business Management Office (BMO) | BGA | Bureau de la gestion des affaires (BGA) |
+      | BMU | BMU Network | UGA | Réseau UGA |
+      | BMU | Business Management Unit (BMU) | UGA | Unité de la gestion des affaires (UGA) |
+      | BN | Briefing Note | NB | Note de breffage |
+      | BPIB | Business Practices and Intelligence Branch (BPIB) | DGPAA | Direction générale des pratiques et des analyses d’affaires (DGPAA) |
+      | BPO | Business Process Owner | RPA | Responsable de processus administratif |
+      | BRLP | Business and Regulatory Law Portfolio | PDADR | Portefeuille du droit des affaires et du droit réglementaire |
+      | BRLP | Business Regulatory Law Portfolio (BRLP) | PDADR | Portefeuille du droit des affaires et du droit réglementaire (PDADR) |
+      | BTA | Blanket Travel Authority | AGV | Autoritée générale de voyager |
+      | BTC | Business Transformation Committee | CTA | Comité de la Transformation des Activités |
+      | BTC | Business Transformation Committee (BTC) | CTA | Comité de la transformation des activités (CTA) |
+      | BVA | Business Value Assessment | EVC | Évaluation de la valeur commerciale |
+      | CAAR | Committee on Agenda, Advice and Results | CAAR | Comité sur l’agenda, les avis et les résultats |
+      | CAEE | Chief Audit and Evaluation Executive | DPVE | Dirigeant principal de la vérification et de l'évaluation |
+      | CAP | Central Agencies Portfolio | POC | Portefeuille des organismes centraux |
+      | CAPE | Canadian Association of professional employees | ACEP | Association canadienne des employés professionnels |
+      | CAR | Corporate Accounting and Reporting | CMR | Comptabilité ministérielle et rapport |
+      | CAS | Courts Administration Services | SATJ | Services administratifs des tribunaux judiciaires |
+      | CB | Communications Branch (CB) | DGC | Direction générales des communications (DGC) |
+      | CBJS | Canada’s Black Justice Strategy | SCJPN | Stratégie canadienne en matière de justice pour les personnes noires |
+      | CBSA | Canada Border Services Agency | ASFC | Agence des service frontalier du Canada |
+      | CC | Cost Centre | CC | Centre de coûts |
+      | CCM | CCMercury | CCM | CCMercury |
+      | CCM | Cost Center Manager | GCC | Gestionnaire de centre de cout |
+      | CCTV | Closed Circuit Television | TECF | Télévision en circuit fermé |
+      | CDO | Client Department Office | BMC | Bureau du ministère client |
+      | CDS | Client Driven Services | SAC | Services axés sur le client |
+      | CEPA | Canadian Environmental Protection Act | LCPE | Loi canadienne sur la protection de l'environnement |
+      | CFO | Business Centre, Management and CFO Sector | DPF | Centre d'affaires, Secteur de la gestion et DPF |
+      | CFO | Chief Financial Officer | DSF | Directeur des services financiers |
+      | CFS | Client Feedback Survey | SSC | Sondage de satisfaction des clients |
+      | CHRA | Canadian Human Rights Act | LCDP | Loi canadienne sur la protection de la personne |
+      | CHRC | Canadian Human Rights Commission | CCDP | Commission canadienne des droits de la personne |
+      | CIF | Canadian Indicator Framework | CIC | Cadre d’indicateurs canadien |
+      | CIO | Chief Information Officer | DPI | Dirigeant principal de l’information |
+      | CIOO | Chief Information Officer Office (CIOO) | BDPI | Bureau du dirigeant principal de l'information (BDPI) |
+      | CIPL | Centre for Information and Privacy Law (CIPL) | CDIPRP | Centre du droit à l’information et à la protection des renseignements personnels (CDIPRP) |
+      | CIRNAC | Crown-Indigenous Relations and Northern Affairs Canada | RCAANC | Relations Couronne-Autochtones et Affaires du Nord Canada |
+      | CJC | Community Justice Centres | CJC | Centres juridiques communautaires |
+      | CLAS | Civil Litigation and Advisory Section (CLAS) | SCCC | Section du contentieux civil et du conseil (SCCC) |
+      | CLE | Continuing Legal Education | FJP | Formation juridique permanente |
+      | CLEL | Centre for Labour and Employment Law | CDTE | Centre du droit du travail et de l'emploi |
+      | CLES | Centre for Legal Education Services | CSFJ | Centre de services de formation juridique |
+      | CLP | Corporate Learning Plan | PAM | Plan d'apprentissage ministériel |
+      | CLT | Canada Legal Team (CLT) | ÉJC | Équipe juridique du Canada (ÉJC) |
+      | CLU | Compensation Liaison Unit | ULR | Unité de liaison en rémunération |
+      | CMBT | Change Management and Business Transformation | GCTA | Gestion du Changement et Transformation des affaires |
+      | CMMD | Contracting and Material Management Division | DGMM | Division de la gestion des marchés et du matériel |
+      | CMMFSD | Contracting, Material Management and Financial Systems Division | DGMMSF | Division de la gestion des marchés, du matériel et des systèmes financiers |
+      | CMO | Change Management Office (CMO) | BGC | Bureau de la gestion du changement (BGC) |
+      | COA | Chart of Account | PCD | Plan comptable départemental |
+      | CoELPD | Centre of Expertise for Learning and Professional Development | CEADP | Centre d’expertise pour l’apprentissage et le développement professionnel |
+      | Comms | Communications Branch | DGC | Direction générale des communications |
+      | CoS | Chief of Staff | CdeC | Chef de cabinet |
+      | CPAU | Cabinet and Parliamentary Affairs | UACP | L'unité des affaires du Cabinet et parlementaires |
+      | CPRR | Corporate Planning, Reporting and Risk (CPRR) Division | PRRM | Planification, rapports et risques ministériels |
+      | CRA | Canada Revenue Agency | ARC | Agence du revenu du Canada |
+      | CRA | CRA Material | ARC | Documents ARC |
+      | CRA | CRA Materials | ARC | Documents ARC |
+      | CRC | Contract Review Committee | CEC | Comité d'examen des contrats |
+      | CRPI | Cost Recovery Process Improvements | APRC | Amélioration du processus de recouvrement des couts |
+      | CrRpt | Corporate Reporting | RptCr | Rapport corporatif |
+      | CSB | Corporate Services Branch | DGSM | Direction générale des services ministériels |
+      | CSB | Corporate Services Branch (CSB) | DGSM | Direction générale des services ministériels (DGSM) |
+      | CSC | Correctional Services Canada | SCC | Service correctionnel Canada |
+      | CSIS | Canadian Security Intelligence Service | SCRS | Service canadien du renseignement de sécurité |
+      | CSO  | Chief Security Officer  | DPS | Dirigeant principal de la sécurité |
+      | CSPS | Canada School of Public Service | École de la fonction publique du Canada | EFPC |
+      | CTSN | Canada Top Secret Network  | RCTS | Réseau canadien Très secret  |
+      | DAC | Departmental Audit Committee | CMA | Comité ministériel d'audit |
+      | DBM | Director, Business Management | DGA | Directeur, Gestion des affaires |
+      | DBMC | Directors of Business Management Committee | CDGA | Comité des directeurs de gestion des affaires |
+      | DCCSD | Digital Communications and Creative Services Division (DCCSD) | DCNSC | Division des communications numériques et des services créatifs (DCNSC) |
+      | DCFO | Deputy Chief Financial Officer | ADPF | Adjoint à la dirigeante principale des finances |
+      | DDP | Departmental Departure Process | PMD | Processus ministériel de départ |
+      | DDSC | Data, Digital and Services Committee  | CDNS | Comité des données, du numérique et des services  |
+      | DFO | Department of Fisheries and Oceans | MPO | Ministère des pêches et océans |
+      | DG | Director General | DG | Directeur général |
+      | DGWG | Departmental Governance Working Group | GTGM | Groupe de travail sur la gouvernance ministérielle |
+      | DIAND | Department of Indian Affairs and Northern Dev | MAINC | Ministère des affaires indiennes et du nord canadien |
+      | DLSU | Department Legal Services Unit | SJM | Services juridiques ministériels |
+      | DLSU | DLSU access to DW | SJM | Accès à l'ETN pour les SJM |
+      | DLSU | DLSU Connectivity Improvement Project | SJM | Projet d'amélioration de la connectivité pour les SJM |
+      | DM | Deputy Minister | SM | Sous-Ministre |
+      | DMO | Deputy Minister’s Office | BSM | Bureau de sous-ministre |
+      | DND | Department of National Defense | MDN | Ministère de la défense nationale |
+      | DP | Departmental Plan | PM | Plan ministériel |
+      | DPR | Departmental Performance Report | RMR | Rapport ministériel sur le rendement |
+      | DPR | Info Dispute Prevention and Resolution (DPR) | PRD | Info Prévention et règlement des différents (PRD) |
+      | DRC | Departmental Recovery Committee | CMRA | Comité ministériel de rétablissement des activités |
+      | DRD | Deputy Regional Director | DRA | Directeur régional adjoint |
+      | DRR | Departmental Results Report | RRM | Rapport sur les résultats ministériels |
+      | DSDS | Departmental Sustainable Development Strategy | SMDD | Stratégie Ministérielle de Développement Durable |
+      | DSFSA | Delegation of Spending and Financial Signing Authority | DSPDF | Délégation de signature des pouvoirs de dépenser et financiers |
+      | DSO | Departmental Security Officer | ASM | Agent de sécurité du ministère |
+      | DSP | Departmental Security Plan | PSM | Plan de sécurité ministériel |
+      | DTA | Duty to Accommodate | PMA | Obligation de prendre des mesures d'adaptation |
+      | DTEA | Departmental Travel Expense Account | CompteMFV | Compte ministériel de frais de voyage |
+      | DTEC | Departmental Travel Expense Card Carte | MFV | Carte ministérielle de frais de voyage |
+      | DW | Digital Workspace | ETN | Environnement de travail numérique |
+      | DW | Digital Workspace (DW) | ETN | Environnement de travail numérique (ETN) |
+      | DW | DW - Training and Demo | ETN | ETN - Formation et démonstration |
+      | DW | DW Resource Centre | ETN | Centre de ressources de l'ETN |
+      | DW-ETN | DW-ETN Owners | DW-ETN | DW-ETN Propriétaires |
+      | DW-LEX | DW-LEX | ETN-LEX | ETN-LEX |
+      | EA | Executive Assistant | AE | Adjoint exécutif |
+      | EAP | Employee Assistance Program | PAE | Programme d'aide aux employés |
+      | EC | Executive Committee | CE | Conseil exécutif |
+      | ECCC | Environment and Climate Change Canada | ECCC | Environnement et Changement climatique Canada |
+      | ED | Evaluation Division (ED) | DE | Division de l'évaluation (DE) |
+      | EDI | Equity, Diversity, and Inclusion | EDI | Équité, diversité et inclusion |
+      | EE | Employment Equity | ÉE | L’équité en matière d’emploi |
+      | EEDI | Employment Equity, Diversity and Inclusion | ÉEDI | équité en matière d’emploi, de diversité et d’inclusion |
+      | EEDISC | Employment Equity, Diversity and Inclusion Steering Committee | CDEEDI | Comité directeur de l’équité en matière d’emploi, de la diversité et de l’inclusion |
+      | EGCS | Enterprise Grants and Contributions System (EGCS) | SESC | Système d'entreprise pour les subventions et contributions (SESC) |
+      | EGCS | Entreprise Grants and Contributions System | SGESC | Système de gestion pour les subventions et les contributions |
+      | EI | Employment Insurance | AE | Assurance emploi |
+      | ELC | Entity-Level Control | CNE | Contrôle au niveau de l'entité |
+      | EMB | East Memorial Building | ECE | Édifice commémoratif de l'est |
+      | EMR | Equipment Master Record | FE | Fiche d'équipement |
+      | EMT | Expense Management Tool | OGD | Outil de gestion des dépenses |
+      | ERC | Emergency Response Committee | CIU | Comité d'intervention d'urgence |
+      | ERC | Emergency Response Committee (ERC) | CGMU | Comité de gestion des mesures d’urgence (CGMU) |
+      | ES | Executive Services (ES) | SHD | Services à la haute direction (SHD) |
+      | ESDC | Employment and Social Development Canada | EDSC | Emploi et Développement social Canada |
+      | ESG | Equity Seeking Groups | GQE | Groupes en quête d’équité |
+      | EW | Eye Witness | TE | Témoin expert |
+      | FA | Functional Area | DF | Domaine fonctionnel |
+      | FAA | Financial Administration Act | LGFP | Loi sur la gestion des finances publiques |
+      | FC | Funds Commitment | EF | Engagement de fonds |
+      | FCC | Federal Court of Canada | CFC | Cour fédérale du Canada |
+      | FEW | Floor Emergency Warden | ASE | Agent de secours d'étage |
+      | FIN | Department of Finance Canada | MFC | Ministère des Finances Canada |
+      | FJA | Office of the Commissioner for Federal Judicial Affairs Canada | CMF | Commissariat à la magistrature fédérale Canada |
+      | FMA | Financial Management Advisor | CGF | Conseiller(ière) en gestion financière |
+      | FPB | Finance and Planning Branch | DGFP | Direction générale des finances et de la planification |
+      | FRC | Federal Records Centre | CFD | Centre fédéral de documents |
+      | FRMD | Finance Resources Management Division | DGRF | Division de la gestion des ressources financières |
+      | FSDA | Federal Sustainable Development Act | LFDD | Loi fédérale sur le développement durable |
+      | FSDS | Federal Sustainable Development Strategy | SFDD | Stratégie fédérale de développement durable |
+      | FSR | Financial Situation Report | RSF | Rapport de situation financière |
+      | FSWEP | Federal Student Work Experience Program | PFETÉ | Programme federal d’expérience de travail étudiant |
+      | FTE | Full-Time Equivalent | ETP | Équivalent temps plein |
+      | FVS | Federal Victim Strategy | SFV | Stratégie fédérale d’aide aux victimes |
+      | FY | Fiscal Year | AF | Année financière |
+      | FYA | For your action | PVA | Pour votre action |
+      | FYI | For your information | ATI | À titre d'information |
+      | G&C | Grants and Contributions | S&C | Subventions et contributions |
+      | GAC | Global Affairs Canada | AMC | Affaires mondiales Canada |
+      | GBA+ | Gender-based Analysis Plus | ACS+ | Analyse comparative entre les sexes plus |
+      | GC | Government of Canada | GC | Gouvernement du Canada |
+      | GCIMS | Grants and Contributions Information Management System | SGISC | Système de gestion de l'information sur les subventions et les contributions |
+      | GCSI | Government of Canada Secret Infrastructure | ISGC | Infrastructure secrète du gouvernement du Canada |
+      | GCWCC | Government of Canada Workplace Charitable Campaign | CCMTGC | Campagne de charité en milieu de travail du gouvernement du Canada |
+      | GEDS | Government Electronic Director Services | SAGE | Services d'annuaires gouvernmentaux électroniques |
+      | GHG(s) | Greenhouse Gas | GES | Gaz à effet de serre |
+      | GIF | Global Indicator Framework | CMI | Cadre mondial d’indicateurs |
+      | GL | General Ledger (Accounting term) | GL | Grand Livre (Terme de la comptabilité) |
+      | GoC | Government of Canada | GC | Gouvernement du Canada |
+      | GOSA | Governance Oversight and Strategic Advice | CSSG | Conseil et surveillance stratégiques de la gouvernance |
+      | GR | Goods Receipt | EM | Entrée de marchandise |
+      | GST | Goods and Services Tax | TPS | Taxe sur les produits et services |
+      | GWAC | Government-wide chart of accounts for Canada | PCEAF | Plan comptable à l'échelle de l'administration fédérale |
+      | HO | Head Office | BC | Bureau chef |
+      | HPV | Harassment and Violence Prevention | PHV | Prévention du harcèlement et de la violence |
+      | HQ | Headquarters | QG | Quartier général |
+      | HR | Human Resources | RH | Ressources humaines |
+      | HRA | Human Resources Advisor | CRH | Conseiller en ressources humaines |
+      | HRB | Human Resources Branch | DGRH | Direction générale des ressources humaines |
+      | HRLS | Human Rights Law Section (HRLS) | SDP | Section des droits de la personne (SDP) |
+      | HRMS | Human Resources Management System | SGRH | Système de gestion des ressources humaines |
+      | HRSDC | Human Resources and Social Development Canada | RHDSC | Ressources humaines et developpement social Canada |
+      | HST | Harmonized Sales Tax | TVH | Taxe de vente harmonisée |
+      | IAEP | Integrated Audit and Evaluation Plan | PAEI | Plan d’audit et évaluation intégré |
+      | IAES | Internal Audit and Evaluation Sector | SAIE | Secteur d’audit interne et d’évaluation |
+      | IAS | Internal Audit Services (IAS) | SVI | Services de vérification interne (SVI) |
+      | IBD | Indigenous business development | DEA | Développement des entreprises autochtones |
+      | ICFM | Internal Control over Financial Management | CIGF | Contrôle interne en matière de gestion financière |
+      | ICFR | Internal Control over Financial Reporting | CIRF | Contrôle interne en matière de rapports financiers |
+      | ICMS | Informal Conflict Management System | SGIC | Système de gestion informelle des conflits |
+      | IDPD | International Day for Persons with Disabilities | JIPH   | Journée internationale des personnes en situation de handicap |
+      | IDTC | Individual Designated Travel Card | CIV | Carte individuelle de voyage |
+      | IFA | Integrated Forward Agenda |  | L'ordre du jour à venir intégré |
+      | IFMS | Integrated Financial and Materiel System Division (IFMS) | DSIFM | Division du système intégré des finances et du matériel  (DSIFM) |
+      | IFMS | Integrated Financial Management System | SIFM | Sytème intégré des finances et du matériel |
+      | IGO | Investment Governance & Oversight | GSI | Gouvernance & surveillance des investissements |
+      | IJS | Indigenous Justice Strategy | SJA | Stratégie en matière de justice autochtones |
+      | IL | Innovate Law (IL) | DDL | Droit de l'innovation (DDL) |
+      | ILD | Immigration Law Division (ILD) | DDI | Division du droit de l'immigration (DDI) |
+      | ILP | Individual Learning Plan | PAI | Plan d'apprentissage individuel |
+      | IM | IM - ATIP | GI | GI - Accès à l'information et protection des renseignements personnels |
+      | IM | IM - Forms Management | GI | GI - Gestion des formulaires |
+      | IM | IM - General | GI | GI - Général |
+      | IM | IM - Library Services | GI | GI - Services de bibliothèque |
+      | IM | IM - Mail and Messenger Services | GI | GI - Services de courrier et de messagerie |
+      | IM | IM - Records Management Services | GI | GI - Services de gestion des dossiers |
+      | IM | Information Management | GI | Gestion de l'information |
+      | IMSAT | Integrated Management Sector Activites Tracker | TIASG | Traqueur intégré des activités du secteur de la gestion |
+      | IMWG | Information Management Working Group | GTGI | Groupe de travail sur la gestion de l'information |
+      | IO | Internal Order | OI | Order interne |
+      | IP | Intellectual Property | PI | Propriété intellectuelle |
+      | IR | Invoice Receipt | RF | Réception de la facture |
+      | IRCAs | Impact of Race and Culture Assessments | ÉIRC | Évaluation de l’impact des races et de la culture |
+      | IRCC | Immigration, Refugees and Citizenship Canada | IRCC | Immigration Réfugiés et Citoyenneté Canada |
+      | IRIMS | Integrated Recorded Information Mgmt System | ISGRC | Système intégré de gestion des renseignements consignés |
+      | IRRP | Indigenous Rights and Relations Portfolio | PDRA | Portefeuille des droits et relations autochtones |
+      | IS | Information Services (IS) | SI | Services d'information (SI) |
+      | IS | Interdepartmental Settlement | RI | Règlement interministériel |
+      | IS ORG | Interdepartmental Settlement Organization Code  | RI ORG | Règlement interministériel code d’organisation |
+      | IS ORG | Interdepartmental Settlement Organization Code   | RI ORG | Règlement interministériel code d’organisation |
+      | ISB | Information Solutions Branch | DGSI | Direction générale des solutions d'information |
+      | ISB | ISB Administrative Services | DGSI | Services administratifs de la DGSI |
+      | ISC | Integrated Security Committee | CSI | Comité de sécurité intégré |
+      | IT | Information Technology | TI | Technologie de l'information |
+      | IT | IT - General | TI | TI - Général |
+      | IT | IT - IT Security | TI | TI - Sécurité des TI |
+      | IT | IT - Network Management | TI | TI - Gestion du réseau |
+      | IT | IT - Technical Support | TI | TI - Soutien technique |
+      | ITA | International Travel Agreements | ATI | Accords internationaux de voyage |
+      | ITGC | Information Technology General Control | CGTI | Contrôle général des technologies de l'information  |
+      | ITR | Individual Travel Request | DVI | Demande de voyage individuelle |
+      | JAS | Judicial Affairs Section (JAS) | SAJ | Section des affaires juridiques (SAJ) |
+      | JEOC | Justice Emergency Operations Centre | COUJ | Centre des opérations d'urgence de Justice |
+      | JLSHC | Justice Legal Services Heads Committee | CCSJJ | Comité des chefs des services juridiques de Justice |
+      | JMCN | JMCN Announcements |  | Annonces du Réseau |
+      | JMCN | JMCN Documents |  | Documents du Réseau |
+      | JMCN | JMCN Steering Committee |  | Comité directeur du Réseau |
+      | JMCN | Justice Managers' Community Network | RCGJ | Réseau communautaire des gestionnaires de Justice |
+      | JPIP | Justice Partnership and Innovation Program | PJPI | Programme juridique de partenariats et d’innovation |
+      | JSDS | Justice Sustainable Development Strategy | SDDMJ | Stratégie de développement durable du ministère de la Justice |
+      | JUS | JUS Strategic Planning | MJ | Planifications stratégiques du MJ |
+      | JUS | Justice Canada | JUS | Justice Canada |
+      | JV | Journal Voucher | PJ | Pièce de journal |
+      | KPI | Key Performance Indicators | ICP | Indicateurs clés de performance |
+      | LAN | Local Area Network | RLE | Réseau local d'entreprise |
+      | LB | Litigation Branch (LB) | DGC | Direction générale du contentieux (DGC) |
+      | LBI | Litigation Billing Information | ILF | Information sur les litiges de facturation |
+      | LCC | Law Commission of Canada | CDC | Commission du droit du Canada |
+      | LCMS | Legal Case Management System (LEX) | SGDJ | Solution de gestion des dossiers juridiques (LEX) |
+      | LCMSC | Legal Case Management Solution Steering Committee | CDSGSJ | Comité directeur de la solution pour la gestion des dossiers juridiques |
+      | LEED® | Leadership in Energy and Environmental Design | LEED® | Leadership in Energy and Environmental Design |
+      | LEP | Legal Excellence Program | PED | Programme d’excellence en droit |
+      | LOO | Letter of offer | LO | Lettre d'offre |
+      | LPB | Legal Practices Branch | DGPJ | Direction générale des pratiques juridiques |
+      | LPM | Legal Project Management (LPM) | GPJ | Gestion de projet juridique (GPJ) |
+      | LRM | Legal Risk Management | GRJ | Gestion des risques juridiques |
+      | LSB | Legislative Services Branch (LSB) | DGSL | Direction générale des services législatifs (DGSL) |
+      | MAF | Management Accountability Framework | CRG | Cadre de responsabilisation de gestion |
+      | MC | Management Committee | CG | Comité de la gestion |
+      | MFD | Multi-Function Device | PMF | Périphérique multifonction |
+      | MHAP | Mental Health Action Plan | PASM | Plan d'action en santé mentale |
+      | MIS | Management Information Session | SIG | Séance d’information pour les gestionnaires |
+      | MM | MM - Acquisition | GM | GM - Acquisition |
+      | MM | MM - Assessement and Planning | GM | GM - Évaluation et planification |
+      | MM | MM - Disposition | GM | GM - Disposition |
+      | MM | MM - General | GM | GM - Général |
+      | MM | MM - Ops Maintenance Repair | GM | GM - Réparation de maintenance opérationnelle |
+      | MOU | Memorandum of Understanding | PE | Protocole d'entente |
+      | MRAP | Management Response and Action Plan | RDPA | Réponse de la direction et plan d'action |
+      | MS | Management Sector | SG | Secteur de la gestion |
+      | MS | Ministerial Secretariat | SM | Secrétariat ministériel |
+      | NAAW | National AccessAbility Week  | JIPH | Journée internationale des personnes en situation de handicap |
+      | NAD | National Accommodations Division | DNPL | Division nationale de planification des locaux |
+      | NCR | National Capital Region | RCN | Région de la capitale nationale |
+      | NHQ | National Headquarters (Ottawa) | AC | Administration Centrale (Ottawa) |
+      | NIC | National Informatics Committee | CNI | Comité national de l'informatique |
+      | NJC | National Joint Council | CNM | Conseil national mixte |
+      | NLCT | National Litigation Coordination Team (NLCT) | ENCL | Équipe nationale de coordination des litiges (ENCL) |
+      | NLS | National Litigation Sector | SNC | Secteur national du contentieux |
+      | NLS | NLS Board of directors |  | Conseil d'administration du secteur national du contentieux |
+      | NMSO | National Master Standing Offer | OCPN | Offre à commande principale et nationale |
+      | NPSW | National Public Service Week | SNFP | Semaine nationale de la fonction publique |
+      | NRO | Northern Regional Office | BRRN | Bureau régional des régions du Nord |
+      | O&M | Operations and Maintenance | E&M | Exploitation et maintenance |
+      | OAG | Office of the Auditor General | BVG | Bureau du vérificateur général |
+      | OBT | Online Booking Tool | OREL | Outil de réservation en ligne |
+      | OCHRO | Office of the Chief Human Resources Officer | BDPRH | Bureau de la dirigeante principale des ressources humaines |
+      | OGD | Other Government Department | AMG | Autre ministère gouvernemental |
+      | OGP | Open Government Partnership | PGO | Partenariat pour un Gouvernement ouvert |
+      | OHOC | Official Hospitality Outside Canada | AOE | Accueil officiel à l'étranger |
+      | OHS | Occupational Health and Safety | SST | Services de santé au travail |
+      | OIC | Order in Council |  | Décrets |
+      | OLAD | Official Languages Directorate (OLAD) | DLO | Direction des langues officielles (DLO) |
+      | Ombuds | Ombud and Informal Resolution Services Office | Ombuds | Bureau de l’ombuds et des services de résolution informelle |
+      | ORO | Ontario Regional Office | BRO | Bureau regional de l’Ontario |
+      | ORO | ORO Relocation Project | BRO | BRO - Projet de relocalisation |
+      | OSI | Office of the special interlocutor | BIS | Bureau de l'interlocutrice spéciale |
+      | PAYE | Payments at Year End | CAFE | Créditeurs à la fin de l'exercice |
+      | PC | Policy Committee | CP | Comité des politiques |
+      | PCC | People and Culture Committee  | CPC | comité sur les personnes et la culture |
+      | PCO | Privy Council Office Legal Services Sector | BCP | Secteur des services juridiques du Bureau du Conseil privé |
+      | PCVI | Policy Centre for Victim Issues | CPV | Centre de la politiques concernant les victimes |
+      | PICS | Policy Integration and Coordination Section | SICP | Section de l’intégration et de la coordination de la politique |
+      | PIN | Personal Information Number | NIP | Numéro d'identification personnel |
+      | PLC | Process Level Controls | CNP | Contrôles au niveau des processus |
+      | PLLSS | Public Law and Legislative Services Sector | SDPSL | Secteur du droit public et des services législatifs |
+      | PMA | Performance Management Agreement | EGR | Entente de gestion du rendement |
+      | PMEC | Performance Measurement and Evaluation Committee | CMRE | Comité de la mesure du rendement et de l’évaluation |
+      | PMO | Prime Minister's Office | BPM | Bureau du premier ministre |
+      | PMTM | Performance Management and Talent Management  | GRGT | Gestion du rendement et des talents  |
+      | PO | Purchase Order | BCP | Bon de commande |
+      | PPC | Policy Priorities Committee | CPOP | Comité des priorités d’orientation politique |
+      | PPD | Priorities and Planning Division (PPD) | DPP | Division des priorités et de la planification (DPP) |
+      | PPE | PPE Litigation 5 Billion Dollar Claim | EPI | Litige relatif aux EPI : réclamation de 5 milliards de dollars |
+      | PPRB | Project and Procurement Review Board | CCPA | Comité consultatif pour les projets et les achats |
+      | PPSC | Public Prosecution Service of Canada | SPPC | Services des poursuites pénales du Canada |
+      | PR | Purchase Requisition | DA | Demande d'achat |
+      | PRB | Procurement Review Board | CCA | Comité consultatif pour les achats |
+      | PREA | Performance Review and Employee Appraisal | REER | Rapport d'évaluation et étude du rendement |
+      | PRI | Personal Record Identifer | CIDP | Code d'identification de dossier personnel |
+      | PRO | Prairies Regional Office | BRP | Bureau régional des prairies |
+      | PRO | PRO Accommodations Project | BRP | BRP - Projet de déménagement |
+      | PS | Policy Sector | SP | Secteur des politiques |
+      | PSAC | Public Service Alliance of Canada | AFPC | Alliance de la Fonction publique du Canada |
+      | PSC | Paralegal Services Centre (PSC) | CSP | Centre de services de parajuristes (CSP) |
+      | PSD | Tax Law Services - Atlantic Regional Office | BRA | Portefeuille des services du droit fiscal (PSD)-BRA |
+      | PSDI | British Columbia Regional Office - PSDI | SPDI | Bureau de la Colombie-Britannique - SPDI |
+      | PSDI | Public Safety, Defence and Immigration Portfolio | SPDI | Portefeuille de la Sécurité publique, de la Défense et de l’Immigration |
+      | PSES | Public Service Employee Survey | SAFF | Sondage auprès des fonctionnaires fédéraux |
+      | PSMAC | Public Service Management Advisory Committee | CCGFP | Comité consultatif sur la gestion de la fonction publique |
+      | PSPC | Public Services and Procurement Canada | SPAC | Services Publics et Approvisionnement Canada |
+      | PSPM | Public Service Performance Management | GRFP | Gestion du rendement de la fonction publique |
+      | PV | Payment Voucher (Accounting term) | BP | Bon de paiement (terme de finance) |
+      | PWGSC | Public Works and Government Services Canada | TPSCG | Travaux publics et Service gouvernementaux du Canada |
+      | Q&A | Questions and Answers | Q&R | Questions et réponses |
+      | QFR | Quarterly Financial Report | RFT | Rapport financier trimestriel |
+      | QRO | Immigration Law Directorate - QRO | BRQ | Direction du droit de l’immigration - BRQ |
+      | QRO | QRO | BRQ | BRQ |
+      | QRO | QRO Management Committee | BRQ | Comité de Gestion BRQ |
+      | QRO | Québec Regional Office | BRQ | Bureau regional du Québec |
+      | QRO | Regulatory Law Directorate - QRO | BRQ | Direction du Droit Réglementaire - BRQ |
+      | QRO | Tax Law Directorate – QRO | BRQ | Direction du litige fiscal – BRQ |
+      | RA | Risk Assessment | GR | Gestion du risque |
+      | RAISO | Regional Accommodation and Integrated Security Operations | ORSIPL | Opérations régionales de sécurité intégrée et de planification des locaux |
+      | RAYE | Receivable at Year-End | CAFÉ | Créditeurs à la fin de l’exercice |
+      | RBA | Responsible Building Authority | ARI | Autorité responsable de l'immeuble |
+      | RCM | Responsible Centre Manager | GCR | Gestionnaire de centre de responsabilité |
+      | RCMP | Royal Canadian Mounted Police | GRC | Gendarmerie royale du Canada |
+      | RDF | Regional Director of Finance | DGF | Directeur régional des finances |
+      | RDG | Regional Director General | DGR | Directeur générale régional |
+      | RDGO | Regional Director General’s Office | BDGR | Bureau du directeur général régional |
+      | RIAB | Resource and Investment Advisory Board | CCRI | Comité consultatif des ressources et de l’investissement |
+      | RIMS | Records Information Management System | SGRC | Système de gestion des renseignements consignés |
+      | RMD | Resource Management Division | DGS | Division de la gestion des ressources |
+      | RP | RP - Acquisition |  | Immobiliers - Acquisition |
+      | RP | RP - Assessement and Planning |  | Immobiliers - Évaluation et planification |
+      | RP | RP - Disposition |  | Immobiliers - Disposition |
+      | RP | RP - General |  | Immobiliers - Général |
+      | RP | RP - Ops Maintenance Repair |  | Immobiliers - Exploitation, entretien et utilisation |
+      | RPMC | Resource Planning and Management Committee  | CPGR | Comité de planification et de gestion des ressources  |
+      | RSD | Research and Statistics Division | DRS | Division de la recherche et de la statistique |
+      | SADM | Senior Assistant Deputy Minister | SMAP | Sous-ministre adjoint principal |
+      | SAT | St-Andrew's Tour 275 Sparks Street | TSA | Tour St-Andrew's |
+      | SCC | Specimen Signature Card | CSS | Carte de spécimen de signature |
+      | SCC | Supreme Court of Canada | CSC | Cour suprême du Canada |
+      | SD | Sustainable Development | DD | Développement durable |
+      | SDG | Sustainable Development Goals | ODD | Objectifs de développement durable |
+      | SDM | Senior Departmental Managers | CSM | Cadre supérieur du ministère |
+      | SDS | Sustainable Development Secretariat | SDD | Secrétariat du développement durable |
+      | SDSC | Sustainable Development Steering Committee | CDDD | Comité directeur du développement durable |
+      | SEA | Strategic Environmental Assessment | EES | Évaluation environnementale Stratégique |
+      | SEEA | Strategic Environmental and Economic Assessment | EEES | Évaluation environnementale et économique stratégique |
+      | SEMC | Strategic Emergency Management Committee | CSGU | Comité stratégique sur la gestion des urgences |
+      | SEMP | Strategic Emergency Management Plan | PSGU | Plan stratégique de gestion des urgences |
+      | SFT | Salary Forecasting Tool | OPS | Outil de prévisions salariales |
+      | SI | Special interlocutor | IS | Interlocutrice spécial |
+      | SIR | Security Incident Report | RIS | Rapport d'incident de sécurité |
+      | SLC | Service Level Commitments | ENS | Engagements de niveau de service |
+      | SLE | Second Language Evaluation | ELS | Évaluation de la langue seconde |
+      | SMB | Senior Management Board | CGS | Conseil de gestion des services |
+      | SMC | Sector Management Committee | CGS | Comité de gestion du secteur |
+      | SOA | Standing Offer Agreement | COG | Convention d'offre à commandes |
+      | SOD | Strategic Operations Division | DOS | Division des opérations stratégiques |
+      | SOGIE | Sexual orientation or gender identity or expression | OSIGEG | Orientations sexuelles, identités de genre et expressions de genre |
+      | SoMC | Statement of Merit Criteria | ECM | Énoncé des critères de mérite |
+      | SOP | Standard Operational Procedure | PON | Procédure opératoire normalisée |
+      | SOW | Statement of work | EDT | Énoncé de travail |
+      | SPS | Standard Payment System | SNP | Système normalisé de paiement  |
+      | SRB | SRB Class Action |  | Prestation de retraite supplémentaire recours collectif |
+      | SRCD | Strategic Recruitment and Career Development | RSDC | Recrutement stratégique et développement de carrière |
+      | SRCL | Security Requirements Checklist | LVERS | Liste de vérification des exigences relatives à la sécurité |
+      | SSC | Shared Services Canada | SPC | Services Partagés Canada |
+      | SSEMD | Safety, Security and Emergency Management Division | DSSGU | Division de la sûreté, de la sécurité et de la gestion des urgences |
+      | SSEPD | Safety, Security and Emergency Preparedness Division  | DSSGU | Division de la sûreté, de la sécurité et de la gestion des urgences |
+      | STS | Shared Travel Services | SVP | Services de voyage partagés |
+      | TA | Trackable Asset | AT | Actif traçable |
+      | TAN | Travel Authorization Number | NAV | Numéro d'autorisation de voyage |
+      | TBS | Treasury Board Secretariat | SCT | Secrétariat du Conseil du Trésor |
+      | TCA | Tangible Capital Asset | IC | Immobilisation corporelle |
+      | TER | Travel Expense Reports | RDV | Rapports de dépenses de voyage |
+      | THC | Travel, Hospitality and Conference | VAC | Voyages, accueil et conférences |
+      | THCEE | Travel, Hospitality, Conference and Event Expenditures | DVACE | Dépenses de voyages, d'accueil, de conférences et d'événements |
+      | TIN | Travel Identification Number | NIV | Numéro d'identification du voyageur |
+      | TLS | Tax Law Services Portfolio | PSDF | Portefeuille des services du droit fiscal |
+      | TOC | Technical Officer Committee | CAT | Comité d'agent technique |
+      | ToRs | Terms of Reference |  | Mandat |
+      | TRA | Threat Risk Assessment | EMR | Évaluation de la menace et des risques |
+      | TRAC | Travel, Relocation and Acquisition Card Unit | VRAC | Unité des voyages, réinstallations et carte d'achat |
+      | TSD | Technology Services Division | DST | Division des services techniques |
+      | UAV | UAV / Drones Legal Issues Working Group | UAV | Groupe de travail sur les questions juridiques des UAV/drones |
+      | UN | United Nations | NU | Nations unies |
+      | USC | Universal Classification System | NGC | Norme générale de classification |
+      | WD | Work description | DT | Description de taches |
+      |  | AAP – Law Management Committee Secretariat |  | PAA - Secrétariat du comité de gestion de la loi |
+      |  | Aboriginal Law Directorate |  | Direction du droit autochtone |
+      |  | Accessibility plan |  | Plan sur l'accessibilité |
+      |  | Accessibility Plan team |  | Équipe du Plan sur l'accessibilité |
+      |  | Action Items |  | Les éléments d'action ou les actions |
+      |  | Admin Hub |  | Pôle Admin |
+      |  | Administrator |  | Administrateur ou Administratrice |
+      |  | Advisory Committee on Indigenous Peoples |  | Comité consultatif des Autochtones |
+      |  | Advisory Committee on Persons with Disabilities |  | Comité consultatif sur les personnes handicapées |
+      |  | Advisory Committee on Visible Minorities |  | Comité consultatif sur les minorités visibles |
+      |  | Advisory Committee on Women at Justice |  | Comité consultatif des femmes à Justice |
+      |  | Agenda |  | Ordre du jour |
+      |  | All Promoted Links |  | Tous les liens promus |
+      |  | Annex |  | Annexe |
+      |  | As time permits |  | Si le temps le permet |
+      |  | Attendance |  | Liste de présence |
+      |  | Branch |  | Direction générale |
+      |  | Branch Documents |  | Documents du secteur |
+      |  | Briefing |  | Information en bref |
+      |  | Canada School of Public Service |  | École de la fonction publique du Canada |
+      |  | Chair |  | Président ou Présidente |
+      |  | Civil Litigation Directorate |  | Direction du litige civil |
+      |  | Co-chair |  | Co-président ou Co-présidente |
+      |  | Coordinator |  | Coordinateur ou Coordinatrice |
+      |  | Corporate events |  | Évènements corporatifs |
+      |  | Decision |  | Décision |
+      |  | Demo |  | Demonstration |
+      |  | Department of Justice |  | ministère de la Justice Canada |
+      |  | Digital Workspace Site Administrator’s Community |  | Communauté des administrateurs de sites de l’ETN |
+      |  | Digital Workspace Site Administrators Forum |  | Forum des administrateurs de sites de l'environnement de travail numérique |
+      |  | Disclosure |  | Divulgation |
+      |  | Doc. Subject |  | Sujet du document |
+      |  | Document set |  | ensemble de documents |
+      |  | Document sets |  | Ensembles de documents |
+      |  | Drones Legal Issues Working Group |  | Groupe de travail sur les questions juridiques relatives aux drones |
+      |  | eDiscovery and Litigation Support |  | Preuve électronique et soutien aux litiges |
+      |  | Education Costs |  | Frais d'études |
+      |  | EE Advisory Committees |  | Comités consultatifs sur l'ÉE |
+      |  | Emergencies Act and Convoy-Related Actions |  | Loi sur les situations d'urgence et actions liées aux convois |
+      |  | Employment and Social Development Canada, Legal Services |  | Services juridiques, Emploi et développement social Canada |
+      |  | Employment Equity Advisory Committees |  | Comités consultatifs d’équité en matière d’emploi |
+      |  | Employment Equity Steering Committee |  | Comité directeur de l’équité en matière d’emploi |
+      |  | Employment Equity, Diversity and Inclusion Steering Committee |  | Comité directeur de l'équité en matière d'emploi, de la diversité et de l'inclusion |
+      |  | Expression of interest |  | Avis d’intérêt |
+      |  | Family and Children’s Law Team (family law) |  | Équipe du droit de la famille et des enfants (droit de la famille) |
+      |  | Family and Children’s Law Team (support enforcement) |  | Équipe du droit de la famille et des enfants (exécution des pensions alimentaires) |
+      |  | Family Law and Youth Justice Policy Section |  | Section de la politique en matière de droit de la famille et de la justice pour les jeunes |
+      |  | Family Law Assistance Service |  | Services d'aide au droit familial |
+      |  | Federal Court of Appeal |  | Cour d'appel fédérale |
+      |  | Forward Agenda |  | Ordre du jour à venir |
+      |  | Governance Tracker |  | Outil de suivi de la gouvernance |
+      |  | Guest |  | Invité ou Invitée |
+      |  | Immigration Law Division - Ontario Regional Office |  | BRO - Division du droit de l'immigration (DDI) |
+      |  | In Brief |  | En Bref |
+      |  | Indigenous Advisory Counsel |  | Conseil Consultatif Autochtone |
+      |  | Indigenous Justice Sub-Hub |  | Sub-Hub de la Justice applicable aux autochtones |
+      |  | Information Management and Information Technology |  | Gestion de l'information et technologie de l'information |
+      |  | Innovations, Analysis and Integration Directorate |  | Direction des innovations, de l'analyse et de l'intégration |
+      |  | Jurisprudence and Research |  | Jurisprudence et recherches |
+      |  | Justice Communications Advisory Group |  | Groupe consultatif sur les communications du ministère de la Justice du Canada |
+      |  | Justice Managers' Community Network |  | Réseau de la collectivité des gestionnaires du ministère de la Justice |
+      |  | Justice Service Desk Project |  | Projet du centre de services du MJC |
+      |  | Justice Training Calendar |  | Calendrier de formation de Justice |
+      |  | Justipedia |  | Justipédia |
+      |  | JustMe |  | JusteMoi |
+      |  | JustMe accounts |  | Comptes JusteMoi |
+      |  | Labour Relations |  | Relations de travail |
+      |  | Law Management Committee Secretariat |  | Secrétariat du comité sur la gestion des lois |
+      |  | Legal Affairs Committee |  | Comité des affaires juridiques |
+      |  | Legal Aid Directorate |  | Direction de l'aide juridique |
+      |  | Legal Developments and Briefings |  | Développements et informations juridiques |
+      |  | Legal Issues Coordination Group |  | Groupe de coordination des questions juridiques |
+      |  | Legal Practices Branch |  | Direction générale de la politique des pratiques juridiques |
+      |  | Legal Practices Policy Division |  | Division de la politique des pratiques juridiques |
+      |  | Legal Practices Sector |  | Secteur des pratiques juridiques |
+      |  | LEX Author |  | Auteur LEX |
+      |  | LEX Document |  | Document LEX |
+      |  | LEX Excel |  | Excel LEX |
+      |  | LEX File Number |  | Numéro de dossier LEX |
+      |  | LEX Link |  | Lien de LEX |
+      |  | LEX PowerPoint |  | PowerPoint LEX |
+      |  | Lexicon |  | Lexique |
+      |  | Litigation Readiness - Working Site |  | Site de travail pour la préparation de contentieux |
+      |  | Management and Oversight Document |  | Document Word gestion et surveillance |
+      |  | Management and Oversight Excel |  | Document Excel gestion et surveillance |
+      |  | Management and Oversight PowerPoint |  | Document PowerPoint gestion et surveillance |
+      |  | Management Sector |  | Secteur de la gestion |
+      |  | Manager |  | Gestionnaire |
+      |  | Manion Lectures (Canada School of Public Service) |  | Conférences Manion (École de la fonction publique du Canada) |
+      |  | Materiel Mgmt and Real Property |  | Gestion du matériel et bien immobilier |
+      |  | Meeting Document Set |  | Ensemble de documents - Rencontres |
+      |  | Meeting Documents |  | Documents des rencontres |
+      |  | Microsoft Loop |  | Microsoft Loop |
+      |  | MigrationNote |  | Note de migration |
+      |  | Ministerial Secretariat |  | Secrétariat ministériel |
+      |  | MS Let's Talk |  | Réunion SG Parlons-nous |
+      |  | Multiculturalism Champion |  | Champion du multiculturalisme |
+      |  | Multilingual translation - term store |  | Traductions multilingues - magasin de termes |
+      |  | Nation 2 Nation Taskforce |  | Groupe de travail Nation à Nation |
+      |  | National Health and Safety Policy Committee |  | Comité national des politiques de santé et sécurité |
+      |  | National Managers' Community |  | Communauté nationale des gestionnaires |
+      |  | Notarial Affairs Directorate |  | Direction des affaires notariales |
+      |  | Observer |  | Observateur ou Observatrice |
+      |  | Occupational Health and Safety |  | Santé et sécurité au travail |
+      |  | Occupational Safety and Health |  | Sécurité et santé au travail |
+      |  | Office Accommodation |  | Locaux de bureau |
+      |  | Office of the Assistant Deputy Minister and Chief Financial Officer |  | Bureau du sous-ministre adjoint(e) et dirigeant(e) principal(e) des finances |
+      |  | Office of the Director General and Deputy Chief Financial Officer |  | Bureau du directeur général et directeur financier adjoint |
+      |  | Office of the Senior General Counsel |  | Bureau de l’avocat(e) général(e) principal(e) |
+      |  | Onboarding and Orientation for New Employees |  | Intégration et orientation des nouveaux employés |
+      |  | Open Government Advisory Group |  | Groupe consultatif sur le gouvernement ouvert |
+      |  | Operations Document Set |  | Ensemble de documents des opérations |
+      |  | Performance Measurement and Evaluation Committee |  | Comité de la mesure du rendement et de l’évaluation |
+      |  | Performance Measurement Framework |  | Cadre de mesure du rendement |
+      |  | Persons with Disabilities |  | Personnes en situation de handicap |
+      |  | Pillar leads |  | responsables de piliers |
+      |  | Policy Priorities Committee |  | Comité des priorités politiques |
+      |  | Policy Sector Communications Hub |  | Portail de communications du secteur des politiques |
+      |  | Prairie Exchange |  | Échange des Prairies |
+      |  | Presentation |  | Présentation |
+      |  | Presenter |  | Présentateur ou Présentatrice |
+      |  | Professional Development Division |  | Division du développement professionnel |
+      |  | Programs Branch |  | Direction générale des programmes |
+      |  | Regulatory Law Directorate Management Committee |  | Comité de gestion de la Direction du droit réglementaire |
+      |  | Report |  | Rapport |
+      |  | Results-Based Management and Service Delivery |  | Gestion axée sur les résultats et prestation des services |
+      |  | Retention period - Disposition of information - GCDocs |  | Période de rétention - Disposition d'information - GCDocs |
+      |  | Roberts Bank Terminal 2 Project |  | Projet du Terminal 2 à Roberts Bank |
+      |  | Secretariat |  | Secrétariat |
+      |  | Sector input |  | contributions sectorielles |
+      |  | Sector Management Committee |  | Comité de gestion du secteur |
+      |  | Security Training and Awareness |  | Formation et sensibilisation en matière de sécurité |
+      |  | Senior Associate Deputy Ministers Office Administrators |  | Administrateurs principaux du bureau des sous-ministres délégués |
+      |  | Service Desk Team |  | Équipe du Centre de Services |
+      |  | Staffing |  | Dotation |
+      |  | Stakeholder |  | Intervenants |
+      |  | Steering Committee |  | Comité directeur |
+      |  | Threat Risk Assessment Program and Standard |  | Programme et cadre d'évaluation des menaces et des risques |
+      |  | Values and ethics |  | Valeurs et éthique |
+      |  | Versioning |  | Versionnement |
+      |  | Vice-chair |  | Vice-Président ou Vice-Présidente |
+      |  | Wellness Committee |  | Comité Mieux-être |
+      |  | Wellness Program |  | Programme du mieux-être |
+      |  | Workload Improvement Network |  | Réseau d'amélioration de la charge de travail |
+      |  | Workplace Branch |  | Direction générale du milieu de travail |
+      |  | Workplace Health and Safety Committee |  | Comité Santé et Sécurité au travail |
+
 
 # The following overrides the English default. Only options that are different are needed.
 default_fr:

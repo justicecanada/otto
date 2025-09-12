@@ -3,7 +3,9 @@
      {% if swap %}hx-swap-oob="true"{% endif %}>
   <div class="px-3 mt-2">
     <label class="col-form-label col-form-label-sm"
-           for="id_translation_glossary">{% trans "Glossary CSV (optional)" %}</label>
+           for="id_translation_glossary">
+      {% trans "Glossary CSV" %} <span class="text-muted">{% trans "(optional, file translation only)" %}</span>
+    </label>
     <button class="p-0 border-0 bg-transparent"
             type="button"
             data-bs-toggle="tooltip"

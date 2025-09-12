@@ -189,7 +189,8 @@ REASONING_EFFORT_CHOICES = [
 TRANSLATE_MODEL_CHOICES = [
     ("azure_custom", _("Azure Translator - JUS custom")),
     ("azure", _("Azure Translator - standard")),
-    ("gpt", _("GPT-4.1-mini")),
+    ("gpt-4.1-mini", _("GPT-4.1-mini")),
+    ("gpt-4.1", _("GPT-4.1")),
 ]
 
 
@@ -237,6 +238,7 @@ class ChatOptions(models.Model):
         blank=True,
         related_name="glossary_options",
     )
+    translate_prompt = models.TextField(blank=True)
 
     # QA-specific options
     qa_model = models.CharField(max_length=255, default=DEFAULT_QA_MODEL_ID)

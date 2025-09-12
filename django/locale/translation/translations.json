@@ -5010,5 +5010,29 @@
     "(Azure file translation only) CSV file with 2 columns and no header row. Each row must consist of <em>source term</em>, <em>target term</em>. Terms are case-sensitive.": {
         "fr": "",
         "fr_auto": "(Traduction de fichiers Azure seulement) Fichier CSV avec 2 colonnes et sans ligne d’en-tête. Chaque ligne doit contenir le <em>terme source</em>, <em>le terme cible</em>. Les termes sont sensibles à la casse."
+    },
+    "GPT-4.1": {
+        "fr": "",
+        "fr_auto": "GPT-4.1"
+    },
+    "Glossary CSV (optional - file translation only)": {
+        "fr": "",
+        "fr_auto": "Glossaire CSV (optionnel - traduction de fichiers seulement)"
+    },
+    "Translate prompt": {
+        "fr": "",
+        "fr_auto": "Invite de traduction"
+    },
+    "Glossary file could not be read: {str(e)}": {
+        "fr": "",
+        "fr_auto": "Fichier glossaire impossible à lire : {str(e)}"
+    },
+    "Glossary CSV": {
+        "fr": "",
+        "fr_auto": "Glossaire CSV"
+    },
+    "(optional, file translation only)": {
+        "fr": "",
+        "fr_auto": "(optionnel, traduction de fichiers seulement)"
     }
 }
