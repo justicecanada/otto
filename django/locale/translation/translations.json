@@ -5042,5 +5042,21 @@
     "GPT-4.1-mini (no file output)": {
         "fr": "",
         "fr_auto": "GPT-4.1-mini (pas de sortie de fichier)"
+    },
+    "Azure Translator (files, long text, 20x cost)": {
+        "fr": "",
+        "fr_auto": "Azure Translator (fichiers, texte long, coût 20x)"
+    },
+    "GPT-4.1 (most steerable, 1x cost)": {
+        "fr": "",
+        "fr_auto": "GPT-4.1 (le plus orientable, coût 1x)"
+    },
+    "GPT-4.1-mini (steerable, 0.2x cost)": {
+        "fr": "",
+        "fr_auto": "GPT-4.1-mini (orientable, coût 0,2x)"
+    },
+    "Azure Translator - JUS Custom": {
+        "fr": "",
+        "fr_auto": "Azure Translator - JUS Custom"
     }
 }
