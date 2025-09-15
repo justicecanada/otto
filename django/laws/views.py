@@ -670,7 +670,10 @@ def sources_to_html(sources):
                 else None
             ),
             "headings": s.node.metadata.get("headings", None),
-            "html": md.convert(s.node.text),
+            "html": md.convert(s.node.text)
+            # .replace("<li>\n<p>", "<li>")
+            # .replace("</p>\n</li>", "</li>")
+            .replace("<ul>", "<ul style='list-style-type:none;'>"),
         }
         for s in sources
     ]
