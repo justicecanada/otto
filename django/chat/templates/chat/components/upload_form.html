@@ -11,6 +11,40 @@
 
 <script>
 (function(){
+  // Navigation guard for uploads
+  window.uploadsInProgress = false;
+  function setUploadsInProgress(state) {
+    window.uploadsInProgress = state;
+    if (state) {
+      document.addEventListener('click', navigationClickHandler, true);
+    } else {
+      document.removeEventListener('click', navigationClickHandler, true);
+    }
+  }
+  function navigationClickHandler(e) {
+    // disable monitoring when user clicks on the file upload progress bar cancel button (x button)
+    if (e.target.closest('.dff-cancel')) {
+      setUploadsInProgress(false);
+      return;
+    }
+
+    // Ignore clicks that open modals
+    if (e.target.closest('[data-bs-toggle="modal"]')) {
+      return;
+    }
+    
+    const target = e.target.closest('a[href], button[hx-get], button[hx-post], .nav-link, .list-group-item');
+    if (target && window.uploadsInProgress) {
+      e.preventDefault();
+      e.stopPropagation();
+      const confirmLeave = confirm("Uploads are still in progress. Are you sure you want to leave?");
+      if (confirmLeave) {
+        setUploadsInProgress(false);
+        target.click();
+      }
+    }
+  }
+  
   const metadata = {};
   const upload_message = document.getElementById("chat-upload-message");
   const file_input = document.getElementById("id_chat-input_file");
@@ -20,6 +54,7 @@
       return file.classList.contains("dff-upload-success") || file.classList.contains("dff-upload-fail");
     });
     if (allDone) {
+      setUploadsInProgress(false);
       // Use htmx directly instead of native form submission
       htmx.trigger(form, 'htmx:beforeRequest');
       htmx.ajax('POST', form.getAttribute('hx-post'), {
@@ -53,10 +88,16 @@
           metadataField.value = JSON.stringify(metadata);
         }
         submitUploadsIfComplete();
+        setUploadsInProgress(false);
       },
-      onError: (upload) => submitUploadsIfComplete(),
-      onDelete: (upload) => submitUploadsIfComplete(),
+      onError: (upload) => submitUploadsIfComplete() && setUploadsInProgress(false),
+      onDelete: (upload) => submitUploadsIfComplete() && setUploadsInProgress(false),
       onProgress: (bytesUploaded, bytesTotal, upload) => {
+        // Set uploads in progress when any file starts uploading
+        if (bytesUploaded > 0 && !window.uploadsInProgress) {
+          setUploadsInProgress(true);
+        }
+        
         if(bytesTotal > CHAT_MAX_UPLOAD_SIZE) {
           // Find the .dff-file which contains span.dff-filename with text `upload.name`;
           const fileElements = document.querySelectorAll('#chat-upload-form .dff-file');

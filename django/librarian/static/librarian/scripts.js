@@ -20,8 +20,19 @@ function setUploadsInProgress(state) {
 }
 
 function navigationClickHandler(e) {
-  // Only intercept clicks on navigation elements
-  const target = e.target.closest('a, button[hx-get], button[hx-post], [data-bs-toggle], .nav-link, .list-group-item');
+  // disable monitoring when user clicks on the file upload progress bar cancel button (x button)
+  if (e.target.closest('.dff-cancel')) {
+    setUploadsInProgress(false);
+    return;
+  }
+
+  // Ignore clicks that open modals
+  if (e.target.closest('[data-bs-toggle="modal"]')) {
+    return;
+  }
+
+  // intercept clicks on navigation elements
+  const target = e.target.closest('a[href], button[hx-get], button[hx-post], .nav-link, .list-group-item');
 
   if (target && uploadsInProgress) {
     e.preventDefault();
@@ -115,9 +126,10 @@ function initLibrarianUploadForm() {
           metadataField.value = JSON.stringify(metadata);
         }
         submitUploadsIfComplete();
+        setUploadsInProgress(false);
       },
-      onError: (upload) => submitUploadsIfComplete(),
-      onDelete: (upload) => submitUploadsIfComplete(),
+      onError: (upload) => submitUploadsIfComplete() && setUploadsInProgress(false),
+      onDelete: (upload) => submitUploadsIfComplete() && setUploadsInProgress(false),
       onProgress: (bytesUploaded, bytesTotal, upload) => {
         // Set uploads in progress when any file starts uploading
         if (bytesUploaded > 0 && !uploadsInProgress) {
