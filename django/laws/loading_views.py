@@ -248,6 +248,7 @@ def laws_recreate_indexes(request):
     Recreate database indexes for laws.
     """
     from django.contrib import messages
+    from django.utils.translation import gettext as _
 
     try:
         recreate_indexes()
