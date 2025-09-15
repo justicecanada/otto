@@ -3,7 +3,6 @@ from datetime import timedelta
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.utils.timezone import localtime, now
-from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
 from structlog import get_logger
