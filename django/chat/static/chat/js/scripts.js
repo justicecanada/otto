@@ -745,8 +745,7 @@ window.addEventListener("keydown", function (event) {
 });
 
 function setUploadsInProgress(state) {
-  uploadsInProgress = state;
-  if (uploadsInProgress) {
+  if (state) {
     console.log("Uploads in progress, adding click listener");
     document.addEventListener('click', navigationClickHandler, true);
   } else {

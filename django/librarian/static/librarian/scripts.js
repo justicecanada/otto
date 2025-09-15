@@ -90,10 +90,6 @@ function initLibrarianUploadForm() {
       onError: (upload) => submitUploadsIfComplete() && setUploadsInProgress(false),
       onDelete: (upload) => submitUploadsIfComplete() && setUploadsInProgress(false),
       onProgress: (bytesUploaded, bytesTotal, upload) => {
-        // Set uploads in progress when any file starts uploading
-        if (bytesUploaded > 0 && !uploadsInProgress) {
-          setUploadsInProgress(true);
-        }
 
         if (bytesTotal > LIBRARIAN_MAX_UPLOAD_SIZE) {
           // Find the .dff-file which contains span.dff-filename with text `upload.name`;
@@ -136,6 +132,9 @@ function initLibrarianUploadForm() {
     // Show the upload container
     upload_message.classList.remove("d-none");
     details_container.classList.add("d-none");
+
+    // Set uploads in progress as soon as files are selected
+    setUploadsInProgress(true);
   });
 }
 
