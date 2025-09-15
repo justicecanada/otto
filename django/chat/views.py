@@ -665,8 +665,10 @@ def chat_options(request, chat_id, action=None, preset_id=None):
         # Handle file removal for translation_glossary
         glossary_removed = False
         if request.GET.get("remove_glossary") == "1":
+            glossary_saved_file = chat_options.translation_glossary
             chat_options.translation_glossary = None
             chat_options.save(update_fields=["translation_glossary"])
+            glossary_saved_file.safe_delete()
             glossary_removed = True
 
         # Process translation_glossary file BEFORE form validation

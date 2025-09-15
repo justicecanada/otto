@@ -39,6 +39,39 @@ MODE_CHOICES = [
     ("translate", _("Translate")),
 ]
 
+QA_SCOPE_CHOICES = [
+    ("all", _("Entire library")),
+    ("data_sources", _("Selected folders")),
+    ("documents", _("Selected documents")),
+]
+
+QA_MODE_CHOICES = [
+    ("rag", _("Top excerpts")),
+    ("summarize", _("Full documents")),
+]
+
+QA_PROCESS_MODE_CHOICES = [
+    ("combined_docs", _("Combine")),
+    ("per_doc", _("Separate")),
+]
+QA_SOURCE_ORDER_CHOICES = [
+    ("score", _("Relevance score")),
+    ("reading_order", _("Reading order")),
+]
+
+REASONING_EFFORT_CHOICES = [
+    ("low", _("Low (faster, cheaper)")),
+    ("medium", _("Medium (default)")),
+    ("high", _("High (slower, more expensive)")),
+]
+
+TRANSLATE_MODEL_CHOICES = [
+    ("azure", _("Azure Translator (files, long text, 20x cost)")),
+    ("gpt-4.1", _("GPT-4.1 (most steerable, 1x cost)")),
+    ("gpt-4.1-mini", _("GPT-4.1-mini (steerable, 0.2x cost)")),
+    ("azure_custom", _("Azure Translator - JUS Custom")),
+]
+
 
 def create_chat_data_source(user, chat):
     if not user.personal_library:
@@ -158,40 +191,6 @@ class ChatOptionsManager(models.Manager):
             if request:
                 for msg in update_messages:
                     messages.info(request, msg)
-
-
-QA_SCOPE_CHOICES = [
-    ("all", _("Entire library")),
-    ("data_sources", _("Selected folders")),
-    ("documents", _("Selected documents")),
-]
-
-QA_MODE_CHOICES = [
-    ("rag", _("Top excerpts")),
-    ("summarize", _("Full documents")),
-]
-
-QA_PROCESS_MODE_CHOICES = [
-    ("combined_docs", _("Combine")),
-    ("per_doc", _("Separate")),
-]
-QA_SOURCE_ORDER_CHOICES = [
-    ("score", _("Relevance score")),
-    ("reading_order", _("Reading order")),
-]
-
-REASONING_EFFORT_CHOICES = [
-    ("low", _("Low (faster, cheaper)")),
-    ("medium", _("Medium (default)")),
-    ("high", _("High (slower, more expensive)")),
-]
-
-TRANSLATE_MODEL_CHOICES = [
-    ("azure_custom", _("Azure Translator - JUS custom")),
-    ("azure", _("Azure Translator - standard")),
-    ("gpt-4.1", _("GPT-4.1 (no file output)")),
-    ("gpt-4.1-mini", _("GPT-4.1-mini (no file output)")),
-]
 
 
 class ChatOptions(models.Model):

@@ -3,6 +3,7 @@ import os
 from urllib.parse import urlparse
 
 from django import forms
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db.models import Q
 from django.forms import ModelForm
@@ -39,6 +40,11 @@ TEMPERATURES = [
     (1.0, _("Creative")),
 ]
 LANGUAGES = [("en", _("English")), ("fr", _("French"))]
+
+if not settings.CUSTOM_TRANSLATOR_ID:
+    TRANSLATE_MODEL_CHOICES = [
+        t for t in TRANSLATE_MODEL_CHOICES if t != "azure_custom"
+    ]
 
 
 class GroupedLibraryChoiceField(forms.ModelChoiceField):

@@ -1,4 +1,5 @@
 {% load i18n %}
+{% load filters %}
 <div id="glossary-upload-fragment"
      {% if swap %}hx-swap-oob="true"{% endif %}>
   <div class="px-3 mt-2">
@@ -17,12 +18,16 @@
   </div>
   <div class="px-3">
     {% if options_form.instance.translation_glossary %}
-      <div class="d-flex small align-items-center justify-content-between gap-2 w-100">
+      <div class="d-flex small align-items-center gap-2 w-100">
         <a href="{% url 'chat:download_glossary' chat_id=chat.id %}"
-           class="btn btn-link btn-sm px-0 mx-0 text-body"
-           target="_blank">{{ options_form.instance.translation_glossary.file.name|default:"glossary.csv" }}</a>
+           class="btn btn-link btn-sm px-0 mx-0 text-body text-truncate"
+           style="flex: 1;
+                  min-width: 0;
+                  text-align: left"
+           target="_blank"
+           title="{{ options_form.instance.translation_glossary.file.name|basename|default:'glossary.csv' }}">{{ options_form.instance.translation_glossary.file.name|basename|default:"glossary.csv" }}</a>
         <button type="button"
-                class="btn btn-sm btn-outline-dark"
+                class="btn btn-sm btn-outline-dark flex-shrink-0"
                 hx-post="{% url 'chat:chat_options' chat_id=chat.id %}?remove_glossary=1">{% trans "Remove" %}</button>
       </div>
     {% else %}
