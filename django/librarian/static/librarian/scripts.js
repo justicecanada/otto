@@ -60,6 +60,7 @@ function initLibrarianUploadForm() {
       });
     }
     hideIfNoFiles();
+    setUploadsInProgress(false);
   }
   function hideIfNoFiles() {
     const form = document.getElementById("librarian-upload-form");

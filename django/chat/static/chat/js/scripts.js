@@ -746,23 +746,15 @@ window.addEventListener("keydown", function (event) {
 
 function setUploadsInProgress(state) {
   if (state) {
-    console.log("Uploads in progress, adding click listener");
     document.addEventListener('click', navigationClickHandler, true);
   } else {
-    console.log("No uploads in progress, removing click listener");
     document.removeEventListener('click', navigationClickHandler, true);
   }
 }
 
 function navigationClickHandler(e) {
-  // disable monitoring when user clicks on the file upload progress bar cancel button (x button)
-  if (e.target.closest('.dff-cancel')) {
-    setUploadsInProgress(false);
-    return;
-  }
-
-  // Ignore clicks that open modals
-  if (e.target.closest('[data-bs-toggle="modal"]')) {
+  // ignore clicks on the file upload progress bar and on modals
+  if (e.target.closest('.dff-cancel') || e.target.closest('[data-bs-toggle="modal"]')) {
     return;
   }
 
