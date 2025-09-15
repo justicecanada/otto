@@ -10,41 +10,7 @@
 </form>
 
 <script>
-(function(){
-  // Navigation guard for uploads
-  window.uploadsInProgress = false;
-  function setUploadsInProgress(state) {
-    window.uploadsInProgress = state;
-    if (state) {
-      document.addEventListener('click', navigationClickHandler, true);
-    } else {
-      document.removeEventListener('click', navigationClickHandler, true);
-    }
-  }
-  function navigationClickHandler(e) {
-    // disable monitoring when user clicks on the file upload progress bar cancel button (x button)
-    if (e.target.closest('.dff-cancel')) {
-      setUploadsInProgress(false);
-      return;
-    }
-
-    // Ignore clicks that open modals
-    if (e.target.closest('[data-bs-toggle="modal"]')) {
-      return;
-    }
-    
-    const target = e.target.closest('a[href], button[hx-get], button[hx-post], .nav-link, .list-group-item');
-    if (target && window.uploadsInProgress) {
-      e.preventDefault();
-      e.stopPropagation();
-      const confirmLeave = confirm("Uploads are still in progress. Are you sure you want to leave?");
-      if (confirmLeave) {
-        setUploadsInProgress(false);
-        target.click();
-      }
-    }
-  }
-  
+(function(){  
   const metadata = {};
   const upload_message = document.getElementById("chat-upload-message");
   const file_input = document.getElementById("id_chat-input_file");

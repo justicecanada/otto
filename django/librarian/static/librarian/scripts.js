@@ -6,47 +6,6 @@ function toggleWarning(public_checkbox) {
   }
 }
 
-let uploadsInProgress = false;
-
-function setUploadsInProgress(state) {
-  uploadsInProgress = state;
-  if (uploadsInProgress) {
-    console.log("Uploads in progress, adding click listener");
-    document.addEventListener('click', navigationClickHandler, true);
-  } else {
-    console.log("No uploads in progress, removing click listener");
-    document.removeEventListener('click', navigationClickHandler, true);
-  }
-}
-
-function navigationClickHandler(e) {
-  // disable monitoring when user clicks on the file upload progress bar cancel button (x button)
-  if (e.target.closest('.dff-cancel')) {
-    setUploadsInProgress(false);
-    return;
-  }
-
-  // Ignore clicks that open modals
-  if (e.target.closest('[data-bs-toggle="modal"]')) {
-    return;
-  }
-
-  // intercept clicks on navigation elements
-  const target = e.target.closest('a[href], button[hx-get], button[hx-post], .nav-link, .list-group-item');
-
-  if (target && uploadsInProgress) {
-    e.preventDefault();
-    e.stopPropagation();
-
-    const confirmLeave = confirm("Uploads are still in progress. Are you sure you want to leave?");
-    if (confirmLeave) {
-      setUploadsInProgress(false);
-      // Re-trigger the click
-      target.click();
-    }
-  }
-}
-
 let librarianModalCloseHandler = event => {
   // Stop polling on element id="libraryModalPoller"
   // by replacing it with empty div
