@@ -1,0 +1,42 @@
+{% load i18n %}
+{% load filters %}
+<div id="glossary-upload-fragment"
+     {% if swap %}hx-swap-oob="true"{% endif %}>
+  <div class="px-3 mt-2">
+    <label class="col-form-label col-form-label-sm"
+           for="id_translation_glossary">
+      {% trans "Glossary CSV" %} <span class="text-muted">{% trans "(optional, file translation only)" %}</span>
+    </label>
+    <button class="p-0 border-0 bg-transparent"
+            type="button"
+            data-bs-toggle="tooltip"
+            data-bs-html="true"
+            data-bs-title='{% trans "(Azure file translation only) CSV file with 2 columns and no header row. Each row must consist of <em>source term</em>, <em>target term</em>. Terms are case-sensitive." %}'
+            id="glossary_info">
+      <i class="bi-info-circle-fill small text-secondary"></i>
+    </button>
+  </div>
+  <div class="px-3">
+    {% if options_form.instance.translation_glossary %}
+      <div class="d-flex small align-items-center gap-2 w-100">
+        <a href="{% url 'chat:download_glossary' chat_id=chat.id %}"
+           class="btn btn-link btn-sm px-0 mx-0 text-body text-truncate"
+           style="flex: 1;
+                  min-width: 0;
+                  text-align: left"
+           target="_blank"
+           title="{{ options_form.instance.translation_glossary.file.name|basename|default:'glossary.csv' }}">{{ options_form.instance.translation_glossary.file.name|basename|default:"glossary.csv" }}</a>
+        <button type="button"
+                class="btn btn-sm btn-outline-dark flex-shrink-0"
+                hx-post="{% url 'chat:chat_options' chat_id=chat.id %}?remove_glossary=1">{% trans "Remove" %}</button>
+      </div>
+    {% else %}
+      <input type="file"
+             name="translation_glossary"
+             id="id_translation_glossary"
+             accept=".csv"
+             class="form-control form-control-sm"
+             onchange="triggerOptionSave();">
+    {% endif %}
+  </div>
+</div>
