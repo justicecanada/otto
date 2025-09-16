@@ -1,16 +1,18 @@
 {% load i18n %}
+{% load chat_extras %}
 
 <li class="chat-list-item{% if chat.id == current_chat_id %} current{% endif %}"
     id="chat-list-item-{{ chat.id }}">
   <div class="row border-bottom py-2 flex-nowrap">
     <div class="col pe-2 overflow-x-hidden">
-      <a href="{% url 'chat:chat' chat_id=chat.id %}"
+      <a href="{% url 'chat:chat' chat_id=chat.id %}{% if search %}?search={{ search|urlencode }}{% endif %}{% if chat.matched_message_id %}#message_{{ chat.matched_message_id }}{% endif %}"
          class="text-decoration-none">
         {% if chat.id == current_chat_id %}
           <span class="chat-title fw-semibold" id="current-chat-title">{{ chat.title }}</span>
         {% else %}
           <span class="chat-title">{{ chat.title }}</span>
         {% endif %}
+        {% if chat.snippet %}<div class="text-muted small text-truncate">{{ chat.snippet|highlight:search }}</div>{% endif %}
       </a>
     </div>
   </div>

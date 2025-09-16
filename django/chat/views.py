@@ -1316,7 +1316,8 @@ def search_chats(request):
                     # Fallback: simple head snippet
                     snippet = (text[:80] + ("…" if len(text) > 80 else "")).strip()
 
-                chat.title = f"{chat.title} ({snippet})"
+                # Expose snippet separately (don't alter title)
+                chat.snippet = snippet
                 chat.matched_message_id = matched.id
 
     sections = get_chat_history_sections(qs)
