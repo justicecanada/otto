@@ -621,6 +621,7 @@ def change_mode_to_chat_qa(chat):
             "options_form": ChatOptionsForm(instance=chat.options, user=chat.user),
             "mode": "qa",
             "swap": "true",
+            "chat": chat,
         },
     )
 
