@@ -129,9 +129,15 @@
       clearBtn.addEventListener('click', () => {
         input.value = '';
         clearBtn.style.display = 'none';
+        container.style.display = 'none';
+        const url = new URL(window.location);
+        url.searchParams.delete('search');
+        url.hash = ''; // Remove hash fragment
+        window.history.replaceState({}, '', url); 
         // Trigger HTMX to reload full list
         input.dispatchEvent(new Event('keyup', { bubbles: true }));
         input.focus();
+        toggleBtn.setAttribute('aria-label', '{% trans 'Show search' %}');
       });
     }
   });
