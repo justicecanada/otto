@@ -232,6 +232,7 @@ document.addEventListener("DOMContentLoaded", function () {
   let mode = document.querySelector('#chat-outer').classList[0];
   updateAccordion(mode);
   updateQaSourceForms();
+  updateTranslateForms();
   updatePlaceholder(mode);
   document.querySelector("#chat-prompt").focus();
   if (document.querySelector("#no-messages-placeholder") === null) {
@@ -716,12 +717,14 @@ function afterAccordionSwap() {
   if (presetLoaded || swap) {
     handleModeChange(mode, null);
     const qa_mode = document.getElementById('id_qa_mode');
-    // Update the advanced settings RAG options visibility
+    // Update the RAG options and translate forms
     setTimeout(updateQaSourceForms, 100);
+    setTimeout(updateTranslateForms, 100);
   } else if (triggerLibraryChange) {
     // This function calls updateQaSourceForms, so no need to call it twice
     resetQaAutocompletes();
   } else {
+    updateTranslateForms();
     updateQaSourceForms();
   }
 }

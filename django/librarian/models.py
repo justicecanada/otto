@@ -534,7 +534,11 @@ class SavedFile(models.Model):
         return self.sha256_hash
 
     def safe_delete(self):
-        if self.chat_files.exists() or self.documents.exists():
+        if (
+            self.chat_files.exists()
+            or self.documents.exists()
+            or self.glossary_options.exists()
+        ):
             logger.info(f"File {self.file.name} has associated objects; not deleting")
             return
         if self.file:
