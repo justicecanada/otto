@@ -57,12 +57,7 @@
         </div>
       </div>
     </div>
-    <div class="overflow-y-auto overflow-x-hidden p-3 pt-0 flex-grow-1"
-         id="chat-history-list">
-      {% with current_chat_id=chat.id %}
-        {% include 'chat/components/chat_history_list_inner.html' %}
-      {% endwith %}
-    </div>
+    {% include 'chat/components/chat_history_list_container.html' with chat_history_sections=chat_history_sections search=search current_chat_id=chat.id %}
     <div class="p-3">
       <button type="button"
               class="btn btn-outline-danger btn-outline-initially-black w-100 position-relative"
@@ -101,8 +96,12 @@
         container.style.display = '';
         input.value = initialSearch;
         clearBtn.style.display = '';
-        // Trigger HTMX search to render filtered list
-        input.dispatchEvent(new Event('input', { bubbles: true }));
+        // If server already rendered search results, skip triggering HTMX to avoid flicker
+        const listEl = document.getElementById('chat-history-list');
+        const alreadySearchRendered = listEl && listEl.dataset && listEl.dataset.searchActive === 'true';
+        if (!alreadySearchRendered) {
+          input.dispatchEvent(new Event('input', { bubbles: true }));
+        }
         toggleBtn.setAttribute('aria-label', '{% trans 'Hide search' %}');
       }
       toggleBtn.addEventListener('click', () => {

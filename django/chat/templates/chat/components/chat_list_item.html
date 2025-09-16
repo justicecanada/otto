@@ -1,12 +1,12 @@
 {% load i18n %}
 
-<li class="chat-list-item{% if chat.current_chat %} current{% endif %}"
+<li class="chat-list-item{% if chat.id == current_chat_id %} current{% endif %}"
     id="chat-list-item-{{ chat.id }}">
   <div class="row border-bottom py-2 flex-nowrap">
     <div class="col pe-2 overflow-x-hidden">
       <a href="{% url 'chat:chat' chat_id=chat.id %}"
          class="text-decoration-none">
-        {% if chat.current_chat %}
+        {% if chat.id == current_chat_id %}
           <span class="chat-title fw-semibold" id="current-chat-title">{{ chat.title }}</span>
         {% else %}
           <span class="chat-title">{{ chat.title }}</span>
