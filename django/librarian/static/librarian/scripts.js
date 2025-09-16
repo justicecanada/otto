@@ -60,6 +60,7 @@ function initLibrarianUploadForm() {
       });
     }
     hideIfNoFiles();
+    setUploadsInProgress(false);
   }
   function hideIfNoFiles() {
     const form = document.getElementById("librarian-upload-form");
@@ -85,10 +86,12 @@ function initLibrarianUploadForm() {
           metadataField.value = JSON.stringify(metadata);
         }
         submitUploadsIfComplete();
+        setUploadsInProgress(false);
       },
-      onError: (upload) => submitUploadsIfComplete(),
-      onDelete: (upload) => submitUploadsIfComplete(),
+      onError: (upload) => submitUploadsIfComplete() && setUploadsInProgress(false),
+      onDelete: (upload) => submitUploadsIfComplete() && setUploadsInProgress(false),
       onProgress: (bytesUploaded, bytesTotal, upload) => {
+
         if (bytesTotal > LIBRARIAN_MAX_UPLOAD_SIZE) {
           // Find the .dff-file which contains span.dff-filename with text `upload.name`;
           const fileElements = document.querySelectorAll('#librarian-upload-form .dff-file');
@@ -130,6 +133,9 @@ function initLibrarianUploadForm() {
     // Show the upload container
     upload_message.classList.remove("d-none");
     details_container.classList.add("d-none");
+
+    // Set uploads in progress as soon as files are selected
+    setUploadsInProgress(true);
   });
 }
 

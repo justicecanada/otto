@@ -729,35 +729,6 @@ function afterAccordionSwap() {
   }
 }
 
-// Upload monitoring with self-contained event listeners
-let uploadMonitoringActive = false;
-
-// Named handler for link monitoring
-function linkMonitorHandler(event) {
-  if (event.target.closest('#chat-upload-message, #file-dropzone')) {
-    return;
-  }
-  const link = event.target.closest('a[href]');
-  if (link) {
-    if (uploadMonitoringActive && confirm("Are you sure you want to navigate while uploading a file? This may cancel the upload.") == false) {
-      event.preventDefault();
-      console.log('User clicked a link:', link.href);
-    }
-  }
-}
-
-function initRequestAndNavigationMonitoring() {
-  uploadMonitoringActive = true;
-  document.addEventListener('click', linkMonitorHandler);;
-
-  // Disable monitoring after upload completes via HTMX
-  document.addEventListener('htmx:afterSwap', function (event) {
-    if (event.target && event.target.id === 'chat-upload-message') {
-      uploadMonitoringActive = false;
-      document.removeEventListener('click', linkMonitorHandler);
-    }
-  });
-}
 // Printing
 function printChat() {
   // Expand all messages
@@ -775,3 +746,33 @@ window.addEventListener("keydown", function (event) {
     printChat();
   }
 });
+
+function setUploadsInProgress(state) {
+  if (state) {
+    document.addEventListener('click', navigationClickHandler, true);
+  } else {
+    document.removeEventListener('click', navigationClickHandler, true);
+  }
+}
+
+function navigationClickHandler(e) {
+  // ignore clicks on the file upload progress bar and on modals
+  if (e.target.closest('.dff-cancel') || e.target.closest('[data-bs-toggle="modal"]')) {
+    return;
+  }
+
+  // intercept clicks on navigation elements
+  const target = e.target.closest('a[href], button[hx-get], button[hx-post], .nav-link, .list-group-item');
+
+  if (target) {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const confirmLeave = confirm("This could cancel your file upload. Are you sure you want to continue?");
+    if (confirmLeave) {
+      setUploadsInProgress(false);
+      // Re-trigger the click
+      target.click();
+    }
+  }
+}

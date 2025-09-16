@@ -3,7 +3,6 @@ from datetime import timedelta
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.utils.timezone import localtime, now
-from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
 from structlog import get_logger
@@ -249,6 +248,7 @@ def laws_recreate_indexes(request):
     Recreate database indexes for laws.
     """
     from django.contrib import messages
+    from django.utils.translation import gettext as _
 
     try:
         recreate_indexes()
