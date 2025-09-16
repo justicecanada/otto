@@ -232,6 +232,44 @@ def chat(request, chat_id):
     if llm:
         llm.create_costs()
 
+    # If arriving with ?search=, pre-render a filtered sidebar to avoid flicker
+    search = (request.GET.get("search", "") or "").strip()
+    if search:
+        base_qs = Chat.objects.filter(user=request.user, messages__isnull=False)
+        filtered = (
+            base_qs.filter(
+                Q(title__icontains=search) | Q(messages__text__icontains=search)
+            )
+            .distinct()
+            .order_by("-last_modification_date")
+        )
+        # Attach deterministic matched message snippet and id
+        for c in filtered:
+            matched = (
+                Message.objects.filter(chat=c, text__icontains=search)
+                .order_by("date_created", "id")
+                .first()
+            )
+            if matched:
+                text = matched.text or ""
+                lower_text = text.lower()
+                idx = lower_text.find(search.lower()) if search else -1
+                if idx != -1:
+                    start = max(0, idx - 40)
+                    end = min(len(text), idx + len(search) + 40)
+                    snippet = text[start:end].strip()
+                    if start > 0:
+                        snippet = "…" + snippet
+                    if end < len(text):
+                        snippet = snippet + "…"
+                else:
+                    snippet = (text[:80] + ("…" if len(text) > 80 else "")).strip()
+                c.snippet = snippet
+                c.matched_message_id = matched.id
+        sidebar_sections = get_chat_history_sections(filtered)
+    else:
+        sidebar_sections = get_chat_history_sections(user_chats)
+
     awaiting_response = request.GET.get("awaiting_response") == "True"
 
     # When a chat is created from outside Otto, we want to emulate the behaviour
@@ -268,7 +306,7 @@ def chat(request, chat_id):
         "hide_breadcrumbs": True,
         "user_chats": user_chats,
         "mode": mode,
-        "chat_history_sections": get_chat_history_sections(user_chats),
+        "chat_history_sections": sidebar_sections,
         "has_tour": True,
         "tour_name": _("AI Assistant"),
         "force_tour": not request.user.ai_assistant_tour_completed,
@@ -277,6 +315,7 @@ def chat(request, chat_id):
         "start_tour": request.GET.get("start_tour") == "true",
         "upload_form": UploadForm(prefix="chat"),
         "highlight_message_id": highlight_message_id,
+        "search": search,
     }
     return render(request, "chat/chat.html", context=context)
 
