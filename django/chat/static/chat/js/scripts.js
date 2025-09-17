@@ -747,14 +747,13 @@ window.addEventListener("keydown", function (event) {
   }
 });
 
-
 function setUploadsInProgress(state) {
   if (state) {
     document.addEventListener('click', navigationClickHandler, true);
-    window.addEventListener('beforeunload', (event) => {event.preventDefault();});
+    window.addEventListener('beforeunload', beforeUnloadHandler);
   } else {
     document.removeEventListener('click', navigationClickHandler, true);
-    window.removeEventListener('beforeunload', (event) => {event.preventDefault();});
+    window.removeEventListener('beforeunload', beforeUnloadHandler);
   }
 }
 
@@ -778,4 +777,8 @@ function navigationClickHandler(e) {
       target.click();
     }
   }
+}
+
+function beforeUnloadHandler(event) {
+  event.preventDefault();
 }
