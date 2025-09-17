@@ -5058,5 +5058,9 @@
     "Azure Translator - JUS Custom": {
         "fr": "",
         "fr_auto": "Azure Translator - JUS Custom"
+    },
+    "Please review translated files prior to distribution.": {
+        "fr": "",
+        "fr_auto": "Veuillez examiner les fichiers traduits avant la distribution."
     }
 }
