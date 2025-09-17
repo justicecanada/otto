@@ -131,8 +131,7 @@ function initLibrarianUploadForm() {
     // Show the upload container
     upload_message.classList.remove("d-none");
     details_container.classList.add("d-none");
-
-    // Set uploads in progress as soon as files are selected
+    // start monitoring for navigations away
     setUploadsInProgress(true);
   });
 }
