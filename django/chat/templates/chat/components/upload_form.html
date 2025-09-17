@@ -20,7 +20,6 @@
       return file.classList.contains("dff-upload-success") || file.classList.contains("dff-upload-fail");
     });
     if (allDone) {
-      setUploadsInProgress(false);
       // Use htmx directly instead of native form submission
       htmx.trigger(form, 'htmx:beforeRequest');
       htmx.ajax('POST', form.getAttribute('hx-post'), {
@@ -54,7 +53,6 @@
           metadataField.value = JSON.stringify(metadata);
         }
         submitUploadsIfComplete();
-        setUploadsInProgress(false);
       },
       onError: (upload) => submitUploadsIfComplete() && setUploadsInProgress(false),
       onDelete: (upload) => submitUploadsIfComplete() && setUploadsInProgress(false),
