@@ -5054,5 +5054,21 @@
     "Please review translated files prior to distribution.": {
         "fr": "",
         "fr_auto": "Veuillez examiner les fichiers traduits avant la distribution."
+    },
+    "Azure Translator (files, long text, 15x cost)": {
+        "fr": "",
+        "fr_auto": "Azure Translator (fichiers, texte long, coût 15x)"
+    },
+    "\n            <strong>Translate</strong> input text or uploaded documents from English to French or vice-versa.\n          ": {
+        "fr": "",
+        "fr_auto": "\n<strong>Traduire</strong> le texte d’entrée ou les documents téléchargés de l’anglais vers le français, ou inversement.\n          "
+    },
+    "(Azure file translation only) CSV file with 2 columns and no header row. Each row must consist of <em>English term</em>, <em>French term</em>. Terms are case-sensitive.": {
+        "fr": "",
+        "fr_auto": "(Traduction de fichiers Azure seulement) Fichier CSV avec 2 colonnes et sans ligne d’en-tête. Chaque ligne doit être composée de <em>terme anglais</em>, <em>terme français</em>. Les termes sont sensibles à la casse."
+    },
+    "Glossary file is invalid:\nEach row must consist of 'English term, French term' and no cell can be empty.\nError on line: ": {
+        "fr": "",
+        "fr_auto": "Le fichier du glossaire est invalide :\nChaque ligne doit contenir « terme anglais, terme français » et aucune case ne peut être vide.\nErreur en ligne : "
     }
 }
