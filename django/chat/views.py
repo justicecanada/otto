@@ -115,13 +115,20 @@ def delete_chat(request, chat_id, current_chat=None):
 @permission_required("chat.access_chat", objectgetter(Chat, "chat_id"))
 def download_glossary(request, chat_id):
     chat = get_object_or_404(Chat, id=chat_id)
-    glossary_saved_file = getattr(chat.options, "translation_glossary", None)
+    glossary_saved_file = getattr(chat.options, "translate_glossary", None)
     if not glossary_saved_file:
         return HttpResponse(status=404)
+
+    # Use the stored filename if available, otherwise fall back to the file path basename
+    filename = (
+        chat.options.translate_glossary_filename
+        or glossary_saved_file.file.name.split("/")[-1]
+    )
+
     response = FileResponse(
         glossary_saved_file.file.open("rb"),
         as_attachment=True,
-        filename=glossary_saved_file.file.name.split("/")[-1],
+        filename=filename,
     )
     return response
 
@@ -662,19 +669,19 @@ def chat_options(request, chat_id, action=None, preset_id=None):
         chat_options = chat.options
         post_data = request.POST.copy()
 
-        # Handle file removal for translation_glossary
+        # Handle file removal for translate_glossary
         glossary_removed = False
         if request.GET.get("remove_glossary") == "1":
-            glossary_saved_file = chat_options.translation_glossary
-            chat_options.translation_glossary = None
-            chat_options.save(update_fields=["translation_glossary"])
+            glossary_saved_file = chat_options.translate_glossary
+            chat_options.translate_glossary = None
+            chat_options.save(update_fields=["translate_glossary"])
             glossary_saved_file.safe_delete()
             glossary_removed = True
 
-        # Process translation_glossary file BEFORE form validation
+        # Process translate_glossary file BEFORE form validation
         glossary_error = None
         glossary_uploaded = False
-        glossary_file = request.FILES.get("translation_glossary")
+        glossary_file = request.FILES.get("translate_glossary")
         if glossary_file:
             import csv
             from io import TextIOWrapper
@@ -704,12 +711,13 @@ def chat_options(request, chat_id, action=None, preset_id=None):
                             content_type=glossary_file.content_type or "text/csv",
                         )
 
-                    # Set the SavedFile reference on the instance BEFORE form validation
-                    chat_options.translation_glossary = saved_file
+                    # Set the SavedFile reference and filename on the instance BEFORE form validation
+                    chat_options.translate_glossary = saved_file
+                    chat_options.translate_glossary_filename = glossary_file.name
                     # Mark that we successfully uploaded a glossary
                     glossary_uploaded = True
                     # Remove the file from request.FILES so form doesn't try to process it
-                    del request.FILES["translation_glossary"]
+                    del request.FILES["translate_glossary"]
 
             except Exception as e:
                 glossary_error = _(f"Glossary file could not be read: {str(e)}")
@@ -718,12 +726,12 @@ def chat_options(request, chat_id, action=None, preset_id=None):
         if glossary_error:
             messages.error(request, glossary_error)
             # Remove the invalid file from request.FILES so it is not saved
-            if "translation_glossary" in request.FILES:
-                del request.FILES["translation_glossary"]
+            if "translate_glossary" in request.FILES:
+                del request.FILES["translate_glossary"]
             # Remove the file from the model instance as well
-            if getattr(chat_options, "translation_glossary", None):
-                chat_options.translation_glossary = None
-                chat_options.save(update_fields=["translation_glossary"])
+            if getattr(chat_options, "translate_glossary", None):
+                chat_options.translate_glossary = None
+                chat_options.save(update_fields=["translate_glossary"])
             # Create a fresh form so the upload field is empty
             fresh_form = ChatOptionsForm(instance=chat_options, user=request.user)
             return render(

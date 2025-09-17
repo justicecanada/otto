@@ -54,8 +54,8 @@ def copy_options(source_options, target_options, user=None, chat=None, mode=None
     # Update the preset options with the dictionary
     fk_fields = [
         "qa_library",
-        "translation_glossary",
-    ]  # Include translation_glossary as FK
+        "translate_glossary",
+    ]  # Include translate_glossary as FK
     m2m_fields = ["qa_data_sources", "qa_documents"]
     # Remove None values
     source_options_dict = {k: v for k, v in source_options_dict.items()}

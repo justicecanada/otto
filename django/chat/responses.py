@@ -591,8 +591,8 @@ def translate_response(chat, response_message):
         # Initiate the Celery task for translating each file with Azure
         task_ids = []
         glossary_path = (
-            chat.options.translation_glossary.file.path
-            if chat.options.translation_glossary
+            chat.options.translate_glossary.file.path
+            if chat.options.translate_glossary
             else None
         )
         for file in files:

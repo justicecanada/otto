@@ -726,6 +726,7 @@ default_en:
       Workload Improvement Network | Réseau d'amélioration de la charge de travail
       Workplace Branch | Direction générale du milieu de travail
       Workplace Health and Safety Committee | Comité Santé et Sécurité au travail
+    translate_glossary: "JUS EN-FR.csv"
 
 # The following overrides the English default. Only options that are different are needed.
 default_fr:
@@ -1583,7 +1584,7 @@ default_en_summarize:
 
 default_fr_summarize:
   based_on: "default_fr"
-  name_en: "Otto default suummary (French)"
+  name_en: "Otto default summary (French)"
   name_fr: "Mode de résumé de base d'Otto (français)"
   description_en: "Includes title, executive summary, then a structured summary with headings. French prompts."
   description_fr: "Préréglage de base de résumé comprenant un titre, un résumé exécutif, puis un résumé structuré avec des titres. Requêtes en français."
