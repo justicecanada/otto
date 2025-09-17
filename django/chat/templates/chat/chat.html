@@ -111,10 +111,14 @@
           // If a search term exists, highlight only the occurrences inside the target message
           if (term) {
             expandAllMessages(chat_id);
-            const firstMark = highlightTermInElement(anchor, term);
-            const scrollTarget = firstMark || anchor;
-            scrollTarget.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            // Optionally remove the <mark> wrappers after a brief flash
+            //set a timeout to allow message expansion to complete
+            setTimeout(() => {
+              const firstMark = highlightTermInElement(anchor, term);
+              const scrollTarget = firstMark || anchor;
+              scrollTarget.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              // Optionally remove the <mark> wrappers after a brief flash
+              //setTimeout(() => unmarkInElement(anchor), 2200);
+            }, 300);
             //setTimeout(() => unmarkInElement(anchor), 2200);
           } else {
             // Fallback: just scroll to the message
