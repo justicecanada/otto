@@ -11,7 +11,7 @@ from librarian.models import SavedFile
 
 
 @pytest.mark.django_db
-def test_translation_glossary_upload_and_usage(client, all_apps_user):
+def test_translate_glossary_upload_and_usage(client, all_apps_user):
     user = all_apps_user()
     client.force_login(user)
 
@@ -23,7 +23,7 @@ def test_translation_glossary_upload_and_usage(client, all_apps_user):
     response = client.post(
         reverse("chat:chat_options", args=[chat.id]),
         {
-            "translation_glossary": SimpleUploadedFile(
+            "translate_glossary": SimpleUploadedFile(
                 "glossary.csv", b"Hello", content_type="text/csv"
             ),
         },
@@ -51,7 +51,7 @@ def test_translation_glossary_upload_and_usage(client, all_apps_user):
         response = client.get(reverse("chat:translate"), follow=True)
         chat = Chat.objects.filter(user=user).order_by("-created_at").first()
         chat.options.translate_model = model
-        chat.options.translation_glossary = saved_file
+        chat.options.translate_glossary = saved_file
         chat.options.save()
 
         # Translate text
@@ -70,7 +70,7 @@ def test_translation_glossary_upload_and_usage(client, all_apps_user):
             "test.txt", file_content, content_type="text/plain"
         )
         file_saved = SavedFile.objects.create(file=test_file, content_type="text/plain")
-        chat.options.translation_glossary = saved_file
+        chat.options.translate_glossary = saved_file
         chat.options.save()
         # Simulate file translation endpoint
         file_message = Message.objects.create(chat=chat, mode="translate")

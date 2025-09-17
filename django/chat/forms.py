@@ -43,7 +43,7 @@ LANGUAGES = [("en", _("English")), ("fr", _("French"))]
 
 if not settings.CUSTOM_TRANSLATOR_ID:
     TRANSLATE_MODEL_CHOICES = [
-        t for t in TRANSLATE_MODEL_CHOICES if t != "azure_custom"
+        t for t in TRANSLATE_MODEL_CHOICES if t[0] != "azure_custom"
     ]
 
 
@@ -288,6 +288,11 @@ class SelectWithModelGroups(SelectWithOptionClasses):
 
 
 class ChatOptionsForm(ModelForm):
+    # Include translate_glossary_filename as a hidden field to ensure it's preserved
+    translate_glossary_filename = forms.CharField(
+        required=False, widget=forms.HiddenInput
+    )
+
     class Meta:
         model = ChatOptions
         fields = "__all__"
@@ -296,7 +301,7 @@ class ChatOptionsForm(ModelForm):
             "english_default",
             "french_default",
             "prompt",
-            "translation_glossary",
+            "translate_glossary",
         ]
         widgets = {
             "mode": forms.HiddenInput(attrs={"onchange": "triggerOptionSave();"}),
@@ -377,7 +382,7 @@ class ChatOptionsForm(ModelForm):
                 attrs={"onchange": "triggerOptionSave();"}
             ),
             "qa_rewrite": forms.HiddenInput(attrs={"onchange": "triggerOptionSave();"}),
-            "translation_glossary": forms.FileInput(
+            "translate_glossary": forms.FileInput(
                 attrs={"accept": ".csv", "onchange": "triggerOptionSave();"}
             ),
         }
@@ -425,8 +430,8 @@ class ChatOptionsForm(ModelForm):
                 },
             )
 
-        # Add translation_glossary as a separate FileField (not bound to model)
-        self.fields["translation_glossary"] = forms.FileField(
+        # Add translate_glossary as a separate FileField (not bound to model)
+        self.fields["translate_glossary"] = forms.FileField(
             required=False,
             widget=forms.FileInput(
                 attrs={"accept": ".csv", "onchange": "triggerOptionSave();"}

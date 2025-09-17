@@ -54,8 +54,8 @@ def copy_options(source_options, target_options, user=None, chat=None, mode=None
     # Update the preset options with the dictionary
     fk_fields = [
         "qa_library",
-        "translation_glossary",
-    ]  # Include translation_glossary as FK
+        "translate_glossary",
+    ]  # Include translate_glossary as FK
     m2m_fields = ["qa_data_sources", "qa_documents"]
     # Remove None values
     source_options_dict = {k: v for k, v in source_options_dict.items()}
@@ -187,7 +187,7 @@ def get_model_name(chat_options):
         if "gpt" in chat_options.translate_model:
             model_key = chat_options.translate_model
         elif chat_options.translate_model == "azure":
-            return _("Azure Translator - standard")
+            return _("Azure Translator")
         elif chat_options.translate_model == "azure_custom":
             return _("Azure Translator - JUS custom")
     if chat_options.mode == "qa":
@@ -1038,3 +1038,24 @@ def translate_text_with_azure(text, target_language, custom_translator_id=None):
     except Exception as e:
         logger.exception(f"Error translating text with Azure: {e}")
         raise Exception(f"Translation failed: {str(e)}")
+
+
+def swap_glossary_columns(file):
+    """
+    Given a glossary CSV file, swap the first two columns and return a new file-like object.
+    """
+    import csv
+    import io
+
+    file.seek(0)
+    reader = csv.reader(io.StringIO(file.read().decode("utf-8")))
+    output = io.StringIO()
+    writer = csv.writer(output)
+
+    for row in reader:
+        if len(row) >= 2:
+            row[0], row[1] = row[1], row[0]
+        writer.writerow(row)
+
+    output.seek(0)
+    return io.BytesIO(output.read().encode("utf-8"))
