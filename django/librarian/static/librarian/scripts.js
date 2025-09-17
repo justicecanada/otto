@@ -86,7 +86,6 @@ function initLibrarianUploadForm() {
           metadataField.value = JSON.stringify(metadata);
         }
         submitUploadsIfComplete();
-        setUploadsInProgress(false);
       },
       onError: (upload) => submitUploadsIfComplete() && setUploadsInProgress(false),
       onDelete: (upload) => submitUploadsIfComplete() && setUploadsInProgress(false),
