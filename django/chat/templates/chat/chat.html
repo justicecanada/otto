@@ -102,14 +102,76 @@
   <script>
     document.addEventListener('DOMContentLoaded', function() {
       try {
+        const params = new URLSearchParams(window.location.search);
+        const term = (params.get('search') || '').trim();
         const urlHash = window.location.hash;
         const anchor = urlHash && urlHash.startsWith('#message_') ? document.querySelector(urlHash) : null;
+
         if (anchor) {
-          anchor.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          anchor.classList.add('flash-highlight');
-          setTimeout(() => anchor.classList.remove('flash-highlight'), 2000);
+          // If a search term exists, highlight only the occurrences inside the target message
+          if (term) {
+            const firstMark = highlightTermInElement(anchor, term);
+            const scrollTarget = firstMark || anchor;
+            scrollTarget.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            // Optionally remove the <mark> wrappers after a brief flash
+            //setTimeout(() => unmarkInElement(anchor), 2200);
+          } else {
+            // Fallback: just scroll to the message
+            anchor.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
         }
       } catch (_) { /* noop */ }
+
+      // Highlight a term within only text nodes of a root element; skips code/KaTeX blocks
+      function highlightTermInElement(root, term) {
+        if (!root || !term) return null;
+        const skipSelector = 'code, pre, kbd, samp, .katex, .MathJax, .hljs, .no-highlight';
+        const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+          acceptNode: (node) => {
+            if (!node.nodeValue || !node.nodeValue.trim()) return NodeFilter.FILTER_REJECT;
+            if (node.parentElement && node.parentElement.closest(skipSelector)) return NodeFilter.FILTER_REJECT;
+            return NodeFilter.FILTER_ACCEPT;
+          }
+        });
+
+        const regex = new RegExp(term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+        let firstMark = null;
+        const toProcess = [];
+        while (walker.nextNode()) toProcess.push(walker.currentNode);
+
+        for (const textNode of toProcess) {
+          const text = textNode.nodeValue;
+          if (!regex.test(text)) continue;
+          regex.lastIndex = 0; // reset after test
+          const frag = document.createDocumentFragment();
+          let lastIndex = 0;
+          let match;
+          while ((match = regex.exec(text)) !== null) {
+            const start = match.index;
+            const end = start + match[0].length;
+            if (start > lastIndex) frag.appendChild(document.createTextNode(text.slice(lastIndex, start)));
+            const mark = document.createElement('mark');
+            mark.className = 'search-hit';
+            mark.textContent = text.slice(start, end);
+            frag.appendChild(mark);
+            if (!firstMark) firstMark = mark;
+            lastIndex = end;
+          }
+          if (lastIndex < text.length) frag.appendChild(document.createTextNode(text.slice(lastIndex)));
+          textNode.parentNode.replaceChild(frag, textNode);
+        }
+        return firstMark;
+      }
+
+      // Remove <mark class="search-hit"> wrappers, keeping inner text
+      function unmarkInElement(root) {
+        if (!root) return;
+        const marks = root.querySelectorAll('mark.search-hit');
+        marks.forEach(mark => {
+          const text = document.createTextNode(mark.textContent);
+          mark.replaceWith(text);
+        });
+      }
     });
   </script>
 
@@ -120,5 +182,6 @@
   <link rel="stylesheet" href="{% static 'chat/css/print.css' %}">
   <style>
     .flash-highlight { box-shadow: 0 0 0 3px rgba(255, 196, 0, .65) inset; transition: box-shadow .3s ease; }
+    mark.search-hit { background: #fff3bf; padding: 0 .1em; }
   </style>
 {% endblock %}
