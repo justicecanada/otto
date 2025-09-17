@@ -1701,21 +1701,6 @@ label[for="id_librarian-input_file"] {
 
 }
 
-#chat-history-list mark {
+mark {
   padding: 0;
-}
-
-.flash-highlight {
-  box-shadow: 0 0 0 3px rgba(255, 196, 0, .65) inset;
-  transition: box-shadow .3s ease;
-}
-
-mark.search-hit {
-  background: #fff3bf;
-  padding: 0 .1em;
-}
-
-[data-bs-theme="dark"] mark.search-hit {
-  background: #4a3c00;
-  color: #fff3bf;
 }
