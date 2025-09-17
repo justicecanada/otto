@@ -65,7 +65,7 @@
             <a id="nextFileLink" class="nav" href="z_5aabb7febf6ec373_tasks_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.10.6">coverage.py v7.10.6</a>,
-            created at 2025-09-16 15:18 +0000
+            created at 2025-09-17 19:25 +0000
         </p>
         <aside class="hidden">
             <button type="button" class="button_next_chunk" data-shortcut="j"></button>
@@ -626,7 +626,7 @@
     <p class="mis mis2 show_mis"><span class="n"><a id="t544" href="#t544">544</a></span><span class="t">                                    <span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t545" href="#t545">545</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="mis show_mis"><span class="n"><a id="t546" href="#t546">546</a></span><span class="t">                            <span class="nam">error_details</span><span class="op">.</span><span class="nam">append</span><span class="op">(</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis mis2 show_mis"><span class="n"><a id="t547" href="#t547">547</a></span><span class="t">                                <span class="fst">f"</span><span class="fst">&lt;div class='alert alert-danger mt-2'>&lt;strong>Error </span><span class="op">{</span><span class="nam">error_id</span><span class="op">}</span><span class="fst">:&lt;/strong> </span><span class="op">{</span><span class="nam">error_msg</span><span class="op">}</span><span class="fst">&lt;/div></span><span class="fst">"</span>&nbsp;</span><span class="r"></span></p>
+    <p class="mis mis2 show_mis"><span class="n"><a id="t547" href="#t547">547</a></span><span class="t">                                <span class="fst">f"</span><span class="fst">&lt;div class='alert alert-warning mt-2 mb-0'>&lt;strong>Error </span><span class="op">{</span><span class="nam">error_id</span><span class="op">}</span><span class="fst">:&lt;/strong> </span><span class="op">{</span><span class="nam">error_msg</span><span class="op">}</span><span class="fst">&lt;/div></span><span class="fst">"</span>&nbsp;</span><span class="r"></span></p>
     <p class="mis mis2 show_mis"><span class="n"><a id="t548" href="#t548">548</a></span><span class="t">                            <span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t549" href="#t549">549</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t550" href="#t550">550</a></span><span class="t">                            <span class="com"># Log with error ID for debugging</span>&nbsp;</span><span class="r"></span></p>
@@ -673,8 +673,8 @@
     <p class="pln"><span class="n"><a id="t591" href="#t591">591</a></span><span class="t">        <span class="com"># Initiate the Celery task for translating each file with Azure</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t592" href="#t592">592</a></span><span class="t">        <span class="nam">task_ids</span> <span class="op">=</span> <span class="op">[</span><span class="op">]</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t593" href="#t593">593</a></span><span class="t">        <span class="nam">glossary_path</span> <span class="op">=</span> <span class="op">(</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run run2"><span class="n"><a id="t594" href="#t594">594</a></span><span class="t">            <span class="nam">chat</span><span class="op">.</span><span class="nam">options</span><span class="op">.</span><span class="nam">translation_glossary</span><span class="op">.</span><span class="nam">file</span><span class="op">.</span><span class="nam">path</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run run2"><span class="n"><a id="t595" href="#t595">595</a></span><span class="t">            <span class="key">if</span> <span class="nam">chat</span><span class="op">.</span><span class="nam">options</span><span class="op">.</span><span class="nam">translation_glossary</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run run2"><span class="n"><a id="t594" href="#t594">594</a></span><span class="t">            <span class="nam">chat</span><span class="op">.</span><span class="nam">options</span><span class="op">.</span><span class="nam">translate_glossary</span><span class="op">.</span><span class="nam">file</span><span class="op">.</span><span class="nam">path</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run run2"><span class="n"><a id="t595" href="#t595">595</a></span><span class="t">            <span class="key">if</span> <span class="nam">chat</span><span class="op">.</span><span class="nam">options</span><span class="op">.</span><span class="nam">translate_glossary</span>&nbsp;</span><span class="r"></span></p>
     <p class="run run2"><span class="n"><a id="t596" href="#t596">596</a></span><span class="t">            <span class="key">else</span> <span class="key">None</span>&nbsp;</span><span class="r"></span></p>
     <p class="run run2"><span class="n"><a id="t597" href="#t597">597</a></span><span class="t">        <span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t598" href="#t598">598</a></span><span class="t">        <span class="key">for</span> <span class="nam">file</span> <span class="key">in</span> <span class="nam">files</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
@@ -1283,7 +1283,7 @@
             <a class="nav" href="z_5aabb7febf6ec373_tasks_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.10.6">coverage.py v7.10.6</a>,
-            created at 2025-09-16 15:18 +0000
+            created at 2025-09-17 19:25 +0000
         </p>
     </div>
 </footer>
