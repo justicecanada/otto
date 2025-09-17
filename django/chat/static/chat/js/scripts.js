@@ -744,11 +744,14 @@ window.addEventListener("keydown", function (event) {
   }
 });
 
+
 function setUploadsInProgress(state) {
   if (state) {
     document.addEventListener('click', navigationClickHandler, true);
+    window.addEventListener('beforeunload', (event) => {event.preventDefault();});
   } else {
     document.removeEventListener('click', navigationClickHandler, true);
+    window.removeEventListener('beforeunload', (event) => {event.preventDefault();});
   }
 }
 
