@@ -24,7 +24,7 @@
                   min-width: 0;
                   text-align: left"
            target="_blank"
-           title="{{ options_form.instance.translate_glossary_filename|default:options_form.instance.translate_glossary.file.name|basename|default:'glossary.csv' }}">{{ options_form.instance.translate_glossary_filename|default:options_form.instance.translate_glossary.file.name|basename|default:"glossary.csv" }}</a>
+           title="{{ options_form.instance.translate_glossary_filename|default:'glossary.csv' }}">{{ options_form.instance.translate_glossary_filename|default:"glossary.csv" }}</a>
         <button type="button"
                 class="btn btn-sm btn-outline-dark flex-shrink-0"
                 hx-post="{% url 'chat:chat_options' chat_id=chat.id %}?remove_glossary=1">{% trans "Remove" %}</button>

@@ -288,6 +288,11 @@ class SelectWithModelGroups(SelectWithOptionClasses):
 
 
 class ChatOptionsForm(ModelForm):
+    # Include translate_glossary_filename as a hidden field to ensure it's preserved
+    translate_glossary_filename = forms.CharField(
+        required=False, widget=forms.HiddenInput
+    )
+
     class Meta:
         model = ChatOptions
         fields = "__all__"

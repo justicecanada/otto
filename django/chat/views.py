@@ -669,6 +669,15 @@ def chat_options(request, chat_id, action=None, preset_id=None):
         chat_options = chat.options
         post_data = request.POST.copy()
 
+        # Ensure existing filename is preserved in POST data if it exists
+        if (
+            chat_options.translate_glossary_filename
+            and "translate_glossary_filename" not in post_data
+        ):
+            post_data["translate_glossary_filename"] = (
+                chat_options.translate_glossary_filename
+            )
+
         # Handle file removal for translate_glossary
         glossary_removed = False
         if request.GET.get("remove_glossary") == "1":
@@ -714,6 +723,8 @@ def chat_options(request, chat_id, action=None, preset_id=None):
                     # Set the SavedFile reference and filename on the instance BEFORE form validation
                     chat_options.translate_glossary = saved_file
                     chat_options.translate_glossary_filename = glossary_file.name
+                    # Also add the filename to the POST data so the hidden field gets it
+                    post_data["translate_glossary_filename"] = glossary_file.name
                     # Mark that we successfully uploaded a glossary
                     glossary_uploaded = True
                     # Remove the file from request.FILES so form doesn't try to process it
