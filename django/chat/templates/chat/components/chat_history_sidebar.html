@@ -18,7 +18,6 @@
                 aria-label="{% trans 'Show search' %}">
           <i class="bi bi-search" aria-hidden="true"></i>
         </button>
-
         <button type="button"
                 class="btn-close"
                 id="close-left-sidebar"
@@ -26,34 +25,33 @@
                 style="margin-top: -4px"
                 aria-label='{% trans "Close" %}'></button>
       </div>
-      <div id="chat-search-container" class="px-3 pb-2 " style="display:none;">
-        <div class="input-group input-group-sm">
-          <input type="hidden"
-                 name="current_chat_id"
-                 id="current-chat-hidden-field"
-                 value="{{ chat.id }}">
-          <input type="text"
-                 class="form-control border-none"
-                 placeholder="{% trans 'Search...' %}"
-                 aria-label="{% trans 'Search...' %}"
-                 id="chat-history-search-input"
-                 name="search"
-                 autocomplete="off"
-                 value="{{ search|default:'' }}"
-                 hx-get="{% url 'chat:search_chats' %}"
-                 hx-include="#current-chat-hidden-field"
-                 hx-trigger="input delay:300ms, keyup changed"
-                 hx-target="#chat-history-list"
-                 hx-swap="outerHTML">
-          <button type="button"
-                  class="btn btn-outline-secondary"
-                  id="chat-search-clear"
-                  aria-label="{% trans 'Clear search' %}"
-                  style="display:none"
-                  onclick="document.getElementById('chat-history-search-input').value=''; document.getElementById('chat-history-search-input').dispatchEvent(new Event('input'))">
+      <input type="hidden"
+             name="current_chat_id"
+             id="current-chat-hidden-field"
+             value="{{ chat.id }}">
+      <div id="chat-search-container"
+           class="px-2 pb-2 pt-1 me-2"
+           style="display:none">
+        {# <div class="input-group input-group-sm px-1"> #}
+        <input type="text"
+               class="form-control form-control-sm border-none mx-1"
+               placeholder="{% trans 'Search...' %}"
+               aria-label="{% trans 'Search...' %}"
+               id="chat-history-search-input"
+               name="search"
+               autocomplete="off"
+               value="{{ search|default:'' }}"
+               hx-get="{% url 'chat:search_chats' %}"
+               hx-include="#current-chat-hidden-field"
+               hx-trigger="input delay:300ms, keyup changed"
+               hx-target="#chat-history-list"
+               hx-swap="outerHTML">
+        {# </div> #}
+        {% comment %}
+          <button type="button" class="btn btn-outline-secondary" id="chat-search-clear" aria-label="{% trans 'Clear search' %}" onclick="document.getElementById('chat-history-search-input').value=''; document.getElementById('chat-history-search-input').dispatchEvent(new Event('input'))">
             <i class="bi bi-x" aria-hidden="true"></i>
           </button>
-        </div>
+        {% endcomment %}
       </div>
     </div>
     {% include 'chat/components/chat_history_list_container.html' with chat_history_sections=chat_history_sections search=search current_chat_id=chat.id %}
@@ -87,55 +85,98 @@
     const container = document.getElementById('chat-search-container');
     const input = document.getElementById('chat-history-search-input');
     const clearBtn = document.getElementById('chat-search-clear');
+    
     if (toggleBtn && container && input) {
-      // If arriving with ?search= in URL, apply it and show search box
-      const params = new URLSearchParams(window.location.search);
-      const initialSearch = params.get('search');
-      if (initialSearch) {
-        container.style.display = '';
-        input.value = initialSearch;
-        clearBtn.style.display = '';
-        // If server already rendered search results, skip triggering HTMX to avoid flicker
-        const listEl = document.getElementById('chat-history-list');
-        const alreadySearchRendered = listEl && listEl.dataset && listEl.dataset.searchActive === 'true';
-        if (!alreadySearchRendered) {
-          input.dispatchEvent(new Event('input', { bubbles: true }));
-        }
-        toggleBtn.setAttribute('aria-label', '{% trans 'Hide search' %}');
-      }
-      toggleBtn.addEventListener('click', () => {
-        const visible = container.style.display !== 'none';
-        if (!visible) {
-          container.style.display = '';
-          input.focus();
-          toggleBtn.setAttribute('aria-label', '{% trans 'Hide search' %}');
+      // Helper function to update button state based on search visibility
+      const updateButtonState = () => {
+        const searchVisible = container.style.display !== 'none';
+        if (searchVisible) {
+          toggleBtn.classList.remove('text-secondary');
+          toggleBtn.classList.add('text-dark');
         } else {
-          container.style.display = 'none';
-          input.value = '';
-          clearBtn.style.display = 'none';
-          toggleBtn.setAttribute('aria-label', '{% trans 'Show search' %}');
+          toggleBtn.classList.remove('text-dark');
+          toggleBtn.classList.add('text-secondary');
+        }
+      };
+
+      // Add hover effects that respect the current state
+      toggleBtn.addEventListener('mouseenter', () => {
+        const searchVisible = container.style.display !== 'none';
+        if (!searchVisible) {
+          toggleBtn.classList.remove('text-secondary');
+          toggleBtn.classList.add('text-dark');
         }
       });
-      input.addEventListener('input', () => {
-        clearBtn.style.display = input.value ? '' : 'none';
-        // If cleared manually (e.g., backspace to empty), trigger HTMX to restore full list
-        if (!input.value) {
-          // Let HTMX send the request (empty query) to search endpoint which should return full list
-          input.dispatchEvent(new Event('keyup', { bubbles: true }));
-        }
+
+      toggleBtn.addEventListener('mouseleave', () => {
+        updateButtonState(); // Restore proper state based on search visibility
       });
-      clearBtn.addEventListener('click', () => {
-        input.value = '';
-        clearBtn.style.display = 'none';
+
+      // Helper function to hide search and reset state
+      const hideSearchAndReset = () => {
         container.style.display = 'none';
+        input.value = '';
         const url = new URL(window.location);
         url.searchParams.delete('search');
         url.hash = ''; // Remove hash fragment
         window.history.replaceState({}, '', url); 
         // Trigger HTMX to reload full list
         input.dispatchEvent(new Event('keyup', { bubbles: true }));
-        input.focus();
         toggleBtn.setAttribute('aria-label', '{% trans 'Show search' %}');
+        updateButtonState(); // Update button state
+      };
+
+      // Helper function to show search
+      const showSearch = () => {
+        container.style.display = '';
+        input.focus();
+        toggleBtn.setAttribute('aria-label', '{% trans 'Hide search' %}');
+        updateButtonState(); // Update button state
+      };
+
+      // If arriving with ?search= in URL, apply it and show search box
+      const params = new URLSearchParams(window.location.search);
+      const initialSearch = params.get('search');
+      if (initialSearch) {
+        showSearch();
+        input.value = initialSearch;
+        // If server already rendered search results, skip triggering HTMX to avoid flicker
+        const listEl = document.getElementById('chat-history-list');
+        const alreadySearchRendered = listEl && listEl.dataset && listEl.dataset.searchActive === 'true';
+        if (!alreadySearchRendered) {
+          input.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+      } else {
+        // Initialize button state for when search is not visible
+        updateButtonState();
+      }
+
+      toggleBtn.addEventListener('click', () => {
+        const visible = container.style.display !== 'none';
+        if (!visible) {
+          showSearch();
+        } else {
+          hideSearchAndReset();
+        }
+      });
+
+      input.addEventListener('input', () => {
+        // If cleared manually (e.g., backspace to empty), trigger HTMX to restore full list
+        if (!input.value) {
+          // Let HTMX send the request (empty query) to search endpoint which should return full list
+          input.dispatchEvent(new Event('keyup', { bubbles: true }));
+        }
+      });
+
+      if (clearBtn) {
+        clearBtn.addEventListener('click', hideSearchAndReset);
+      }
+
+      // Pressing "escape" within the input box hides it
+      input.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') {
+          hideSearchAndReset();
+        }
       });
     }
   });

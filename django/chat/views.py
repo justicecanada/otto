@@ -1339,15 +1339,28 @@ def search_chats(request):
     query = (request.GET.get("search", "") or "").strip()
     active_chat_id = request.GET.get("current_chat_id") or None
 
-    base_qs = Chat.objects.filter(user=request.user, messages__isnull=False)
     if query:
-        qs = base_qs.filter(
-            Q(title__icontains=query) | Q(messages__text__icontains=query)
+        # When searching, only show chats with messages that match the query
+        qs = (
+            Chat.objects.filter(user=request.user, messages__isnull=False)
+            .filter(Q(title__icontains=query) | Q(messages__text__icontains=query))
+            .distinct()
+            .order_by("-last_modification_date")
         )
     else:
-        qs = base_qs
-
-    qs = qs.distinct().order_by("-last_modification_date")
+        # When clearing search (empty query), restore the full list like in the main chat view
+        # Don't show empty chats except for the current one
+        if active_chat_id:
+            qs = (
+                Chat.objects.filter(user=request.user, messages__isnull=False)
+                .exclude(pk=active_chat_id)
+                .union(Chat.objects.filter(pk=active_chat_id))
+                .order_by("-last_modification_date")
+            )
+        else:
+            qs = Chat.objects.filter(
+                user=request.user, messages__isnull=False
+            ).order_by("-last_modification_date")
 
     # For chats with message matches, append a concise snippet and store the
     # earliest matching message id so anchors and highlights are deterministic
@@ -1378,6 +1391,13 @@ def search_chats(request):
                 # Expose snippet separately (don't alter title)
                 chat.snippet = snippet
                 chat.matched_message_id = matched.id
+
+    # Set titles for untitled chats (similar to main chat view)
+    for chat in qs:
+        chat.current_chat = str(chat.id) == str(active_chat_id)
+        if chat.title.strip() == "":
+            # For search results, use a simple fallback title instead of expensive LLM generation
+            chat.title = _("Untitled chat")
 
     sections = get_chat_history_sections(qs)
     return render(
