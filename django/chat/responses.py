@@ -544,7 +544,7 @@ def translate_response(chat, response_message):
                                     )
 
                             error_details.append(
-                                f"<div class='alert alert-danger mt-2'><strong>Error {error_id}:</strong> {error_msg}</div>"
+                                f"<div class='alert alert-warning mt-2 mb-0'><strong>Error {error_id}:</strong> {error_msg}</div>"
                             )
 
                             # Log with error ID for debugging
@@ -591,8 +591,8 @@ def translate_response(chat, response_message):
         # Initiate the Celery task for translating each file with Azure
         task_ids = []
         glossary_path = (
-            chat.options.translation_glossary.file.path
-            if chat.options.translation_glossary
+            chat.options.translate_glossary.file.path
+            if chat.options.translate_glossary
             else None
         )
         for file in files:

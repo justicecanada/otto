@@ -219,6 +219,20 @@ function showHideSidebars() {
   resizePromptContainer();
 }
 window.addEventListener('resize', showHideSidebars);
+// Initialize or re-initialize bootstrap tooltips
+function initializeTooltips() {
+  const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+  const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl, {delay: {show: 500, hide: 200}}));
+  const presetActionButtons = document.querySelectorAll("div.preset-actions button");
+  presetActionButtons.forEach(function (tooltipTriggerEl) {
+    tooltipTriggerEl.addEventListener('click', function () {
+      tooltipList.forEach(function (tooltip) {
+        tooltip.hide();
+      });
+    });
+  });
+}
+
 // On page load...
 document.addEventListener("DOMContentLoaded", function () {
   // Markdown rendering
@@ -239,16 +253,7 @@ document.addEventListener("DOMContentLoaded", function () {
     setTimeout(scrollToBottom, 100);
   }
   // Initialize tooltips
-  const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
-  const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl, {delay: {show: 500, hide: 200}}));
-  const presetActionButtons = document.querySelectorAll("div.preset-actions button");
-  presetActionButtons.forEach(function (tooltipTriggerEl) {
-    tooltipTriggerEl.addEventListener('click', function () {
-      tooltipList.forEach(function (tooltip) {
-        tooltip.hide();
-      });
-    });
-  });
+  initializeTooltips();
   document.querySelectorAll('.chat-delete').forEach(button => {
     button.addEventListener('htmx:afterRequest', () => {
       deleteChatSection(button);
@@ -727,6 +732,9 @@ function afterAccordionSwap() {
     updateTranslateForms();
     updateQaSourceForms();
   }
+
+  // Re-initialize tooltips after accordion swap
+  initializeTooltips();
 }
 
 // Printing

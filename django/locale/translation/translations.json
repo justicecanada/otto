@@ -4983,10 +4983,6 @@
         "fr": "",
         "fr_auto": "Glossaire CSV (optionnel)"
     },
-    "<strong>File translation only</strong><br>Must be a CSV file with 2 columns and no header row. Each row must consist of <em>source term</em>, <em>target term</em>.": {
-        "fr": "",
-        "fr_auto": "<strong>Traduction de fichiers</strong><br>seulement. Doit être un fichier CSV avec 2 colonnes et sans ligne d’en-tête. Chaque ligne doit contenir le <em>terme source</em>, <em>le terme cible</em>."
-    },
     "Remove": {
         "fr": "",
         "fr_auto": "Retirer"
@@ -4994,10 +4990,6 @@
     " <strong>Combine:</strong> Search once across all selected documents before answer generation. <em>May not include all documents. Cheap, more succint.</em> <br><br> <strong>Separate:</strong> Search each selected document individually and generate answers for each. <em>Includes all selected documents, even if irrelevant. More detailed, expensive.</em> ": {
         "fr": "",
         "fr_auto": " <strong>Combine :</strong> Faites une recherche une fois sur tous les documents sélectionnés avant de générer la réponse. <em>Peut ne pas inclure tous les documents. Pas cher, plus sucré.</em> <br><br> <strong>Séparer : Recherchez</strong> chaque document sélectionné individuellement et générez des réponses pour chacun. <em>Inclut tous les documents sélectionnés, même s’ils ne sont pas pertinents. Plus détaillé, plus cher.</em> "
-    },
-    "Glossary file is invalid:\nEach row must consist of 'source term, target term' and no cell can be empty.\nError on line: ": {
-        "fr": "",
-        "fr_auto": "Le fichier du glossaire est invalide :\nChaque ligne doit contenir « terme source, terme cible » et aucune cellule ne peut être vide.\nErreur en ligne : "
     },
     "Text extraction complete. Starting processing...": {
         "fr": "",
@@ -5058,5 +5050,25 @@
     "Azure Translator - JUS Custom": {
         "fr": "",
         "fr_auto": "Azure Translator - JUS Custom"
+    },
+    "Please review translated files prior to distribution.": {
+        "fr": "",
+        "fr_auto": "Veuillez examiner les fichiers traduits avant la distribution."
+    },
+    "Azure Translator (files, long text, 15x cost)": {
+        "fr": "",
+        "fr_auto": "Azure Translator (fichiers, texte long, coût 15x)"
+    },
+    "\n            <strong>Translate</strong> input text or uploaded documents from English to French or vice-versa.\n          ": {
+        "fr": "",
+        "fr_auto": "\n<strong>Traduire</strong> le texte d’entrée ou les documents téléchargés de l’anglais vers le français, ou inversement.\n          "
+    },
+    "(Azure file translation only) CSV file with 2 columns and no header row. Each row must consist of <em>English term</em>, <em>French term</em>. Terms are case-sensitive.": {
+        "fr": "",
+        "fr_auto": "(Traduction de fichiers Azure seulement) Fichier CSV avec 2 colonnes et sans ligne d’en-tête. Chaque ligne doit être composée de <em>terme anglais</em>, <em>terme français</em>. Les termes sont sensibles à la casse."
+    },
+    "Glossary file is invalid:\nEach row must consist of 'English term, French term' and no cell can be empty.\nError on line: ": {
+        "fr": "",
+        "fr_auto": "Le fichier du glossaire est invalide :\nChaque ligne doit contenir « terme anglais, terme français » et aucune case ne peut être vide.\nErreur en ligne : "
     }
 }
