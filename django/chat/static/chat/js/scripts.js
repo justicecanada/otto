@@ -785,7 +785,6 @@ function beforeUnloadHandler(event) {
 
 document.addEventListener('htmx:oobAfterSwap', function (event) {
   if (event.detail?.target?.id === 'chat-upload-message') {
-    console.log('Uploads complete, removing navigation handlers');
     setUploadsInProgress(false);
   }
 });
