@@ -12,6 +12,7 @@ from celery.exceptions import SoftTimeLimitExceeded
 from structlog import get_logger
 from structlog.contextvars import bind_contextvars, get_contextvars
 
+from chat.utils import swap_glossary_columns
 from otto.models import Cost
 
 logger = get_logger(__name__)
@@ -110,6 +111,9 @@ def translate_file(
         if glossary_path:
             glossary_file_path = f"{settings.AZURE_STORAGE_TRANSLATION_INPUT_URL_SEGMENT}/{file_uuid}/glossary/glossary.csv"
             with open(glossary_path, "rb") as f:
+                # If the target language is not "fr-ca", we need to swap the columns in the glossary file
+                if target_language != "fr-ca":
+                    f = swap_glossary_columns(f)
                 azure_storage.save(glossary_file_path, f)
 
             glossaries = [

@@ -50,6 +50,11 @@
       </li>
     {% endfor %}
   </ul>
+  {% if message.mode == "translate" and message.is_bot and message.sorted_files %}
+    <p class="my-2">
+      <em>{% trans "Please review translated files prior to distribution." %}</em>
+    </p>
+  {% endif %}
   {% if message.mode == "translate" and message.is_bot and message.sorted_files|length > 1 %}
     <button class="mt-2 mb-1 btn btn-sm btn-outline-dark"
             onclick="downloadMessageFiles(this)">{% trans 'Download all files' %}</button>
@@ -68,8 +73,6 @@
       if (!anchors.length) return;
 
       btn.disabled = true;
-      const original = btn.textContent;
-      btn.textContent = 'Preparing...';
 
       anchors.forEach(a => { try { a.setAttribute('download', ''); } catch(e){} });
 
@@ -78,7 +81,6 @@
           try { a.click(); } catch(e) { window.open(a.href, '_blank'); }
           if (i === anchors.length - 1) {
             btn.disabled = false;
-            btn.textContent = original;
           }
         }, i * 250);
       });
