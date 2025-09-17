@@ -1038,3 +1038,24 @@ def translate_text_with_azure(text, target_language, custom_translator_id=None):
     except Exception as e:
         logger.exception(f"Error translating text with Azure: {e}")
         raise Exception(f"Translation failed: {str(e)}")
+
+
+def swap_glossary_columns(file):
+    """
+    Given a glossary CSV file, swap the first two columns and return a new file-like object.
+    """
+    import csv
+    import io
+
+    file.seek(0)
+    reader = csv.reader(io.StringIO(file.read().decode("utf-8")))
+    output = io.StringIO()
+    writer = csv.writer(output)
+
+    for row in reader:
+        if len(row) >= 2:
+            row[0], row[1] = row[1], row[0]
+        writer.writerow(row)
+
+    output.seek(0)
+    return io.BytesIO(output.read().encode("utf-8"))

@@ -688,7 +688,7 @@ def chat_options(request, chat_id, action=None, preset_id=None):
                 for idx, row in enumerate(reader, 1):
                     if len(row) != 2 or not row[0].strip() or not row[1].strip():
                         glossary_error = _(
-                            "Glossary file is invalid:\nEach row must consist of 'source term, target term' and no cell can be empty.\nError on line: "
+                            "Glossary file is invalid:\nEach row must consist of 'English term, French term' and no cell can be empty.\nError on line: "
                         ) + str(idx)
                         break
                 wrapper.detach()

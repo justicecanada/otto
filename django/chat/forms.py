@@ -43,7 +43,7 @@ LANGUAGES = [("en", _("English")), ("fr", _("French"))]
 
 if not settings.CUSTOM_TRANSLATOR_ID:
     TRANSLATE_MODEL_CHOICES = [
-        t for t in TRANSLATE_MODEL_CHOICES if t != "azure_custom"
+        t for t in TRANSLATE_MODEL_CHOICES if t[0] != "azure_custom"
     ]
 
 

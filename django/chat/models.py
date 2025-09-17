@@ -66,7 +66,7 @@ REASONING_EFFORT_CHOICES = [
 ]
 
 TRANSLATE_MODEL_CHOICES = [
-    ("azure", _("Azure Translator (files, long text, 20x cost)")),
+    ("azure", _("Azure Translator (files, long text, 15x cost)")),
     ("gpt-4.1", _("GPT-4.1 (most steerable, 1x cost)")),
     ("gpt-4.1-mini", _("GPT-4.1-mini (steerable, 0.2x cost)")),
     ("azure_custom", _("Azure Translator - JUS Custom")),
