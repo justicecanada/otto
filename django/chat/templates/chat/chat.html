@@ -110,6 +110,7 @@
         if (anchor) {
           // If a search term exists, highlight only the occurrences inside the target message
           if (term) {
+            expandAllMessages(chat_id);
             const firstMark = highlightTermInElement(anchor, term);
             const scrollTarget = firstMark || anchor;
             scrollTarget.scrollIntoView({ behavior: 'smooth', block: 'center' });
