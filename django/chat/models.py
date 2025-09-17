@@ -32,6 +32,47 @@ logger = get_logger(__name__)
 
 DEFAULT_MODE = "chat"
 
+MODE_CHOICES = [
+    ("chat", _("Chat")),
+    ("qa", _("Q&A")),
+    ("summarize", _("Summarize")),
+    ("translate", _("Translate")),
+]
+
+QA_SCOPE_CHOICES = [
+    ("all", _("Entire library")),
+    ("data_sources", _("Selected folders")),
+    ("documents", _("Selected documents")),
+]
+
+QA_MODE_CHOICES = [
+    ("rag", _("Top excerpts")),
+    ("summarize", _("Full documents")),
+]
+
+QA_PROCESS_MODE_CHOICES = [
+    ("combined_docs", _("Combine")),
+    ("per_doc", _("Separate")),
+]
+QA_SOURCE_ORDER_CHOICES = [
+    ("score", _("Relevance score")),
+    ("reading_order", _("Reading order")),
+]
+
+REASONING_EFFORT_CHOICES = [
+    ("minimal", _("Minimal (fastest, cheapest)")),
+    ("low", _("Low (faster, cheaper)")),
+    ("medium", _("Medium (default)")),
+    ("high", _("High (slower, more expensive)")),
+]
+
+TRANSLATE_MODEL_CHOICES = [
+    ("azure", _("Azure Translator (files, long text, 15x cost)")),
+    ("gpt-4.1", _("GPT-4.1 (most steerable, 1x cost)")),
+    ("gpt-4.1-mini", _("GPT-4.1-mini (steerable, 0.2x cost)")),
+    ("azure_custom", _("Azure Translator - JUS Custom")),
+]
+
 
 def create_chat_data_source(user, chat):
     if not user.personal_library:
@@ -153,34 +194,6 @@ class ChatOptionsManager(models.Manager):
                     messages.info(request, msg)
 
 
-QA_SCOPE_CHOICES = [
-    ("all", _("Entire library")),
-    ("data_sources", _("Selected folders")),
-    ("documents", _("Selected documents")),
-]
-
-QA_MODE_CHOICES = [
-    ("rag", _("Top excerpts")),
-    ("summarize", _("Full documents")),
-]
-
-QA_PROCESS_MODE_CHOICES = [
-    ("combined_docs", _("Combine")),
-    ("per_doc", _("Separate")),
-]
-QA_SOURCE_ORDER_CHOICES = [
-    ("score", _("Relevance score")),
-    ("reading_order", _("Reading order")),
-]
-
-REASONING_EFFORT_CHOICES = [
-    ("minimal", _("Minimal (fastest, cheapest)")),
-    ("low", _("Low (faster, cheaper)")),
-    ("medium", _("Medium (default)")),
-    ("high", _("High (slower, more expensive)")),
-]
-
-
 class ChatOptions(models.Model):
     """
     Options for a chat, e.g. the mode, custom prompts, etc.
@@ -217,6 +230,20 @@ class ChatOptions(models.Model):
 
     # Translate-specific options
     translate_language = models.CharField(max_length=255, default="fr")
+    translate_model = models.CharField(max_length=20, default="azure_custom")
+    translate_glossary = models.ForeignKey(
+        "librarian.SavedFile",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="glossary_options",
+    )
+    # Filename stored here instead of in the SavedFile object since one file (hash)
+    # may be uploaded under different filenames by different users
+    translate_glossary_filename = models.CharField(
+        max_length=500, null=True, blank=True
+    )
+    translate_prompt = models.TextField(blank=True)
 
     # QA-specific options
     qa_model = models.CharField(max_length=255, default=DEFAULT_QA_MODEL_ID)
@@ -329,6 +356,10 @@ class PresetManager(models.Manager):
         """
         Create Preset objects from a dictionary loaded from chat/fixtures/presets.yaml
         """
+        import os
+
+        from django.conf import settings
+
         from chat.utils import copy_options
 
         assert len(data) >= 2, "YAML file must contain at least two presets"
@@ -338,6 +369,47 @@ class PresetManager(models.Manager):
             options_dict = item.pop("options", None)
             # TODO: Consider allowing different libraries for default presets
             options_dict["qa_library"] = Library.objects.get_default_library()
+
+            # Handle translate_glossary CSV file path
+            if (
+                "translate_glossary" in options_dict
+                and options_dict["translate_glossary"]
+            ):
+                glossary_path = options_dict["translate_glossary"]
+                if isinstance(glossary_path, str) and glossary_path.endswith(".csv"):
+                    # Convert relative path to absolute path
+                    full_path = os.path.join(
+                        settings.BASE_DIR, "chat", "fixtures", glossary_path
+                    )
+                    if os.path.exists(full_path):
+                        # Create SavedFile object from CSV file
+                        from django.core.files import File
+
+                        from librarian.models import SavedFile
+                        from librarian.utils.process_engine import generate_hash
+
+                        with open(full_path, "rb") as csv_file:
+                            file_hash = generate_hash(csv_file)
+                            csv_file.seek(0)  # Reset file pointer after hashing
+
+                            # Check if SavedFile already exists with this hash
+                            saved_file = SavedFile.objects.filter(
+                                sha256_hash=file_hash
+                            ).first()
+                            if not saved_file:
+                                saved_file = SavedFile.objects.create(
+                                    file=File(csv_file, name=glossary_path),
+                                    sha256_hash=file_hash,
+                                    content_type="text/csv",
+                                )
+
+                        # Replace string path with SavedFile object and set filename
+                        options_dict["translate_glossary"] = saved_file
+                        options_dict["translate_glossary_filename"] = glossary_path
+                    else:
+                        # File doesn't exist, remove the field
+                        options_dict.pop("translate_glossary")
+
             based_on = item.pop("based_on", None)
             # Prevent creation of multiple default presets
             if self.filter(english_default=True).exists():
@@ -668,6 +740,16 @@ def delete_saved_file(sender, instance, **kwargs):
         instance.saved_file.safe_delete()
     except Exception as e:
         logger.error(f"Failed to delete saved file: {e}")
+
+
+@receiver(post_delete, sender=ChatOptions)
+def delete_glossary_saved_file(sender, instance, **kwargs):
+    """Delete SavedFile when ChatOptions is deleted, if no other references exist"""
+    try:
+        if instance.translate_glossary:
+            instance.translate_glossary.safe_delete()
+    except Exception as e:
+        logger.error(f"Failed to delete glossary saved file: {e}")
 
 
 @receiver(post_save, sender=Message)

@@ -8,7 +8,7 @@ from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
 from django.db.models import Q
-from django.http import HttpRequest, HttpResponse, JsonResponse
+from django.http import FileResponse, HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 from django.urls import reverse
@@ -110,6 +110,27 @@ def delete_chat(request, chat_id, current_chat=None):
         response["HX-Redirect"] = reverse("chat:new_chat")
         return response
     return HttpResponse(status=200)
+
+
+@permission_required("chat.access_chat", objectgetter(Chat, "chat_id"))
+def download_glossary(request, chat_id):
+    chat = get_object_or_404(Chat, id=chat_id)
+    glossary_saved_file = getattr(chat.options, "translate_glossary", None)
+    if not glossary_saved_file:
+        return HttpResponse(status=404)
+
+    # Use the stored filename if available, otherwise fall back to the file path basename
+    filename = (
+        chat.options.translate_glossary_filename
+        or glossary_saved_file.file.name.split("/")[-1]
+    )
+
+    response = FileResponse(
+        glossary_saved_file.file.open("rb"),
+        as_attachment=True,
+        filename=filename,
+    )
+    return response
 
 
 @app_access_required("chat")
@@ -544,6 +565,7 @@ def chat_options(request, chat_id, action=None, preset_id=None):
                 "options_form": chat_options_form,
                 "preset_loaded": "true",
                 "prompt": preset.options.prompt,
+                "chat": chat,
             },
         )
     elif action == "create_preset":
@@ -647,14 +669,106 @@ def chat_options(request, chat_id, action=None, preset_id=None):
         chat_options = chat.options
         post_data = request.POST.copy()
 
+        # Ensure existing filename is preserved in POST data if it exists
+        if (
+            chat_options.translate_glossary_filename
+            and "translate_glossary_filename" not in post_data
+        ):
+            post_data["translate_glossary_filename"] = (
+                chat_options.translate_glossary_filename
+            )
+
+        # Handle file removal for translate_glossary
+        glossary_removed = False
+        if request.GET.get("remove_glossary") == "1":
+            glossary_saved_file = chat_options.translate_glossary
+            chat_options.translate_glossary = None
+            chat_options.save(update_fields=["translate_glossary"])
+            glossary_saved_file.safe_delete()
+            glossary_removed = True
+
+        # Process translate_glossary file BEFORE form validation
+        glossary_error = None
+        glossary_uploaded = False
+        glossary_file = request.FILES.get("translate_glossary")
+        if glossary_file:
+            import csv
+            from io import TextIOWrapper
+
+            from librarian.models import SavedFile
+            from librarian.utils.process_engine import generate_hash
+
+            try:
+                wrapper = TextIOWrapper(glossary_file, encoding="utf-8")
+                reader = csv.reader(wrapper)
+                for idx, row in enumerate(reader, 1):
+                    if len(row) != 2 or not row[0].strip() or not row[1].strip():
+                        glossary_error = _(
+                            "Glossary file is invalid:\nEach row must consist of 'English term, French term' and no cell can be empty.\nError on line: "
+                        ) + str(idx)
+                        break
+                wrapper.detach()
+
+                # If validation passed, create/get SavedFile
+                if not glossary_error:
+                    file_hash = generate_hash(glossary_file)
+                    saved_file = SavedFile.objects.filter(sha256_hash=file_hash).first()
+                    if not saved_file:
+                        saved_file = SavedFile.objects.create(
+                            file=glossary_file,
+                            sha256_hash=file_hash,
+                            content_type=glossary_file.content_type or "text/csv",
+                        )
+
+                    # Set the SavedFile reference and filename on the instance BEFORE form validation
+                    chat_options.translate_glossary = saved_file
+                    chat_options.translate_glossary_filename = glossary_file.name
+                    # Also add the filename to the POST data so the hidden field gets it
+                    post_data["translate_glossary_filename"] = glossary_file.name
+                    # Mark that we successfully uploaded a glossary
+                    glossary_uploaded = True
+                    # Remove the file from request.FILES so form doesn't try to process it
+                    del request.FILES["translate_glossary"]
+
+            except Exception as e:
+                glossary_error = _(f"Glossary file could not be read: {str(e)}")
+                print(e)
+
+        if glossary_error:
+            messages.error(request, glossary_error)
+            # Remove the invalid file from request.FILES so it is not saved
+            if "translate_glossary" in request.FILES:
+                del request.FILES["translate_glossary"]
+            # Remove the file from the model instance as well
+            if getattr(chat_options, "translate_glossary", None):
+                chat_options.translate_glossary = None
+                chat_options.save(update_fields=["translate_glossary"])
+            # Create a fresh form so the upload field is empty
+            fresh_form = ChatOptionsForm(instance=chat_options, user=request.user)
+            return render(
+                request,
+                "chat/components/glossary_upload_fragment.html",
+                {"options_form": fresh_form, "chat": chat, "swap": True},
+            )
+
+        # Now validate the form (without the file field)
         chat_options_form = ChatOptionsForm(
-            post_data, instance=chat_options, user=request.user
+            post_data, request.FILES, instance=chat_options, user=request.user
         )
         # Check for errors and print them to console
         if not chat_options_form.is_valid():
             logger.error(chat_options_form.errors)
             return HttpResponse(status=500)
         chat_options_form.save()
+
+        # HTMX: If glossary was uploaded or removed, return only the fragment
+        if glossary_uploaded or glossary_removed:
+            return render(
+                request,
+                "chat/components/glossary_upload_fragment.html",
+                {"options_form": chat_options_form, "chat": chat, "swap": True},
+            )
+
         # Return a simple success response
         return HttpResponse(status=200)
 
@@ -1077,6 +1191,7 @@ def update_qa_options_from_librarian(request, chat_id, library_id):
             "options_form": ChatOptionsForm(instance=chat.options, user=request.user),
             "preset_loaded": "false",
             "trigger_library_change": "true" if library != original_library else None,
+            "chat": chat,
         },
     )
 

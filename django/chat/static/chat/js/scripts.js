@@ -219,6 +219,20 @@ function showHideSidebars() {
   resizePromptContainer();
 }
 window.addEventListener('resize', showHideSidebars);
+// Initialize or re-initialize bootstrap tooltips
+function initializeTooltips() {
+  const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+  const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl, {delay: {show: 500, hide: 200}}));
+  const presetActionButtons = document.querySelectorAll("div.preset-actions button");
+  presetActionButtons.forEach(function (tooltipTriggerEl) {
+    tooltipTriggerEl.addEventListener('click', function () {
+      tooltipList.forEach(function (tooltip) {
+        tooltip.hide();
+      });
+    });
+  });
+}
+
 // On page load...
 document.addEventListener("DOMContentLoaded", function () {
   // Markdown rendering
@@ -232,22 +246,14 @@ document.addEventListener("DOMContentLoaded", function () {
   let mode = document.querySelector('#chat-outer').classList[0];
   updateAccordion(mode);
   updateQaSourceForms();
+  updateTranslateForms();
   updatePlaceholder(mode);
   document.querySelector("#chat-prompt").focus();
   if (document.querySelector("#no-messages-placeholder") === null) {
     setTimeout(scrollToBottom, 100);
   }
   // Initialize tooltips
-  const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
-  const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl, {delay: {show: 500, hide: 200}}));
-  const presetActionButtons = document.querySelectorAll("div.preset-actions button");
-  presetActionButtons.forEach(function (tooltipTriggerEl) {
-    tooltipTriggerEl.addEventListener('click', function () {
-      tooltipList.forEach(function (tooltip) {
-        tooltip.hide();
-      });
-    });
-  });
+  initializeTooltips();
   document.querySelectorAll('.chat-delete').forEach(button => {
     button.addEventListener('htmx:afterRequest', () => {
       deleteChatSection(button);
@@ -716,14 +722,19 @@ function afterAccordionSwap() {
   if (presetLoaded || swap) {
     handleModeChange(mode, null);
     const qa_mode = document.getElementById('id_qa_mode');
-    // Update the advanced settings RAG options visibility
+    // Update the RAG options and translate forms
     setTimeout(updateQaSourceForms, 100);
+    setTimeout(updateTranslateForms, 100);
   } else if (triggerLibraryChange) {
     // This function calls updateQaSourceForms, so no need to call it twice
     resetQaAutocompletes();
   } else {
+    updateTranslateForms();
     updateQaSourceForms();
   }
+
+  // Re-initialize tooltips after accordion swap
+  initializeTooltips();
 }
 
 // Printing

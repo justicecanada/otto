@@ -286,7 +286,7 @@ def summarize_response(chat, response_message):
                             yield f"{_('Extracting text from files')} ({completed_count}/{total_count} {_('complete')})..."
 
                     # Now all extraction is complete, start summarization
-                    yield f"{_('Text extraction complete. Starting summarization...')}"
+                    yield f"{_('Text extraction complete. Starting processing...')}"
 
                     # Build responses for successful files
                     all_files = completed_files + [
@@ -463,10 +463,22 @@ def translate_response(chat, response_message):
     Translate the user's input text and stream the response.
     If the translation technique does not support streaming, send final response only.
     """
-    llm = OttoLLM()
+    from chat.utils import translate_text_with_azure
+
+    if "gpt" in chat.options.translate_model:
+        llm = OttoLLM(chat.options.translate_model)
+    else:
+        llm = OttoLLM()
     user_message = response_message.parent
     files = user_message.sorted_files if user_message is not None else []
     language = chat.options.translate_language
+    custom_translator_id = (
+        settings.CUSTOM_TRANSLATOR_ID
+        if chat.options.translate_model == "azure_custom"
+        else None
+    )
+    translation_method = chat.options.translate_model
+    target_language = {"en": "English", "fr": "French"}[language]
 
     def file_msg(response_message, total_files):
         return render_to_string(
@@ -478,6 +490,7 @@ def translate_response(chat, response_message):
         yield "<p>" + _("Initiating translation...") + "</p>"
         any_task_done = False
         try:
+            failed_tasks = []
             while task_ids:
                 # To prevent constantly checking the task status, we sleep for a bit
                 # File translation is very slow so every few seconds is plenty.
@@ -488,33 +501,108 @@ def translate_response(chat, response_message):
                     if task.state in ["SUCCESS", "FAILURE", "REVOKED", "TIMEOUT"]:
                         any_task_done = True
                         task_ids.remove(task_id)
+                        # Collect failed task details
+                        if task.state in ["FAILURE", "REVOKED", "TIMEOUT"]:
+                            failed_tasks.append(
+                                {
+                                    "task_id": task_id,
+                                    "state": task.state,
+                                    "error": (
+                                        str(task.result)
+                                        if task.result
+                                        else f"Task {task.state.lower()}"
+                                    ),
+                                }
+                            )
                         # Refresh the response message from the database
                         await sync_to_async(response_message.refresh_from_db)()
                 if not any_task_done:
                     yield "<p>" + _("Translating file") + f" 1/{len(files)}...</p>"
                 else:
-                    yield await sync_to_async(file_msg)(response_message, len(files))
-        except:
+                    # Generate file status content
+                    file_content = await sync_to_async(file_msg)(
+                        response_message, len(files)
+                    )
+
+                    # Add error details if any tasks failed
+                    if failed_tasks:
+                        error_details = []
+                        for failed_task in failed_tasks:
+                            error_id = str(uuid.uuid4())[:7]
+                            error_msg = failed_task["error"]
+                            # Clean up the error message (remove redundant parts)
+                            if (
+                                "Translation failed:" in error_msg
+                                and "Error translating" in error_msg
+                            ):
+                                # Extract just the original error
+                                parts = error_msg.split("Translation failed:")
+                                if len(parts) > 1:
+                                    error_msg = (
+                                        "Translation failed:"
+                                        + parts[1].split("Error translating")[0].strip()
+                                    )
+
+                            error_details.append(
+                                f"<div class='alert alert-warning mt-2 mb-0'><strong>Error {error_id}:</strong> {error_msg}</div>"
+                            )
+
+                            # Log with error ID for debugging
+                            logger.error(
+                                f"Translation task failed",
+                                error_id=error_id,
+                                task_id=failed_task["task_id"],
+                                task_state=failed_task["state"],
+                                error_details=failed_task["error"],
+                                message_id=response_message.id,
+                                chat_id=chat.id,
+                            )
+
+                        file_content += "".join(error_details)
+
+                    yield file_content
+        except Exception as e:
             error_id = str(uuid.uuid4())[:7]
-            error_str = _("Error translating files.")
+            error_str = _("Error processing translation tasks.")
             error_str += f" _({_('Error ID:')} {error_id})_"
             logger.exception(
-                f"Error translating files",
+                f"Error in file translation generator",
                 error_id=error_id,
                 message_id=response_message.id,
                 chat_id=chat.id,
             )
-            yield error_str
-            # raise Exception(_("Error translating files."))
+            # For unexpected errors, show file status with generic error
+            file_content = await sync_to_async(file_msg)(response_message, len(files))
+            yield file_content + f"<div class='alert alert-danger mt-2'>{error_str}</div>"
 
-    if len(files) > 0:
+    if "gpt" in translation_method:
+        translate_prompt = (
+            "<document>\n{docs}\n</document>\n<instruction>\n"
+            + chat.options.translate_prompt
+            + f"\nTranslate the document above to Canadian {target_language}. Output the translated text only.\n"
+            + "</instruction>"
+        )
+        # Use summarize mode for file translation, to reuse text extraction etc.
+        chat.options.summarize_prompt = translate_prompt
+        response = summarize_response(chat, response_message)
+        return response
+
+    elif "azure" in translation_method and len(files) > 0:
         # Initiate the Celery task for translating each file with Azure
         task_ids = []
+        glossary_path = (
+            chat.options.translate_glossary.file.path
+            if chat.options.translate_glossary
+            else None
+        )
         for file in files:
             # file is a django ChatFile object with property "file" that is a FileField
             # We need the path of the file to pass to the Celery task
             file_path = file.saved_file.file.path
-            task = translate_file.delay(file_path, language)
+            # Use custom translator if selected
+            task = translate_file.delay(
+                file_path, language, custom_translator_id, glossary_path
+            )
             task_ids.append(task.id)
         return StreamingHttpResponse(
             # No cost because file translation costs are calculated in Celery task
@@ -529,32 +617,30 @@ def translate_response(chat, response_message):
             ),
             content_type="text/event-stream",
         )
-    # Simplest method: Just use LLM to translate input text.
-    # Note that long plain-translations frequently fail due to output token limits (~4k)
-    # It is not easy to check for this in advance, so we just try and see what happens
-    # TODO: Evaluate vs. Azure translator (cost and quality)
-    target_language = {"en": "English", "fr": "French"}[language]
-    translate_prompt = (
-        "Translate the following text to English (Canada):\n"
-        "Bonjour, comment ça va?"
-        "\n---\nTranslation: Hello, how are you?\n"
-        "Translate the following text to French (Canada):\n"
-        "What size is the file?\nPlease answer in bytes."
-        "\n---\nTranslation: Quelle est la taille du fichier?\nVeuillez répondre en octets.\n"
-        f"Translate the following text to {target_language} (Canada):\n"
-        f"<content_to_translate>\n{user_message.text}\n</content_to_translate>"
-        "\n---\nTranslation: "
-    )
 
-    return StreamingHttpResponse(
-        streaming_content=htmx_stream(
-            chat,
-            response_message.id,
-            llm,
-            response_replacer=llm.stream(translate_prompt),
-        ),
-        content_type="text/event-stream",
-    )
+    elif "azure" in translation_method:
+        try:
+            translated_text = translate_text_with_azure(
+                user_message.text, language, custom_translator_id
+            )
+
+            return StreamingHttpResponse(
+                streaming_content=htmx_stream(
+                    chat,
+                    response_message.id,
+                    llm,
+                    response_str=translated_text,
+                    dots=True,
+                ),
+                content_type="text/event-stream",
+            )
+        except Exception as e:
+            # If Azure translation fails, fall back to GPT
+            logger.warning(f"Azure translation failed, falling back to GPT: {e}")
+            translation_method = "gpt"
+
+    # Fallback in case of invalid translation method
+    raise Exception(f"Invalid translation method: {translation_method}")
 
 
 def qa_response(chat, response_message, switch_mode=False):

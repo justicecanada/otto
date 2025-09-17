@@ -99,6 +99,9 @@ def modal_view(request, item_type=None, item_id=None, parent_id=None, documents=
     When a data source is visible that contains in-progress documents, the modal will
     poll for updates until all documents are processed or stopped.
     """
+    import time
+
+    time.sleep(0.3)
     bind_contextvars(feature="librarian")
 
     libraries = get_viewable_libraries(request.user)

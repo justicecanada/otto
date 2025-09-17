@@ -237,6 +237,7 @@ def _get_joined_text(
     ],
     strong_tags=["MarginalNote", "TitleText"],
     underline_tags=[],
+    tab_tags={"Subparagraph": 2, "Clause": 3, "Subclause": 4},
 ):
     # TODO: Improve table parsing
     def stylized_text(text, tag):
@@ -260,10 +261,12 @@ def _get_joined_text(
             all_text.append(stylized_text(e.text.strip(), e.tag))
         if e.tail and e.tail.strip():
             all_text.append(e.tail.strip())
-        if e.tag in break_tags:
+        if e.tag in break_tags or (e.tag == "Section" and element.tag == "Schedule"):
             all_text.append("\n")
         elif e.tag in double_break_tags:
             all_text.append("\n\n")
+        elif e.tag in tab_tags:
+            all_text.append(f"\n{' '*tab_tags[e.tag]}-")
         if e.tag in pipe_tags:
             all_text.append("|")
         if e.tag == "tbody":
@@ -284,7 +287,14 @@ def _get_joined_text(
     # When a line ends in a pipe, it should also start with a pipe and space
     lines = text.split("\n")
     for i, line in enumerate(lines):
-        line = line.strip()
+        if line.strip().startswith("-"):
+            line = "\n" + line.rstrip()
+            lines[i] = line
+        else:
+            line = line.strip()
+            if i > 0 and lines[i - 1].strip().startswith("-"):
+                line = "\n" + line
+                lines[i] = line
         if line.endswith("|"):
             lines[i] = "| " + line
         # Replace the <tbody> tag with | --- | --- | --- | etc. for tables
