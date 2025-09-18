@@ -5118,5 +5118,9 @@
     "GPT-4.1-nano (fastest, < 0.1x cost)": {
         "fr": "",
         "fr_auto": "GPT-4.1-nano (le plus rapide, coût < 0,1x)"
+    },
+    "This could cancel your file upload. Are you sure you want to continue?": {
+        "fr": "",
+        "fr_auto": "Cela pourrait annuler le téléchargement de votre fichier. Es-tu sûr de vouloir continuer?"
     }
 }

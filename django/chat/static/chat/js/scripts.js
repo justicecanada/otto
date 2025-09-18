@@ -811,7 +811,7 @@ function navigationClickHandler(e) {
     e.preventDefault();
     e.stopPropagation();
 
-    const confirmLeave = confirm("This could cancel your file upload. Are you sure you want to continue?");
+    const confirmLeave = confirm(CANCEL_UPLOAD_WARNING);
     if (confirmLeave) {
       setUploadsInProgress(false);
       // Re-trigger the click
