@@ -33,4 +33,4 @@ QA_PRUNING_INSTRUCTIONS = (
 
 
 def current_time_prompt():
-    return _("Current date: {time}").format(time=datetime.now().strftime("%Y-%m-%d"))
+    return _("Current date:") + datetime.now().strftime("%Y-%m-%d") + "\n"

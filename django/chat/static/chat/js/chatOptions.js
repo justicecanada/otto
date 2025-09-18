@@ -111,10 +111,34 @@ function toggleReasoningEffort() {
   }
 }
 
+function toggleQaReasoningEffort() {
+  const modelSelect = document.getElementById('id_qa_model');
+  const reasoningEffortContainer = document.getElementById('qa-reasoning-effort-container');
+
+  if (!modelSelect || !reasoningEffortContainer) {
+    return;
+  }
+
+  const selectedOption = modelSelect.options[modelSelect.selectedIndex];
+
+  if (selectedOption && selectedOption.dataset.isReasoning === 'true') {
+    reasoningEffortContainer.style.display = 'block';
+  } else {
+    reasoningEffortContainer.style.display = 'none';
+  }
+}
+
 document.addEventListener('DOMContentLoaded', function () {
   toggleReasoningEffort();
+  toggleQaReasoningEffort();
+
   const modelSelect = document.getElementById('id_chat_model');
   if (modelSelect) {
     modelSelect.addEventListener('change', toggleReasoningEffort);
+  }
+
+  const qaModelSelect = document.getElementById('id_qa_model');
+  if (qaModelSelect) {
+    qaModelSelect.addEventListener('change', toggleQaReasoningEffort);
   }
 });

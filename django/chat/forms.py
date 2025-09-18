@@ -340,6 +340,13 @@ class ChatOptionsForm(ModelForm):
                     ),
                 },
             ),
+            "qa_reasoning_effort": forms.Select(
+                choices=REASONING_EFFORT_CHOICES,
+                attrs={
+                    "class": "form-select form-select-sm",
+                    "onchange": "triggerOptionSave();",
+                },
+            ),
             "qa_process_mode": forms.Select(
                 choices=QA_PROCESS_MODE_CHOICES,
                 attrs={
