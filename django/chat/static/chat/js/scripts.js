@@ -708,6 +708,19 @@ function clearRemainingCostWarningButtons() {
   }
 }
 
+function initializeReasoningEffortToggle() {
+  toggleReasoningEffort();
+  toggleQaReasoningEffort();
+  const modelSelect = document.getElementById('id_chat_model');
+  if (modelSelect) {
+    modelSelect.addEventListener('change', toggleReasoningEffort);
+  }
+  const qaModelSelect = document.getElementById('id_qa_model');
+  if (qaModelSelect) {
+    qaModelSelect.addEventListener('change', toggleQaReasoningEffort);
+  }
+}
+
 function afterAccordionSwap() {
   const accordion = document.getElementById('options-accordion');
   const presetLoaded = accordion.dataset.presetLoaded === "true";
@@ -721,16 +734,20 @@ function afterAccordionSwap() {
 
   if (presetLoaded || swap) {
     handleModeChange(mode, null);
-    const qa_mode = document.getElementById('id_qa_mode');
-    // Update the RAG options and translate forms
-    setTimeout(updateQaSourceForms, 100);
-    setTimeout(updateTranslateForms, 100);
+    // Update forms with delay to ensure DOM is ready
+    setTimeout(() => {
+      updateQaSourceForms();
+      updateTranslateForms();
+      initializeReasoningEffortToggle();
+    }, 100);
   } else if (triggerLibraryChange) {
     // This function calls updateQaSourceForms, so no need to call it twice
     resetQaAutocompletes();
+    initializeReasoningEffortToggle();
   } else {
     updateTranslateForms();
     updateQaSourceForms();
+    initializeReasoningEffortToggle();
   }
 
   // Re-initialize tooltips after accordion swap

@@ -4967,6 +4967,10 @@
         "fr": "",
         "fr_auto": "Taille du fichier"
     },
+    "Minimal (fastest, cheapest)": {
+        "fr": "",
+        "fr_auto": "Minimal (le plus rapide, le moins cher)"
+    },
     "Azure Translator - standard": {
         "fr": "",
         "fr_auto": "Azure Translator - standard"
@@ -5070,5 +5074,41 @@
     "Glossary file is invalid:\nEach row must consist of 'English term, French term' and no cell can be empty.\nError on line: ": {
         "fr": "",
         "fr_auto": "Le fichier du glossaire est invalide :\nChaque ligne doit contenir « terme anglais, terme français » et aucune case ne peut être vide.\nErreur en ligne : "
+    },
+    "Current date:": {
+        "fr": "",
+        "fr_auto": "Date actuelle :"
+    },
+    "Low (better instruction-following)": {
+        "fr": "",
+        "fr_auto": "Faible (meilleur suivi de l’instruction)"
+    },
+    "Medium (more deliberate reasoning)": {
+        "fr": "",
+        "fr_auto": "Médium (raisonnement plus délibéré)"
+    },
+    "High (complex, multi-step reasoning)": {
+        "fr": "",
+        "fr_auto": "Haut (raisonnement complexe et en plusieurs étapes)"
+    },
+    "Azure Translator (best for files, 15x cost)": {
+        "fr": "",
+        "fr_auto": "Azure Translator (meilleur pour les fichiers, coût 15x)"
+    },
+    "GPT-5 (best for text, 1.5x cost)": {
+        "fr": "",
+        "fr_auto": "GPT-5 (meilleur pour le texte, coût 1,5x)"
+    },
+    "GPT-4.1 (good for text, 1x cost)": {
+        "fr": "",
+        "fr_auto": "GPT-4.1 (bon pour le texte, coût 1x)"
+    },
+    "GPT-4.1-mini (faster, 0.2x cost)": {
+        "fr": "",
+        "fr_auto": "GPT-4.1-mini (plus rapide, coût 0,2x)"
+    },
+    "GPT-4.1-nano (fastest, < 0.1x cost)": {
+        "fr": "",
+        "fr_auto": "GPT-4.1-nano (le plus rapide, coût < 0,1x)"
     }
 }
