@@ -733,6 +733,13 @@ function afterAccordionSwap() {
     updateQaSourceForms();
   }
 
+  // Re-initialize reasoning effort toggle after accordion swap
+  toggleReasoningEffort();
+  const modelSelect = document.getElementById('id_chat_model');
+  if (modelSelect) {
+    modelSelect.addEventListener('change', toggleReasoningEffort);
+  }
+
   // Re-initialize tooltips after accordion swap
   initializeTooltips();
 }
