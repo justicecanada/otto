@@ -5118,5 +5118,21 @@
     "GPT-4.1-nano (fastest, < 0.1x cost)": {
         "fr": "",
         "fr_auto": "GPT-4.1-nano (le plus rapide, coût < 0,1x)"
+    },
+    "Users are limited to a monthly budget of $32 for AI use. Exceeding this requires a request to administrators.": {
+        "fr": "",
+        "fr_auto": "Les utilisateurs sont limités à un budget mensuel de 32 $ pour l’utilisation de l’IA. Dépasser ce seuil nécessite une demande aux administrateurs."
+    },
+    "Welcome to Otto.": {
+        "fr": "",
+        "fr_auto": "Bienvenue chez Otto."
+    },
+    "Welcome to the Otto development / test environment.": {
+        "fr": "",
+        "fr_auto": "Bienvenue dans l’environnement de développement / test d’Otto."
+    },
+    "Terms of use for Otto": {
+        "fr": "",
+        "fr_auto": "Conditions d’utilisation pour Otto"
     }
 }

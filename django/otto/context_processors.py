@@ -18,6 +18,7 @@ def otto_version(request):
         """
     context = {
         "environment": environment,
+        "is_pilot_environment": settings.IS_PILOT_ENVIRONMENT,
         "otto_version": version_html,
         "load_test_enabled": cache.get("load_testing_enabled", False),
     }

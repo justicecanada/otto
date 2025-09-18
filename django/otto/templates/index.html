@@ -41,18 +41,19 @@
       <use xlink:href="#exclamation-triangle-fill" />
     </svg>
     <div class="px-3">
-      {% if environment == "prod" %}
+      {% if is_pilot_environment %}
         {% trans "Welcome to the Otto Protected B pilot." %}
+      {% elif environment == "PROD" %}
+        {% trans "Welcome to Otto." %}
       {% else %}
-        {% trans "Welcome to the Otto pilot development / test environment." %}
+        {% trans "Welcome to the Otto development / test environment." %}
       {% endif %}
       {% trans "Please abide by the" %}
       <a href="{% url 'terms_of_use' %}" class="alert-link fw-normal">{% trans "terms of use" %}</a>,
       {% trans "report issues or suggest improvements by" %}
       <a href="#"
          class="alert-link fw-normal"
-         onclick="document.querySelector('#feedback-icon').click();">{% trans "leaving feedback" %}</a>,
-      {% trans "and be patient as we resolve issues." %}
+         onclick="document.querySelector('#feedback-icon').click();">{% trans "leaving feedback" %}</a>.
     </div>
   </div>
 
