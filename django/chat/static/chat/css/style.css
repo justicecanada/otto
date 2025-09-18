@@ -319,7 +319,7 @@ pre .copy-button:focus {
 }
 
 
-#left-sidebar li.current {
+#left-sidebar li.current .chat-title {
   font-weight: 500;
 }
 
@@ -1699,4 +1699,8 @@ label[for="id_librarian-input_file"] {
     text-indent: 0;
   }
 
+}
+
+mark {
+  padding: 0;
 }

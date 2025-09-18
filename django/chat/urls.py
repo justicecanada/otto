@@ -131,4 +131,5 @@ urlpatterns = [
         views.unpin_chat,
         name="unpin_chat",
     ),
+    path("search/", views.search_chats, name="search_chats"),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

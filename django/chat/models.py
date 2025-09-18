@@ -60,15 +60,18 @@ QA_SOURCE_ORDER_CHOICES = [
 ]
 
 REASONING_EFFORT_CHOICES = [
-    ("low", _("Low (faster, cheaper)")),
-    ("medium", _("Medium (default)")),
-    ("high", _("High (slower, more expensive)")),
+    ("minimal", _("Minimal (fastest, cheapest)")),
+    ("low", _("Low (better instruction-following)")),
+    ("medium", _("Medium (more deliberate reasoning)")),
+    ("high", _("High (complex, multi-step reasoning)")),
 ]
 
 TRANSLATE_MODEL_CHOICES = [
-    ("azure", _("Azure Translator (files, long text, 15x cost)")),
-    ("gpt-4.1", _("GPT-4.1 (most steerable, 1x cost)")),
-    ("gpt-4.1-mini", _("GPT-4.1-mini (steerable, 0.2x cost)")),
+    ("azure", _("Azure Translator (best for files, 15x cost)")),
+    ("gpt-5", _("GPT-5 (best for text, 1.5x cost)")),
+    ("gpt-4.1", _("GPT-4.1 (good for text, 1x cost)")),
+    ("gpt-4.1-mini", _("GPT-4.1-mini (faster, 0.2x cost)")),
+    ("gpt-4.1-nano", _("GPT-4.1-nano (fastest, < 0.1x cost)")),
     ("azure_custom", _("Azure Translator - JUS Custom")),
 ]
 
@@ -216,7 +219,7 @@ class ChatOptions(models.Model):
     chat_model = models.CharField(max_length=255, default=DEFAULT_CHAT_MODEL_ID)
     chat_temperature = models.FloatField(default=0.1)
     chat_reasoning_effort = models.CharField(
-        max_length=10, default="medium", choices=REASONING_EFFORT_CHOICES
+        max_length=10, default="minimal", choices=REASONING_EFFORT_CHOICES
     )
     chat_system_prompt = models.TextField(blank=True)
     chat_agent = models.BooleanField(default=False)
@@ -246,6 +249,9 @@ class ChatOptions(models.Model):
 
     # QA-specific options
     qa_model = models.CharField(max_length=255, default=DEFAULT_QA_MODEL_ID)
+    qa_reasoning_effort = models.CharField(
+        max_length=10, default="minimal", choices=REASONING_EFFORT_CHOICES
+    )
     qa_library = models.ForeignKey(
         "librarian.Library",
         on_delete=models.SET_NULL,

@@ -648,7 +648,7 @@ def qa_response(chat, response_message, switch_mode=False):
     Answer a question using RAG on the selected library / data sources / documents
     """
     model = chat.options.qa_model
-    llm = OttoLLM(model, 0.1)
+    llm = OttoLLM(model, 0.1, reasoning_effort=chat.options.qa_reasoning_effort)
 
     batch_generators = []
 
