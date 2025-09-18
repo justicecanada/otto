@@ -710,9 +710,14 @@ function clearRemainingCostWarningButtons() {
 
 function initializeReasoningEffortToggle() {
   toggleReasoningEffort();
+  toggleQaReasoningEffort();
   const modelSelect = document.getElementById('id_chat_model');
   if (modelSelect) {
     modelSelect.addEventListener('change', toggleReasoningEffort);
+  }
+  const qaModelSelect = document.getElementById('id_qa_model');
+  if (qaModelSelect) {
+    qaModelSelect.addEventListener('change', toggleQaReasoningEffort);
   }
 }
 

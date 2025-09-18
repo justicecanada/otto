@@ -61,9 +61,9 @@ QA_SOURCE_ORDER_CHOICES = [
 
 REASONING_EFFORT_CHOICES = [
     ("minimal", _("Minimal (fastest, cheapest)")),
-    ("low", _("Low (faster, cheaper)")),
-    ("medium", _("Medium (default)")),
-    ("high", _("High (slower, more expensive)")),
+    ("low", _("Low (better instruction-following)")),
+    ("medium", _("Medium (more deliberate reasoning)")),
+    ("high", _("High (complex, multi-step reasoning)")),
 ]
 
 TRANSLATE_MODEL_CHOICES = [
@@ -219,7 +219,7 @@ class ChatOptions(models.Model):
     chat_model = models.CharField(max_length=255, default=DEFAULT_CHAT_MODEL_ID)
     chat_temperature = models.FloatField(default=0.1)
     chat_reasoning_effort = models.CharField(
-        max_length=10, default="medium", choices=REASONING_EFFORT_CHOICES
+        max_length=10, default="minimal", choices=REASONING_EFFORT_CHOICES
     )
     chat_system_prompt = models.TextField(blank=True)
     chat_agent = models.BooleanField(default=False)
@@ -249,6 +249,9 @@ class ChatOptions(models.Model):
 
     # QA-specific options
     qa_model = models.CharField(max_length=255, default=DEFAULT_QA_MODEL_ID)
+    qa_reasoning_effort = models.CharField(
+        max_length=10, default="minimal", choices=REASONING_EFFORT_CHOICES
+    )
     qa_library = models.ForeignKey(
         "librarian.Library",
         on_delete=models.SET_NULL,
