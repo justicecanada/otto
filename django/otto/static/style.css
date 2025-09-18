@@ -243,11 +243,6 @@ div.app-card-other:hover {
     outline: none !important;
   }
 
-  /* Keep the existing hover outline but don't let it hide the link */
-  .nav-item:hover .nav-link:not(.active) {
-    outline: solid 1px var(--bs-border-color);
-  }
-
   .dropdown-toggle::after {
     position: relative;
     top: 2px;

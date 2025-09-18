@@ -31,29 +31,30 @@
     <p>{% trans "Empowering Justice efficiency with data and AI" %}</p>
   </div>
 
-  <div class="my-5 alert alert-warning d-flex align-items-center"
-       role="alert">
-    <svg class="flex-shrink-0 bi me-2"
-         width="24"
-         height="24"
-         role="img"
-         aria-label="{% trans 'Warning:' %}">
-      <use xlink:href="#exclamation-triangle-fill" />
-    </svg>
-    <div class="px-3">
-      {% if is_pilot_environment %}
-        {% trans "Welcome to the Otto Protected B pilot." %}
-      {% elif environment == "PROD" %}
-        {% trans "Welcome to Otto." %}
-      {% else %}
-        {% trans "Welcome to the Otto development / test environment." %}
-      {% endif %}
-      {% trans "Please abide by the" %}
-      <a href="{% url 'terms_of_use' %}" class="alert-link fw-normal">{% trans "terms of use" %}</a>,
-      {% trans "report issues or suggest improvements by" %}
-      <a href="#"
-         class="alert-link fw-normal"
-         onclick="document.querySelector('#feedback-icon').click();">{% trans "leaving feedback" %}</a>.
+  <div class="my-5 d-flex justify-content-center">
+    <div class="alert alert-warning d-flex align-items-center" role="alert">
+      <svg class="flex-shrink-0 bi me-2"
+           width="24"
+           height="24"
+           role="img"
+           aria-label="{% trans 'Warning:' %}">
+        <use xlink:href="#exclamation-triangle-fill" />
+      </svg>
+      <div class="px-3">
+        {% if is_pilot_environment %}
+          {% trans "Welcome to the Otto Protected B pilot." %}
+        {% elif environment == "prod" %}
+          {% trans "Welcome to Otto." %}
+        {% else %}
+          {% trans "Welcome to the Otto development / test environment." %}
+        {% endif %}
+        {% trans "Please abide by the" %}
+        <a href="{% url 'terms_of_use' %}" class="alert-link fw-normal">{% trans "terms of use" %}</a>,
+        {% trans "report issues or suggest improvements by" %}
+        <a href="#"
+           class="alert-link fw-normal"
+           onclick="document.querySelector('#feedback-icon').click();">{% trans "leaving feedback" %}</a>.
+      </div>
     </div>
   </div>
 
