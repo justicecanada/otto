@@ -5134,5 +5134,9 @@
     "Terms of use for Otto": {
         "fr": "",
         "fr_auto": "Conditions d’utilisation pour Otto"
+    },
+    "Chat with GPT models, query document libraries, generate summaries and translate documents.": {
+        "fr": "",
+        "fr_auto": "Discutez avec des modèles GPT, interrogez des bibliothèques de documents, générez des résumés et traduisez des documents."
     }
 }
