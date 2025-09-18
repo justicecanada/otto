@@ -95,14 +95,15 @@ ALL_MODELS: List[LLM] = [
     LLM(
         model_id="gpt-5",
         deployment_name="gpt-5",
-        description_en="GPT-5 (best reasoning, 1x cost)",
-        description_fr="GPT-5 (meilleure raisonnement, coût 1x)",
+        description_en="GPT-5 (best reasoning, 1.5x cost)",
+        description_fr="GPT-5 (meilleure raisonnement, coût 1.5x)",
         max_tokens_in=272000,
         max_tokens_out=128000,
         help_text_en="The highest quality model available. Use for complex tasks requiring deep reasoning, analysis, or creativity, such as legal analysis or generating detailed reports.",
         help_text_fr="Le modèle de la plus haute qualité disponible. À utiliser pour des tâches complexes nécessitant un raisonnement approfondi, une analyse ou de la créativité, telles que l'analyse juridique ou la génération de rapports détaillés.",
         group_en="Reasoning / long output",
         group_fr="Raisonnement / sortie longue",
+        system_prompt_prefix="Formatting re-enabled.\nUse markdown formatting (headings, LaTeX math, tables, code blocks, etc. *as needed*) for your final response.",
         reasoning=True,
     ),
     LLM(
