@@ -771,10 +771,7 @@ document.addEventListener('DOMContentLoaded', function () {
           const firstMark = highlightTermInElement(anchor, term);
           const scrollTarget = firstMark || anchor;
           scrollTarget.scrollIntoView({behavior: 'smooth', block: 'center'});
-          // Optionally remove the <mark> wrappers after a brief flash
-          //setTimeout(() => unmarkInElement(anchor), 2200);
         }, 300);
-        //setTimeout(() => unmarkInElement(anchor), 2200);
       } else {
         // Fallback: just scroll to the message
         anchor.scrollIntoView({behavior: 'smooth', block: 'center'});
