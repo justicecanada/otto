@@ -52,6 +52,10 @@ class LLM(BaseModel):
         "",
         description="A string to prepend to the system prompt for specific model requirements.",
     )
+    system_prompt_suffix: str = Field(
+        "",
+        description="A string to append to the system prompt for specific model requirements.",
+    )
     max_tokens_in: int = Field(
         ..., description="The maximum number of input tokens the model supports."
     )
@@ -103,7 +107,8 @@ ALL_MODELS: List[LLM] = [
         help_text_fr="Le modèle de la plus haute qualité disponible. À utiliser pour des tâches complexes nécessitant un raisonnement approfondi, une analyse ou de la créativité, telles que l'analyse juridique ou la génération de rapports détaillés.",
         group_en="Reasoning / long output",
         group_fr="Raisonnement / sortie longue",
-        system_prompt_prefix="Formatting re-enabled.\nUse markdown formatting (headings, LaTeX math, tables, code blocks, etc. *as needed*) for your final response.",
+        system_prompt_prefix="Formatting re-enabled.\nUse markdown formatting (headings, LaTeX math, tables, code blocks, etc. *as needed*) for your final response.\n",
+        system_prompt_suffix="\n\n- Use Markdown **only where semantically correct** (e.g., `inline code`, ```code fences```, lists, tables).\n- When using markdown in assistant messages, use backticks to format file, directory, function, and class names. Use \( and \) for inline math, \[ and \] for block math.",
         reasoning=True,
     ),
     LLM(

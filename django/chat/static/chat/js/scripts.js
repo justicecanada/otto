@@ -708,6 +708,14 @@ function clearRemainingCostWarningButtons() {
   }
 }
 
+function initializeReasoningEffortToggle() {
+  toggleReasoningEffort();
+  const modelSelect = document.getElementById('id_chat_model');
+  if (modelSelect) {
+    modelSelect.addEventListener('change', toggleReasoningEffort);
+  }
+}
+
 function afterAccordionSwap() {
   const accordion = document.getElementById('options-accordion');
   const presetLoaded = accordion.dataset.presetLoaded === "true";
@@ -721,23 +729,20 @@ function afterAccordionSwap() {
 
   if (presetLoaded || swap) {
     handleModeChange(mode, null);
-    const qa_mode = document.getElementById('id_qa_mode');
-    // Update the RAG options and translate forms
-    setTimeout(updateQaSourceForms, 100);
-    setTimeout(updateTranslateForms, 100);
+    // Update forms with delay to ensure DOM is ready
+    setTimeout(() => {
+      updateQaSourceForms();
+      updateTranslateForms();
+      initializeReasoningEffortToggle();
+    }, 100);
   } else if (triggerLibraryChange) {
     // This function calls updateQaSourceForms, so no need to call it twice
     resetQaAutocompletes();
+    initializeReasoningEffortToggle();
   } else {
     updateTranslateForms();
     updateQaSourceForms();
-  }
-
-  // Re-initialize reasoning effort toggle after accordion swap
-  toggleReasoningEffort();
-  const modelSelect = document.getElementById('id_chat_model');
-  if (modelSelect) {
-    modelSelect.addEventListener('change', toggleReasoningEffort);
+    initializeReasoningEffortToggle();
   }
 
   // Re-initialize tooltips after accordion swap

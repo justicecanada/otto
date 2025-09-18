@@ -100,7 +100,7 @@ class OttoLLM:
         deployment: str = settings.DEFAULT_CHAT_MODEL,
         temperature: float = 0.1,
         mock_embedding: bool = False,
-        reasoning_effort: str = "medium",
+        reasoning_effort: str = "minimal",
     ):
         # Check if mock_llm is enabled via contextvar (for load testing)
         self.use_mock_llm = mock_llm_context.get(False)
@@ -140,13 +140,11 @@ class OttoLLM:
                 yield chunk
             return
 
-        # Prepend system prompt prefix if it exists
-        if self.llm_config.system_prompt_prefix:
+        # Prepend/append system prompt prefix/suffix if they exist to the first system message
+        if self.llm_config.system_prompt_prefix or self.llm_config.system_prompt_suffix:
             for message in chat_history:
                 if message.role == "system":
-                    message.content = (
-                        f"{self.llm_config.system_prompt_prefix}\n{message.content}"
-                    )
+                    message.content = f"{self.llm_config.system_prompt_prefix}{message.content}{self.llm_config.system_prompt_suffix}"
                     break
 
         response_stream = await self.llm.astream_chat(chat_history)
