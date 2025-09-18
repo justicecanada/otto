@@ -825,6 +825,7 @@ function beforeUnloadHandler(event) {
 }
 
 document.addEventListener('htmx:oobAfterSwap', function (event) {
+  // After chat upload is complete, an hx-swap-oob hides/empties #chat-upload-message
   if (event.detail?.target?.id === 'chat-upload-message') {
     setUploadsInProgress(false);
   }
