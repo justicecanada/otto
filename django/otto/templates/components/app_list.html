@@ -1,0 +1,45 @@
+{# TODO #}
+{% import i18n %}
+<div id="app-list">
+  <a href="{% url 'chat:new_chat' %}"
+     class="text-decoration-none text-body">
+    <div class="card app-card mb-3">
+      <div class="card-body pt-0 mt-3">
+        <h3 class="app-card-title">
+          <i class="bi bi-chat-right small me-1"
+             style="position:relative;
+                    top:1px"></i>
+          {% trans "AI Assistant" %}
+        </h3>
+        <p class="card-text">
+          {% trans "Chat with GPT models, query document libraries, generate summaries and translate documents." %}
+        </p>
+      </div>
+    </div>
+  </a>
+  <a href="{% url 'laws:index' %}" class="text-decoration-none text-body">
+    <div class="card app-card mb-3">
+      <div class="card-body pt-0 mt-3">
+        <h3 class="app-card-title">
+          <i class="bi bi-search small me-1"></i>
+          {% trans "Legislation Search" %}
+        </h3>
+        <p class="card-text">
+          {% trans "Search federal acts and regulations using natural language." %} {% trans "Does not include case law." %}
+        </p>
+      </div>
+    </div>
+  </a>
+  <a href="{% url 'text_extractor:index' %}"
+     class="text-decoration-none text-body">
+    <div class="card app-card mb-3">
+      <div class="card-body pt-0 mt-3">
+        <h3 class="app-card-title">
+          <i class="bi bi-text-left small me-1"></i>
+          {% trans "Text Extractor" %}
+        </h3>
+        <p class="card-text">{% trans "Extract text and handwriting from scanned PDF and images with AI-enabled OCR." %}</p>
+      </div>
+    </div>
+  </a>
+</div>
