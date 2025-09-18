@@ -76,6 +76,15 @@
     </div>
     <div class="px-3">{{ options_form.qa_model }}</div>
   </div>
+
+  <div id="qa-reasoning-effort-container" style="display: none;">
+    <div class="px-3 mt-2">
+      <label class="col-form-label col-form-label-sm"
+             for="{{ options_form.qa_reasoning_effort.auto_id }}">{% trans "Reasoning effort" %}</label>
+    </div>
+    <div class="px-3">{{ options_form.qa_reasoning_effort }}</div>
+  </div>
+
   <div class="px-3 mt-3">
     <button type="button"
             id="advancedQaModalButton"
