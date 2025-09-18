@@ -120,6 +120,11 @@
         url.searchParams.delete('search');
         url.hash = ''; // Remove hash fragment
         window.history.replaceState({}, '', url); 
+        // Clear all search highlights from messages
+        const messagesContainer = document.querySelector('#messages-container');
+        if (messagesContainer) {
+          unmarkInElement(messagesContainer);
+        }
         // Trigger HTMX to reload full list
         input.dispatchEvent(new Event('keyup', { bubbles: true }));
         toggleBtn.setAttribute('aria-label', '{% trans 'Show search' %}');
