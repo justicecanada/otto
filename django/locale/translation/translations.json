@@ -4967,6 +4967,18 @@
         "fr": "",
         "fr_auto": "Taille du fichier"
     },
+    "Show search": {
+        "fr": "",
+        "fr_auto": "Afficher la recherche"
+    },
+    "Clear search": {
+        "fr": "",
+        "fr_auto": "Recherche claire"
+    },
+    "Hide search": {
+        "fr": "",
+        "fr_auto": "Masquer la recherche"
+    },
     "Minimal (fastest, cheapest)": {
         "fr": "",
         "fr_auto": "Minimal (le plus rapide, le moins cher)"
@@ -4978,10 +4990,6 @@
     "Azure Translator - JUS custom": {
         "fr": "",
         "fr_auto": "Azure Translator - JUS custom"
-    },
-    "Azure Translator - standard)": {
-        "fr": "",
-        "fr_auto": "Azure Translator - standard)"
     },
     "Glossary CSV (optional)": {
         "fr": "",
