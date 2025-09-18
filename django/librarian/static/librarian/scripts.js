@@ -58,9 +58,9 @@ function initLibrarianUploadForm() {
         target: form.getAttribute('hx-target'),
         swap: form.getAttribute('hx-swap'),
       });
+      setUploadsInProgress(false);
     }
     hideIfNoFiles();
-    setUploadsInProgress(false);
   }
   function hideIfNoFiles() {
     const form = document.getElementById("librarian-upload-form");
