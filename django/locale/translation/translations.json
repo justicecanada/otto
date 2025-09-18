@@ -5074,5 +5074,9 @@
     "Glossary file is invalid:\nEach row must consist of 'English term, French term' and no cell can be empty.\nError on line: ": {
         "fr": "",
         "fr_auto": "Le fichier du glossaire est invalide :\nChaque ligne doit contenir « terme anglais, terme français » et aucune case ne peut être vide.\nErreur en ligne : "
+    },
+    "Current date:": {
+        "fr": "",
+        "fr_auto": "Date actuelle :"
     }
 }
