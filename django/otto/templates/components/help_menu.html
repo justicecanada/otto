@@ -29,17 +29,17 @@
       </a>
     </li>
     <li>
-      <a href="{% url 'terms_of_use' %}" class="dropdown-item">
-        <i class="bi bi-file-earmark-richtext me-2"></i>
-        {% trans "Terms of use" %}
-      </a>
-    </li>
-    <li>
       <a id="frequently-asked-questions"
          class="a dropdown-item"
          href="{% url 'frequently_asked_questions' %}">
         <i class="bi bi-question-circle me-2"></i>
         {% trans 'Frequently Asked Questions' %}
+      </a>
+    </li>
+    <li>
+      <a href="{% url 'terms_of_use' %}" class="dropdown-item">
+        <i class="bi bi-file-earmark-check me-2"></i>
+        {% trans "Terms of use" %}
       </a>
     </li>
     <li>

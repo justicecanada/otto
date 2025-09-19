@@ -5122,5 +5122,49 @@
     "This could cancel your file upload. Are you sure you want to continue?": {
         "fr": "",
         "fr_auto": "Cela pourrait annuler le téléchargement de votre fichier. Es-tu sûr de vouloir continuer?"
+    },
+    "Users are limited to a monthly budget of $32 for AI use. Exceeding this requires a request to administrators.": {
+        "fr": "",
+        "fr_auto": "Les utilisateurs sont limités à un budget mensuel de 32 $ pour l’utilisation de l’IA. Dépasser ce seuil nécessite une demande aux administrateurs."
+    },
+    "Welcome to Otto.": {
+        "fr": "",
+        "fr_auto": "Bienvenue chez Otto."
+    },
+    "Welcome to the Otto development / test environment.": {
+        "fr": "",
+        "fr_auto": "Bienvenue dans l’environnement de développement / test d’Otto."
+    },
+    "Terms of use for Otto": {
+        "fr": "",
+        "fr_auto": "Conditions d’utilisation pour Otto"
+    },
+    "Chat with GPT models, query document libraries, generate summaries and translate documents.": {
+        "fr": "",
+        "fr_auto": "Discutez avec des modèles GPT, interrogez des bibliothèques de documents, générez des résumés et traduisez des documents."
+    },
+    "Chat with a Justice-hosted AI (like ChatGPT).": {
+        "fr": "",
+        "fr_auto": "Discutez avec une IA hébergée par Justice (comme ChatGPT)."
+    },
+    "Get instant answers from curated and user-uploaded documents.": {
+        "fr": "",
+        "fr_auto": "Obtenez des réponses instantanées grâce à des documents sélectionnés et téléchargés par les utilisateurs."
+    },
+    "Generate brief or detailed summaries from files, URLs or text input using AI.": {
+        "fr": "",
+        "fr_auto": "Générez des résumés courts ou détaillés à partir de fichiers, d’URL ou de textes en utilisant l’IA."
+    },
+    "Translate to French or English from files or text input.": {
+        "fr": "",
+        "fr_auto": "Traduisez en français ou en anglais à partir de fichiers ou de saisies textuelles."
+    },
+    "Admin tools": {
+        "fr": "",
+        "fr_auto": "Outils d’administration"
+    },
+    "and report issues or suggest improvements by": {
+        "fr": "",
+        "fr_auto": "et signalent les problèmes ou suggèrent des améliorations en"
     }
 }

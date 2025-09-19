@@ -31,43 +31,34 @@
     <p>{% trans "Empowering Justice efficiency with data and AI" %}</p>
   </div>
 
-  <div class="my-5 alert alert-warning d-flex align-items-center"
-       role="alert">
-    <svg class="flex-shrink-0 bi me-2"
-         width="24"
-         height="24"
-         role="img"
-         aria-label="{% trans 'Warning:' %}">
-      <use xlink:href="#exclamation-triangle-fill" />
-    </svg>
-    <div class="px-3">
-      {% if environment == "prod" %}
-        {% trans "Welcome to the Otto Protected B pilot." %}
-      {% else %}
-        {% trans "Welcome to the Otto pilot development / test environment." %}
-      {% endif %}
-      {% trans "Please abide by the" %}
-      <a href="{% url 'terms_of_use' %}" class="alert-link fw-normal">{% trans "terms of use" %}</a>,
-      {% trans "report issues or suggest improvements by" %}
-      <a href="#"
-         class="alert-link fw-normal"
-         onclick="document.querySelector('#feedback-icon').click();">{% trans "leaving feedback" %}</a>,
-      {% trans "and be patient as we resolve issues." %}
+  <div class="mt-5 mb-4 d-flex justify-content-center">
+    <div class="alert alert-warning d-flex align-items-center" role="alert">
+      <svg class="flex-shrink-0 bi me-2"
+           width="24"
+           height="24"
+           role="img"
+           aria-label="{% trans 'Warning:' %}">
+        <use xlink:href="#exclamation-triangle-fill" />
+      </svg>
+      <div class="px-3">
+        {% if is_pilot_environment %}
+          {% trans "Welcome to the Otto Protected B pilot." %}
+        {% elif environment == "prod" %}
+          {% trans "Welcome to Otto." %}
+        {% else %}
+          {% trans "Welcome to the Otto development / test environment." %}
+        {% endif %}
+        {% trans "Please abide by the" %}
+        <a href="{% url 'terms_of_use' %}" class="alert-link fw-normal">{% trans "terms of use" %}</a>
+        {% trans "and report issues or suggest improvements by" %}
+        <a href="#"
+           class="alert-link fw-normal"
+           onclick="document.querySelector('#feedback-icon').click();">{% trans "leaving feedback" %}</a>.
+      </div>
     </div>
   </div>
 
-  <div id="app-list"
-       class="{% if 'prod' in otto_version %}cols-2{% endif %}">
-    {% for category in categorized_features %}
-      <div class="app-category">
-        <h2 class="fw-light h4 mb-3">{{ category.category_title }}</h2>
-        {% for feature in category.features %}
-          {% include 'components/feature_tile.html' %}
-        {% endfor %}
-        <div class="app-list-spacer mb-4"></div>
-      </div>
-    {% endfor %}
-  </div>
+  {% include "components/app_list.html" %}
 
   {% include "components/otto_tour_modal.html" %}
 {% endblock %}
