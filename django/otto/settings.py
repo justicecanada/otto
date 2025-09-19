@@ -68,6 +68,7 @@ IS_RUNNING_TESTS = "test" in sys.argv or any("pytest" in arg for arg in sys.argv
 IS_PROD = False
 
 SITE_URL = urlparse(os.environ.get("SITE_URL"))
+IS_PILOT_ENVIRONMENT = "pilot" in SITE_URL.hostname if SITE_URL.hostname else False
 
 AZURE_OPENAI_KEY = os.environ.get("AZURE_OPENAI_KEY")
 AZURE_COGNITIVE_SERVICE_KEY = os.environ.get("AZURE_COGNITIVE_SERVICE_KEY")

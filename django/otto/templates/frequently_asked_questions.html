@@ -28,21 +28,23 @@
           </div>
         </div>
       </div>
-      <div class="accordion-item">
-        <h2 class="accordion-header">
-          <button class="accordion-button collapsed"
-                  type="button"
-                  data-bs-toggle="collapse"
-                  data-bs-target="#question2"
-                  aria-expanded="false"
-                  aria-controls="question2">{% trans "What is the Otto Pro-B Pilot?" %}</button>
-        </h2>
-        <div id="question2" class="accordion-collapse collapse">
-          <div class="accordion-body">
-            {% blocktrans %}Justice's Business Analytics Centre (BAC) is launching a limited user pilot in a Protected B environment. The pilot includes ~625 users split into 65 distinct pilot groups with specific use cases covering all types of Justice work. The pilot will run for approximately 8 months. Following its conclusion, results and feedback will be used to refine the tools, which will then be deployed to all JUS employees.{% endblocktrans %}
+      {% if is_pilot_environment %}
+        <div class="accordion-item">
+          <h2 class="accordion-header">
+            <button class="accordion-button collapsed"
+                    type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#question2"
+                    aria-expanded="false"
+                    aria-controls="question2">{% trans "What is the Otto Pro-B Pilot?" %}</button>
+          </h2>
+          <div id="question2" class="accordion-collapse collapse">
+            <div class="accordion-body">
+              {% blocktrans %}Justice's Business Analytics Centre (BAC) is launching a limited user pilot in a Protected B environment. The pilot includes ~625 users split into 65 distinct pilot groups with specific use cases covering all types of Justice work. The pilot will run for approximately 8 months. Following its conclusion, results and feedback will be used to refine the tools, which will then be deployed to all JUS employees.{% endblocktrans %}
+            </div>
           </div>
         </div>
-      </div>
+      {% endif %}
       <div class="accordion-item">
         <h2 class="accordion-header">
           <button class="accordion-button collapsed"
@@ -120,7 +122,7 @@
                 {% trans "The AI may produce inaccurate or incomplete responses if user prompts are unclear or lack sufficient detail." %}
               </li>
               <li>
-                {% trans "Users are limited to a monthly budget of $32 for AI use and exceeding this requires a request to administrators." %}
+                {% trans "Users are limited to a monthly budget of $32 for AI use. Exceeding this requires a request to administrators." %}
               </li>
               <li>
                 {% trans "Due to the nature of the AI and the data used for training, Otto may occasionally generate hallucinations or irrelevant information. Human verification of output is required if the output is to be relied upon." %}
@@ -159,21 +161,6 @@
         <div id="question7" class="accordion-collapse collapse">
           <div class="accordion-body">
             {% blocktrans %}Otto is designed to operate within the secure environment of the Government of Canada for information up to and including Protected B. Data is encrypted at rest and stored only in Canadian Microsoft Azure data centers. Otto is only accessible to Justice employees through the Justice network. Otto does not store or share sensitive information outside of this environment.{% endblocktrans %}
-          </div>
-        </div>
-      </div>
-      <div class="accordion-item">
-        <h2 class="accordion-header">
-          <button class="accordion-button collapsed"
-                  type="button"
-                  data-bs-toggle="collapse"
-                  data-bs-target="#question8"
-                  aria-expanded="false"
-                  aria-controls="question8">{% trans "How do I access Otto?" %}</button>
-        </h2>
-        <div id="question8" class="accordion-collapse collapse">
-          <div class="accordion-body">
-            {% blocktrans %}Otto can be accessed via the URL <a href="https://otto-pilot.cloud.justice.gc.ca/">https://otto-pilot.cloud.justice.gc.ca/</a>. You must be connected to the Justice network.{% endblocktrans %}
           </div>
         </div>
       </div>

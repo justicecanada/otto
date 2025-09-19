@@ -1119,17 +1119,8 @@ div#chat-toolbar {
   border-left-color: var(--app-color-purple-1);
 }
 
-#chat-outer.document_qa #chat-modes button.document_qa-option {
-  border-top: solid 3px var(--app-color-blue-1) !important;
-}
-
 #chat-modes button.document_qa-option {
   border-top: solid 3px var(--app-color-blue-1-hover) !important;
-}
-
-#chat-outer.document_qa #chat-mode-description,
-#chat-outer.document_qa .accordion-item.document_qa {
-  border-left: solid 3px var(--app-color-blue-1-hover);
 }
 
 #chat-outer.summarize #chat-modes button.summarize-option {

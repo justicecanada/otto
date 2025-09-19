@@ -8,7 +8,13 @@
 
   <!-- Title -->
   <div class="mb-5 mx-5">
-    <h2 class="mb-3">{% trans "Terms of use for Otto Protected B Pilot" %}</h2>
+    <h2 class="mb-3">
+      {% if is_pilot_environment %}
+        {% trans "Terms of use for Otto Protected B Pilot" %}
+      {% else %}
+        {% trans "Terms of use for Otto" %}
+      {% endif %}
+    </h2>
     <p class="text-secondary">{% trans "Last updated on" %} {{ last_updated|date:"F j, Y" }}.</p>
     {% if request.user.accepted_terms_date %}
       <p class="text-success fw-semibold">
@@ -18,11 +24,13 @@
   </div>
   <!-- Terms of Use -->
   <div class="mb-4 mx-5">
-    <!-- Participation in pilot activities -->
-    <h3 class="h4 mt-4">{% trans "Participation in pilot activities" %}</h3>
-    <p>
-      {% trans "You are part of a select group of 'Pilot users' who have been granted early access to Otto during the pilot phase. You are expected to actively experiment with Otto for work tasks, to provide feedback through Otto, and to complete surveys when requested." %}
-    </p>
+    {% if is_pilot_environment %}
+      <!-- Participation in pilot activities -->
+      <h3 class="h4 mt-4">{% trans "Participation in pilot activities" %}</h3>
+      <p>
+        {% trans "You are part of a select group of 'Pilot users' who have been granted early access to Otto during the pilot phase. You are expected to actively experiment with Otto for work tasks, to provide feedback through Otto, and to complete surveys when requested." %}
+      </p>
+    {% endif %}
 
     <!-- Inappropriate uses and limitations of Otto -->
     <h3 class="h4 mt-4">{% trans "Inappropriate uses and limitations of Otto" %}</h3>
