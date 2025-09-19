@@ -4516,7 +4516,7 @@
         "fr_auto": "Documents complets"
     },
     "Combine": {
-        "fr": "",
+        "fr": "Combiner",
         "fr_auto": "Moissonneuse-batteuse"
     },
     "Separate": {
@@ -4851,6 +4851,14 @@
         "fr": "",
         "fr_auto": "Téléchargé le"
     },
+    "Azure Translator": {
+        "fr": "",
+        "fr_auto": "Azure Translator"
+    },
+    "GPT-4.1 (alternative method)": {
+        "fr": "",
+        "fr_auto": "GPT-4.1 (méthode alternative)"
+    },
     "Sort": {
         "fr": "Trier",
         "fr_auto": "Trier"
@@ -4870,6 +4878,14 @@
     "Error extracting text from file{file_label}.": {
         "fr": "",
         "fr_auto": "Erreur lors de l’extraction du texte de file{file_label}."
+    },
+    "Translate plain text with...": {
+        "fr": "",
+        "fr_auto": "Traduire du texte brut avec..."
+    },
+    "GPT-4.1-mini": {
+        "fr": "",
+        "fr_auto": "GPT-4.1-mini"
     },
     "Date modified/created": {
         "fr": "",
@@ -4950,5 +4966,205 @@
     "File size": {
         "fr": "",
         "fr_auto": "Taille du fichier"
+    },
+    "Show search": {
+        "fr": "",
+        "fr_auto": "Afficher la recherche"
+    },
+    "Clear search": {
+        "fr": "",
+        "fr_auto": "Recherche claire"
+    },
+    "Hide search": {
+        "fr": "",
+        "fr_auto": "Masquer la recherche"
+    },
+    "Minimal (fastest, cheapest)": {
+        "fr": "",
+        "fr_auto": "Minimal (le plus rapide, le moins cher)"
+    },
+    "Azure Translator - standard": {
+        "fr": "",
+        "fr_auto": "Azure Translator - standard"
+    },
+    "Azure Translator - JUS custom": {
+        "fr": "",
+        "fr_auto": "Azure Translator - JUS custom"
+    },
+    "Glossary CSV (optional)": {
+        "fr": "",
+        "fr_auto": "Glossaire CSV (optionnel)"
+    },
+    "Remove": {
+        "fr": "",
+        "fr_auto": "Retirer"
+    },
+    " <strong>Combine:</strong> Search once across all selected documents before answer generation. <em>May not include all documents. Cheap, more succint.</em> <br><br> <strong>Separate:</strong> Search each selected document individually and generate answers for each. <em>Includes all selected documents, even if irrelevant. More detailed, expensive.</em> ": {
+        "fr": "",
+        "fr_auto": " <strong>Combine :</strong> Faites une recherche une fois sur tous les documents sélectionnés avant de générer la réponse. <em>Peut ne pas inclure tous les documents. Pas cher, plus sucré.</em> <br><br> <strong>Séparer : Recherchez</strong> chaque document sélectionné individuellement et générez des réponses pour chacun. <em>Inclut tous les documents sélectionnés, même s’ils ne sont pas pertinents. Plus détaillé, plus cher.</em> "
+    },
+    "Text extraction complete. Starting processing...": {
+        "fr": "",
+        "fr_auto": "Extraction de texte terminée. Début du traitement..."
+    },
+    "Error processing translation tasks.": {
+        "fr": "",
+        "fr_auto": "Tâches de traduction en traitement des erreurs."
+    },
+    "(Azure file translation only) CSV file with 2 columns and no header row. Each row must consist of <em>source term</em>, <em>target term</em>. Terms are case-sensitive.": {
+        "fr": "",
+        "fr_auto": "(Traduction de fichiers Azure seulement) Fichier CSV avec 2 colonnes et sans ligne d’en-tête. Chaque ligne doit contenir le <em>terme source</em>, <em>le terme cible</em>. Les termes sont sensibles à la casse."
+    },
+    "GPT-4.1": {
+        "fr": "",
+        "fr_auto": "GPT-4.1"
+    },
+    "Glossary CSV (optional - file translation only)": {
+        "fr": "",
+        "fr_auto": "Glossaire CSV (optionnel - traduction de fichiers seulement)"
+    },
+    "Translate prompt": {
+        "fr": "",
+        "fr_auto": "Invite de traduction"
+    },
+    "Glossary file could not be read: {str(e)}": {
+        "fr": "",
+        "fr_auto": "Fichier glossaire impossible à lire : {str(e)}"
+    },
+    "Glossary CSV": {
+        "fr": "",
+        "fr_auto": "Glossaire CSV"
+    },
+    "(optional, file translation only)": {
+        "fr": "",
+        "fr_auto": "(optionnel, traduction de fichiers seulement)"
+    },
+    "GPT-4.1 (no file output)": {
+        "fr": "",
+        "fr_auto": "GPT-4.1 (pas de sortie de fichier)"
+    },
+    "GPT-4.1-mini (no file output)": {
+        "fr": "",
+        "fr_auto": "GPT-4.1-mini (pas de sortie de fichier)"
+    },
+    "Azure Translator (files, long text, 20x cost)": {
+        "fr": "",
+        "fr_auto": "Azure Translator (fichiers, texte long, coût 20x)"
+    },
+    "GPT-4.1 (most steerable, 1x cost)": {
+        "fr": "",
+        "fr_auto": "GPT-4.1 (le plus orientable, coût 1x)"
+    },
+    "GPT-4.1-mini (steerable, 0.2x cost)": {
+        "fr": "",
+        "fr_auto": "GPT-4.1-mini (orientable, coût 0,2x)"
+    },
+    "Azure Translator - JUS Custom": {
+        "fr": "",
+        "fr_auto": "Azure Translator - JUS Custom"
+    },
+    "Please review translated files prior to distribution.": {
+        "fr": "",
+        "fr_auto": "Veuillez examiner les fichiers traduits avant la distribution."
+    },
+    "Azure Translator (files, long text, 15x cost)": {
+        "fr": "",
+        "fr_auto": "Azure Translator (fichiers, texte long, coût 15x)"
+    },
+    "\n            <strong>Translate</strong> input text or uploaded documents from English to French or vice-versa.\n          ": {
+        "fr": "",
+        "fr_auto": "\n<strong>Traduire</strong> le texte d’entrée ou les documents téléchargés de l’anglais vers le français, ou inversement.\n          "
+    },
+    "(Azure file translation only) CSV file with 2 columns and no header row. Each row must consist of <em>English term</em>, <em>French term</em>. Terms are case-sensitive.": {
+        "fr": "",
+        "fr_auto": "(Traduction de fichiers Azure seulement) Fichier CSV avec 2 colonnes et sans ligne d’en-tête. Chaque ligne doit être composée de <em>terme anglais</em>, <em>terme français</em>. Les termes sont sensibles à la casse."
+    },
+    "Glossary file is invalid:\nEach row must consist of 'English term, French term' and no cell can be empty.\nError on line: ": {
+        "fr": "",
+        "fr_auto": "Le fichier du glossaire est invalide :\nChaque ligne doit contenir « terme anglais, terme français » et aucune case ne peut être vide.\nErreur en ligne : "
+    },
+    "Current date:": {
+        "fr": "",
+        "fr_auto": "Date actuelle :"
+    },
+    "Low (better instruction-following)": {
+        "fr": "",
+        "fr_auto": "Faible (meilleur suivi de l’instruction)"
+    },
+    "Medium (more deliberate reasoning)": {
+        "fr": "",
+        "fr_auto": "Médium (raisonnement plus délibéré)"
+    },
+    "High (complex, multi-step reasoning)": {
+        "fr": "",
+        "fr_auto": "Haut (raisonnement complexe et en plusieurs étapes)"
+    },
+    "Azure Translator (best for files, 15x cost)": {
+        "fr": "",
+        "fr_auto": "Azure Translator (meilleur pour les fichiers, coût 15x)"
+    },
+    "GPT-5 (best for text, 1.5x cost)": {
+        "fr": "",
+        "fr_auto": "GPT-5 (meilleur pour le texte, coût 1,5x)"
+    },
+    "GPT-4.1 (good for text, 1x cost)": {
+        "fr": "",
+        "fr_auto": "GPT-4.1 (bon pour le texte, coût 1x)"
+    },
+    "GPT-4.1-mini (faster, 0.2x cost)": {
+        "fr": "",
+        "fr_auto": "GPT-4.1-mini (plus rapide, coût 0,2x)"
+    },
+    "GPT-4.1-nano (fastest, < 0.1x cost)": {
+        "fr": "",
+        "fr_auto": "GPT-4.1-nano (le plus rapide, coût < 0,1x)"
+    },
+    "This could cancel your file upload. Are you sure you want to continue?": {
+        "fr": "",
+        "fr_auto": "Cela pourrait annuler le téléchargement de votre fichier. Es-tu sûr de vouloir continuer?"
+    },
+    "Users are limited to a monthly budget of $32 for AI use. Exceeding this requires a request to administrators.": {
+        "fr": "",
+        "fr_auto": "Les utilisateurs sont limités à un budget mensuel de 32 $ pour l’utilisation de l’IA. Dépasser ce seuil nécessite une demande aux administrateurs."
+    },
+    "Welcome to Otto.": {
+        "fr": "",
+        "fr_auto": "Bienvenue chez Otto."
+    },
+    "Welcome to the Otto development / test environment.": {
+        "fr": "",
+        "fr_auto": "Bienvenue dans l’environnement de développement / test d’Otto."
+    },
+    "Terms of use for Otto": {
+        "fr": "",
+        "fr_auto": "Conditions d’utilisation pour Otto"
+    },
+    "Chat with GPT models, query document libraries, generate summaries and translate documents.": {
+        "fr": "",
+        "fr_auto": "Discutez avec des modèles GPT, interrogez des bibliothèques de documents, générez des résumés et traduisez des documents."
+    },
+    "Chat with a Justice-hosted AI (like ChatGPT).": {
+        "fr": "",
+        "fr_auto": "Discutez avec une IA hébergée par Justice (comme ChatGPT)."
+    },
+    "Get instant answers from curated and user-uploaded documents.": {
+        "fr": "",
+        "fr_auto": "Obtenez des réponses instantanées grâce à des documents sélectionnés et téléchargés par les utilisateurs."
+    },
+    "Generate brief or detailed summaries from files, URLs or text input using AI.": {
+        "fr": "",
+        "fr_auto": "Générez des résumés courts ou détaillés à partir de fichiers, d’URL ou de textes en utilisant l’IA."
+    },
+    "Translate to French or English from files or text input.": {
+        "fr": "",
+        "fr_auto": "Traduisez en français ou en anglais à partir de fichiers ou de saisies textuelles."
+    },
+    "Admin tools": {
+        "fr": "",
+        "fr_auto": "Outils d’administration"
+    },
+    "and report issues or suggest improvements by": {
+        "fr": "",
+        "fr_auto": "et signalent les problèmes ou suggèrent des améliorations en"
     }
 }

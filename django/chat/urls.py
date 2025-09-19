@@ -18,6 +18,11 @@ urlpatterns = [
     path("id/<str:chat_id>/", views.chat, name="chat"),
     path("id/<str:chat_id>/upload", views.save_upload, name="upload"),
     path(
+        "id/<str:chat_id>/download_glossary/",
+        views.download_glossary,
+        name="download_glossary",
+    ),
+    path(
         "id/<str:chat_id>/delete/<str:current_chat>",
         views.delete_chat,
         name="delete_chat",
@@ -126,4 +131,5 @@ urlpatterns = [
         views.unpin_chat,
         name="unpin_chat",
     ),
+    path("search/", views.search_chats, name="search_chats"),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

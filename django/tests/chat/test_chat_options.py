@@ -40,6 +40,12 @@ def test_chat_options(client, all_apps_user):
     options_form_data["qa_data_sources"] = [
         data_source.id for data_source in options_form_data["qa_data_sources"]
     ]
+    # Remove translate_glossary if not set (simulate typical form submission)
+    if (
+        "translate_glossary" in options_form_data
+        and not options_form_data["translate_glossary"]
+    ):
+        del options_form_data["translate_glossary"]
     # Submit the form
     response = client.post(
         reverse("chat:chat_options", args=[new_chat.id]), options_form_data

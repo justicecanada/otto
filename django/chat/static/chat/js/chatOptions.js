@@ -24,6 +24,21 @@ function updateQaSourceForms() {
   }
 }
 
+function updateTranslateForms() {
+  const modelSelect = document.getElementById('id_translate_model');
+  const promptContainer = document.getElementById('translate-prompt-container');
+  const glossaryContainer = document.getElementById('glossary-upload-fragment');
+  const selectedOption = modelSelect.options[modelSelect.selectedIndex];
+  // For "gpt" models, show the translate-prompt input. They will have "gpt" in their model ID.
+  if (selectedOption && selectedOption.value.includes('gpt')) {
+    promptContainer.style.display = 'block';
+    glossaryContainer.style.display = 'none';
+  } else {
+    promptContainer.style.display = 'none';
+    glossaryContainer.style.display = 'block';
+  }
+}
+
 // TODO: abstract this into a JS helper class for Autocomplete widgets
 // and contribute upstream to django-htmx-autocomplete repo
 function updateAutocompleteLibraryid(element_id) {
@@ -96,10 +111,34 @@ function toggleReasoningEffort() {
   }
 }
 
+function toggleQaReasoningEffort() {
+  const modelSelect = document.getElementById('id_qa_model');
+  const reasoningEffortContainer = document.getElementById('qa-reasoning-effort-container');
+
+  if (!modelSelect || !reasoningEffortContainer) {
+    return;
+  }
+
+  const selectedOption = modelSelect.options[modelSelect.selectedIndex];
+
+  if (selectedOption && selectedOption.dataset.isReasoning === 'true') {
+    reasoningEffortContainer.style.display = 'block';
+  } else {
+    reasoningEffortContainer.style.display = 'none';
+  }
+}
+
 document.addEventListener('DOMContentLoaded', function () {
   toggleReasoningEffort();
+  toggleQaReasoningEffort();
+
   const modelSelect = document.getElementById('id_chat_model');
   if (modelSelect) {
     modelSelect.addEventListener('change', toggleReasoningEffort);
+  }
+
+  const qaModelSelect = document.getElementById('id_qa_model');
+  if (qaModelSelect) {
+    qaModelSelect.addEventListener('change', toggleQaReasoningEffort);
   }
 });
