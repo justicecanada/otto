@@ -1,22 +1,17 @@
 import hashlib
 import os
-import time
 import zipfile
 from datetime import timedelta
 
 from django.conf import settings
 from django.utils.timezone import now
 
-import markdown
 import requests
 from llama_index.core.node_parser import SentenceSplitter
 from llama_index.core.schema import TextNode
 from lxml import etree as ET
 from sqlalchemy import create_engine, text
-from sqlalchemy.orm import sessionmaker
 from structlog import get_logger
-
-md = markdown.Markdown(extensions=["fenced_code", "nl2br", "tables"], tab_length=2)
 
 logger = get_logger(__name__)
 
@@ -155,7 +150,7 @@ def section_to_nodes(section, lang, chunk_size=1024, chunk_overlap=100):
     if chunk_size < 50:
         raise ValueError("Chunk size must be at least 50 tokens.")
     if "_schedule_" in section["section_id"]:
-        chunks = section["text"]
+        chunks = section["chunks"]
     else:
         splitter = SentenceSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
         # Split the text into chunks
@@ -570,7 +565,7 @@ def get_dict_from_xml(xml_filename):
                 d["title_str"],
                 (schedule["id"] if schedule["id"] else "Schedule"),
                 "",
-                # schedule["text"],
+                "\n".join(schedule["chunks"]),
             ]
         )
     # Finally, the preamble also needs a "all_str" field
@@ -756,7 +751,7 @@ def get_schedule(schedule):
             _get_text(schedule.find(".//TitleText")) or "",
         ],
         "marginal_note": _get_text(schedule.find(".//MarginalNote")),
-        "text": _chunk_schedule_text(schedule),
+        "chunks": _chunk_schedule_text(schedule),
         "in_force_start_date": schedule.attrib.get(
             "{http://justice.gc.ca/lims}inforce-start-date", None
         ),
