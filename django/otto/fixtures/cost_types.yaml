@@ -286,3 +286,15 @@
     unit_name_fr: jetons
     unit_cost: 10
     unit_quantity: 1000000
+- model: otto.CostType
+  pk: 29
+  fields:
+    short_name: vision-ocr
+    name: Azure Computer Vision OCR
+    name_fr: OCR Azure Computer Vision
+    description: Azure Computer Vision OCR service for batch reading of documents
+    description_fr: Service OCR Azure Computer Vision pour la lecture par lots de documents
+    unit_name: images
+    unit_name_fr: images
+    unit_cost: 0.7
+    unit_quantity: 1000

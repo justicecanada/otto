@@ -159,8 +159,9 @@ def dist(p1, p2):
 
 
 def create_searchable_pdf(input_file):
+    document_analysis_client = None
+    vision_client = None
     try:
-
         # Prepare file bytes for Azure analysis to avoid serialization of file objects
         if hasattr(input_file, "read"):
             input_file.seek(0)
@@ -180,12 +181,12 @@ def create_searchable_pdf(input_file):
         else:
             with open(input_file, "rb") as f:
                 body_data = f.read()
-            client = ImageAnalysisClient(
+            vision_client = ImageAnalysisClient(
                 endpoint=settings.AZURE_COGNITIVE_SERVICE_ENDPOINT,
                 credential=AzureKeyCredential(settings.AZURE_COGNITIVE_SERVICE_KEY),
             )
             # Extract text (OCR) from an image stream. This will be a synchronously (blocking) call.
-            poller = client.analyze(
+            poller = vision_client.analyze(
                 image_data=body_data, visual_features=[VisualFeatures.READ]
             )
 
@@ -206,21 +207,33 @@ def create_searchable_pdf(input_file):
             "error_id": error_id,
         }
 
-    page_count = len(ocr_results.pages)
-    logger.debug(
-        _("Azure Form Recognizer finished OCR text. Number of pages:") + str(page_count)
-    )
-    cost = Cost.objects.new(cost_type="doc-ai-read", count=page_count)
+    if document_analysis_client:
+        page_count = len(ocr_results.pages)
+        logger.debug(
+            _("Azure Form Recognizer finished OCR text. Number of pages:")
+            + str(page_count)
+        )
+        cost = Cost.objects.new(cost_type="doc-ai-read", count=page_count)
+    else:
+        # For Vision OCR, use number of images (assume 1 image per call)
+        image_count = 1
+        logger.debug(
+            _("Azure Vision OCR finished OCR text. Number of images:")
+            + str(image_count)
+        )
+        cost = Cost.objects.new(cost_type="vision-ocr", count=image_count)
 
     all_text = ocr_results["content"]
 
     # Get the OCR'd PDF from Azure
-    start_time_pdf = time.perf_counter()
-    pdf_content = document_analysis_client.get_analyze_result_pdf(
-        model_id="prebuilt-read", result_id=poller.details["operation_id"]
-    )
-    elapsed_time_pdf = time.perf_counter() - start_time_pdf
-    logger.info(f"Creating PDF file took {elapsed_time_pdf:.2f} seconds")
+    pdf_content = None
+    if document_analysis_client:
+        start_time_pdf = time.perf_counter()
+        pdf_content = document_analysis_client.get_analyze_result_pdf(
+            model_id="prebuilt-read", result_id=poller.details["operation_id"]
+        )
+        elapsed_time_pdf = time.perf_counter() - start_time_pdf
+        logger.info(f"Creating PDF file took {elapsed_time_pdf:.2f} seconds")
 
     return {
         "error": False,
