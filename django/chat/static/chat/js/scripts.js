@@ -788,6 +788,49 @@ window.addEventListener("keydown", function (event) {
   }
 });
 
+function setUploadsInProgress(state) {
+  if (state) {
+    document.addEventListener('click', navigationClickHandler, true);
+    window.addEventListener('beforeunload', beforeUnloadHandler);
+  } else {
+    document.removeEventListener('click', navigationClickHandler, true);
+    window.removeEventListener('beforeunload', beforeUnloadHandler);
+  }
+}
+
+function navigationClickHandler(e) {
+  // ignore clicks on the file upload progress bar and on modals
+  if (e.target.closest('.dff-cancel') || e.target.closest('[data-bs-toggle="modal"]')) {
+    return;
+  }
+
+  // intercept clicks on navigation elements
+  const target = e.target.closest('a[href], button[hx-get], button[hx-post], .nav-link, .list-group-item');
+
+  if (target) {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const confirmLeave = confirm(CANCEL_UPLOAD_WARNING);
+    if (confirmLeave) {
+      setUploadsInProgress(false);
+      // Re-trigger the click
+      target.click();
+    }
+  }
+}
+
+function beforeUnloadHandler(event) {
+  event.preventDefault();
+}
+
+document.addEventListener('htmx:oobAfterSwap', function (event) {
+  // After chat upload is complete, an hx-swap-oob hides/empties #chat-upload-message
+  if (event.detail?.target?.id === 'chat-upload-message') {
+    setUploadsInProgress(false);
+  }
+});
+
 // Highlight a term within only text nodes of a root element; skips code/KaTeX blocks
 function highlightTermInElement(root, term) {
   if (!root || !term) return null;
