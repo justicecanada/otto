@@ -14,6 +14,8 @@ from azure.ai.documentintelligence.models import (
     AnalyzeOutputOption,
     DocumentContentFormat,
 )
+from azure.ai.vision.imageanalysis import ImageAnalysisClient
+from azure.ai.vision.imageanalysis.models import VisualFeatures
 from azure.core.credentials import AzureKeyCredential
 from PIL import Image
 from PIL.Image import Resampling
@@ -158,25 +160,35 @@ def dist(p1, p2):
 
 def create_searchable_pdf(input_file):
     try:
-        document_analysis_client = DocumentIntelligenceClient(
-            endpoint=settings.AZURE_COGNITIVE_SERVICE_ENDPOINT,
-            credential=AzureKeyCredential(settings.AZURE_COGNITIVE_SERVICE_KEY),
-            headers={"x-ms-useragent": "searchable-pdf-blog/1.0.0"},
-        )
+
         # Prepare file bytes for Azure analysis to avoid serialization of file objects
         if hasattr(input_file, "read"):
             input_file.seek(0)
             body_data = input_file.read()
+            document_analysis_client = DocumentIntelligenceClient(
+                endpoint=settings.AZURE_COGNITIVE_SERVICE_ENDPOINT,
+                credential=AzureKeyCredential(settings.AZURE_COGNITIVE_SERVICE_KEY),
+                headers={"x-ms-useragent": "searchable-pdf-blog/1.0.0"},
+            )
+            # Call Azure Form Recognizer with raw bytes
+            poller = document_analysis_client.begin_analyze_document(
+                model_id="prebuilt-read",
+                body=body_data,
+                output=[AnalyzeOutputOption.PDF],
+                output_content_format=DocumentContentFormat.MARKDOWN,
+            )
         else:
             with open(input_file, "rb") as f:
                 body_data = f.read()
-        # Call Azure Form Recognizer with raw bytes
-        poller = document_analysis_client.begin_analyze_document(
-            model_id="prebuilt-read",
-            body=body_data,
-            output=[AnalyzeOutputOption.PDF],
-            output_content_format=DocumentContentFormat.MARKDOWN,
-        )
+            client = ImageAnalysisClient(
+                endpoint=settings.AZURE_COGNITIVE_SERVICE_ENDPOINT,
+                credential=AzureKeyCredential(settings.AZURE_COGNITIVE_SERVICE_KEY),
+            )
+            # Extract text (OCR) from an image stream. This will be a synchronously (blocking) call.
+            poller = client.analyze(
+                image_data=body_data, visual_features=[VisualFeatures.READ]
+            )
+
         start_time_ocr = time.perf_counter()
         ocr_results = poller.result()
         elapsed_time_ocr = time.perf_counter() - start_time_ocr
