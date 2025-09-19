@@ -111,6 +111,7 @@ nav#breadcrumbs a {
     -webkit-column-break-inside: avoid;
     break-inside: avoid;
     text-decoration: none !important;
+    transition: background-color 0.2s ease;
   }
 
   .app-category {
@@ -123,8 +124,7 @@ nav#breadcrumbs a {
   }
 
   .app-card-other {
-    border-left: solid 4px var(--app-color-blue-2);
-    transition: background-color 0.2s ease;
+    border-left: solid 3px var(--app-color-blue-2);
 
     &:hover {
       background: #87befc12 !important;
@@ -690,7 +690,6 @@ svg.driver-overlay {
   border-radius: 0 !important;
   box-shadow: none !important;
   cursor: pointer;
-  transition: background-color 0.2s ease;
 
   &:not(:last-child) {
     border-bottom: 1px solid var(--bs-border-color) !important;
