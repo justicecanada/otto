@@ -118,14 +118,13 @@
       .replace(/\u2014/g, '---')
       .replace(/\u2026/g, '...')
       .replace(/[ ]+\n/g, '\n')
-      .replace(/\s*\\\n/g, '\\\n')
-      .replace(/\s*\\\n\s*\\\n/g, '\n\n')
-      .replace(/\s*\\\n\n/g, '\n\n')
-      .replace(/\n-\n/g, '\n')
-      .replace(/\n\n\s*\\\n/g, '\n\n')
-      .replace(/\n\n\n*/g, '\n\n')
+      // Remove backslashes that Turndown.js adds to escape markdown characters
+      .replace(/\\([_*\[\]()~`>#+-=|{}\.!])/g, '$1')
+      // Simplified line break handling - remove excessive backslashes
+      .replace(/\\\n/g, '\n')
+      .replace(/\n\n\n+/g, '\n\n')
       .replace(/[ ]+$/gm, '')
-      .replace(/^\s+|[\s\\]+$/g, '');
+      .replace(/^\s+|\s+$/g, '');
   };
 
   var cleanHtml = function (html) {
@@ -141,9 +140,44 @@
     return html;
   };
 
+  var removeBase64Images = function (html) {
+    // TODO: image support - implement proper handling of images in messages
+    // For now, remove base64 image data but keep alt text and other descriptive info
+    html = html
+      // Replace img tags with base64 data URIs with just the alt text or filename info
+      .replace(/<img([^>]*?)src="data:image\/[^"]*"([^>]*?)>/gi, function (match, beforeSrc, afterSrc) {
+        var altMatch = (beforeSrc + afterSrc).match(/alt="([^"]*)"/i);
+        var titleMatch = (beforeSrc + afterSrc).match(/title="([^"]*)"/i);
+        var altText = altMatch ? altMatch[1] : '';
+        var titleText = titleMatch ? titleMatch[1] : '';
+
+        // Create a descriptive placeholder
+        var placeholder = '';
+        if (altText) {
+          placeholder = '[Image: ' + altText + ']';
+        } else if (titleText) {
+          placeholder = '[Image: ' + titleText + ']';
+        } else {
+          placeholder = '[Image]';
+        }
+
+        return placeholder;
+      })
+      // Remove any remaining standalone data URI references
+      .replace(/data:image\/[^;\s)]+;base64,[A-Za-z0-9+\/=]+/g, '[Image data removed]')
+      // Clean up any empty paragraphs or divs left behind
+      .replace(/<(p|div)(\s[^>]*)?>[\s&nbsp;]*<\/\1>/gi, '')
+      .trim();
+
+    return html;
+  };
+
   var convert = function (str) {
     // Clean the HTML first to remove Microsoft Word cruft
     str = cleanHtml(str);
+
+    // Remove base64 images before conversion
+    str = removeBase64Images(str);
 
     // Use Turndown.js with GFM plugin for better table support
     var turndownService = new TurndownService({
