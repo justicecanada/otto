@@ -5119,6 +5119,10 @@
         "fr": "",
         "fr_auto": "GPT-4.1-nano (le plus rapide, coût < 0,1x)"
     },
+    "This could cancel your file upload. Are you sure you want to continue?": {
+        "fr": "",
+        "fr_auto": "Cela pourrait annuler le téléchargement de votre fichier. Es-tu sûr de vouloir continuer?"
+    },
     "Users are limited to a monthly budget of $32 for AI use. Exceeding this requires a request to administrators.": {
         "fr": "",
         "fr_auto": "Les utilisateurs sont limités à un budget mensuel de 32 $ pour l’utilisation de l’IA. Dépasser ce seuil nécessite une demande aux administrateurs."

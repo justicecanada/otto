@@ -28,6 +28,7 @@
     {% endif %}
     const CHAT_UPLOAD_TOO_LARGE = '{% trans "File too large (max 10MB)" %}'.replace('10', CHAT_MAX_UPLOAD_SIZE/1000000);
     const LIBRARIAN_UPLOAD_TOO_LARGE = '{% trans "File too large (max 10MB)" %}'.replace('10', LIBRARIAN_MAX_UPLOAD_SIZE/1000000);
+    const CANCEL_UPLOAD_WARNING = '{% trans "This could cancel your file upload. Are you sure you want to continue?" %}';
   </script>
   {% include "chat/components/chat_tour_steps.html" %}
   {% include "components/tour_script.html" %}

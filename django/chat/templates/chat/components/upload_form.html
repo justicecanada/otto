@@ -10,7 +10,7 @@
 </form>
 
 <script>
-(function(){
+(function(){  
   const metadata = {};
   const upload_message = document.getElementById("chat-upload-message");
   const file_input = document.getElementById("id_chat-input_file");
@@ -54,8 +54,8 @@
         }
         submitUploadsIfComplete();
       },
-      onError: (upload) => submitUploadsIfComplete(),
-      onDelete: (upload) => submitUploadsIfComplete(),
+      onError: (upload) => submitUploadsIfComplete() && setUploadsInProgress(false),
+      onDelete: (upload) => submitUploadsIfComplete() && setUploadsInProgress(false),
       onProgress: (bytesUploaded, bytesTotal, upload) => {
         if(bytesTotal > CHAT_MAX_UPLOAD_SIZE) {
           // Find the .dff-file which contains span.dff-filename with text `upload.name`;
@@ -101,6 +101,7 @@
     if (document.querySelector("#no-messages-placeholder") !== null) {
       document.querySelector("#no-messages-placeholder").remove();
     }
+    setUploadsInProgress(true);
     setTimeout(() => {
       scrollToBottom(false, true);
     }, 50);
