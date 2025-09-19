@@ -87,8 +87,8 @@ function initLibrarianUploadForm() {
         }
         submitUploadsIfComplete();
       },
-      onError: (upload) => submitUploadsIfComplete() && setUploadsInProgress(false),
-      onDelete: (upload) => submitUploadsIfComplete() && setUploadsInProgress(false),
+      onError: (upload) => submitUploadsIfComplete(),
+      onDelete: (upload) => submitUploadsIfComplete(),
       onProgress: (bytesUploaded, bytesTotal, upload) => {
         if (bytesTotal > LIBRARIAN_MAX_UPLOAD_SIZE) {
           // Find the .dff-file which contains span.dff-filename with text `upload.name`;
