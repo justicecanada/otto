@@ -24,17 +24,21 @@
   <ul class="dropdown-menu dropdown-menu-end">
     <li class="d-none" id="user-menu-cost"></li>
     {% if request.user.is_operations_admin %}
-      <a class="a dropdown-item" href="{% url 'cost_dashboard' %}">{% trans "Cost dashboard" %}</a>
-      <a class="a dropdown-item" href="{% url 'feedback_dashboard' %}">{% trans "Feedback dashboard" %}</a>
+      {# Small heading #}
+      <li>
+        <h6 class="dropdown-header text-secondary">{% trans "Admin tools" %}</h6>
+      </li>
+      <li>
+        <a class="a dropdown-item" href="{% url 'cost_dashboard' %}">{% trans "Cost dashboard" %}</a>
+        <a class="a dropdown-item" href="{% url 'feedback_dashboard' %}">{% trans "Feedback dashboard" %}</a>
+      </li>
     {% endif %}
     {% if request.user.is_admin %}
       <li>
         <a class="a dropdown-item" href="{% url 'manage_users' %}">{% trans "Manage users" %}</a>
         <a class="a dropdown-item" href="{% url 'reset_completion_flags' %}">{% trans "Reset flags for demo" %}</a>
         <a class="a dropdown-item" href="{% url 'laws:loading_monitor' %}">{% trans "Manage laws loading" %}</a>
-      </li>
-      <li>
-        <hr class="dropdown-divider">
+        <a class="a dropdown-item" href="{% url 'manage_banner' %}">{% trans "Manage message banner" %}</a>
       </li>
       <li>
         {% if load_test_enabled %}
@@ -44,13 +48,16 @@
         {% endif %}
       </li>
     {% endif %}
-    {% if can_manage_users or can_enable_load_testing %}
+    {% if request.user.is_operations_admin %}
       <li>
         <hr class="dropdown-divider">
       </li>
     {% endif %}
     <li>
-      <a href="{% url 'azure_auth:logout' %}" class="dropdown-item">{% trans "Logout" %}</a>
+      <a href="{% url 'azure_auth:logout' %}" class="dropdown-item">
+        <i class="bi bi-box-arrow-right"></i>
+        {% trans "Logout" %}
+      </a>
     </li>
   </ul>
 </li>

@@ -216,3 +216,7 @@ div.source.highlight {
 li.search-history-item:not(:hover) {
   background-color: transparent;
 }
+
+#sources-container ul {
+  list-style-type: none;
+}

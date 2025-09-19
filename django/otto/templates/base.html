@@ -55,6 +55,7 @@
   </head>
 
   <body class="{% block body_classes %}{% endblock %}">
+    {% include "components/message_from_admins.html" %}
     {% if not hide_nav %}
       <nav class="navbar bg-dark border-bottom navbar-expand-sm position-relative"
            data-bs-theme="dark"
@@ -88,9 +89,9 @@
               <ul class="navbar-nav position-relative" id="top-right-nav">
                 {% include 'components/user_menu.html' %}
                 {% include 'components/notifications.html' %}
-                {% include 'components/feedback/feedback_icon.html' %}
-                {% include 'components/dark_mode_toggle.html' %}
                 {% include 'components/help_menu.html' %}
+                {% include 'components/dark_mode_toggle.html' %}
+                {% include 'components/feedback/feedback_icon.html' %}
                 {% include 'components/language_toggle.html' %}
               </ul>
             </div>

@@ -1384,7 +1384,7 @@
         "fr_auto": "Toutes les lois et tous les règlements"
     },
     "All acts": {
-        "fr": "",
+        "fr": "Toutes les lois",
         "fr_auto": "Tous les actes"
     },
     "All regulations": {
@@ -1396,11 +1396,11 @@
         "fr_auto": "Loi(s)/règlement(s) spécifique(s)..."
     },
     "Enabled by specific act(s)...": {
-        "fr": "",
+        "fr": "Loi(s) habilitante(s)",
         "fr_auto": "Activé par des actes spécifiques..."
     },
     "Select laws to search": {
-        "fr": "",
+        "fr": "Rechercher dans",
         "fr_auto": "Sélectionner des lois à rechercher"
     },
     "Select act(s)/regulation(s)": {
@@ -1656,7 +1656,7 @@
         "fr_auto": "Aucun dossier dans cette bibliothèque."
     },
     "Documents": {
-        "fr": "",
+        "fr": "Documents",
         "fr_auto": "Documents d’information"
     },
     "Select a folder to edit documents.": {
@@ -2956,7 +2956,7 @@
         "fr_auto": "Mode de recherche Q&R"
     },
     "By default, Q&A mode will quickly search for the most relevant \\\"chunks\\\" from the library. The AI will then read those chunks and provide an answer. For some questions though, you may need to have the AI read the full document. WARNING: This mode can be expensive when there are lots of documents!": {
-        "fr": "Par défaut, le mode Q&A recherchera rapidement les « morceaux » les plus pertinents dans la bibliothèque. L’IA lira ensuite ces morceaux et fournira une réponse. Pour certaines questions, vous devrez peut-être demander à l’IA de lire le document complet. ATTENTION : Ce mode peut être coûteux lorsqu’il y a beaucoup de documents!",
+        "fr": "Par défaut, le mode Q&A recherchera rapidement les « blocs » les plus pertinents dans la bibliothèque. L’IA lira ensuite ces morceaux et fournira une réponse. Pour certaines questions, vous devrez peut-être demander à l’IA de lire le document complet. ATTENTION : Ce mode peut être coûteux lorsqu’il y a beaucoup de documents!",
         "fr_auto": "Par défaut, le mode Q&A recherchera rapidement les \\\"morceaux\\ » les plus pertinents dans la bibliothèque. L’IA lira ensuite ces morceaux et fournira une réponse. Pour certaines questions, vous devrez peut-être demander à l’IA de lire le document complet. ATTENTION : Ce mode peut être coûteux lorsqu’il y a beaucoup de documents!"
     },
     "Q&A filters": {
@@ -3500,7 +3500,7 @@
         "fr_auto": "Seule la législation fédérale :"
     },
     "Case law and other legal sources are not included in this tool.": {
-        "fr": "",
+        "fr": "La jurisprudence et les autres sources de droit ne sont pas incluses dans cet outil.",
         "fr_auto": "La jurisprudence et les autres sources juridiques ne sont pas incluses dans cet outil."
     },
     "Inappropriate uses and limitations of Otto": {
@@ -3817,7 +3817,7 @@
     },
     "'We\\'ve seen in Q&A and Summarize mode that the AI reads documents, or chunks of documents, to provide an informed response. In Chat mode, the AI reads the previous messages to understand the context. When you want to iterate on some text, switch to Chat mode and describe the changes you want made. (If you\\'re having trouble expressing what you want, try the \\\"Improve prompt\\\" tool!)'": {
         "fr": "",
-        "fr_auto": "« Nous avons vu en mode Q&R et Summary que l’IA lit des documents, ou des morceaux de documents, pour fournir une réponse éclairée. En mode Chat, l’IA lit les messages précédents pour comprendre le contexte. Lorsque vous voulez itérer sur un texte, passez en mode Clavardage et décrivez les modifications que vous souhaitez apporter. (Si vous avez de la difficulté à exprimer ce que vous voulez, essayez l’outil « Améliorer l’invite »!)"
+        "fr_auto": "« Nous avons vu en mode Q&R et Summary que l’IA lit des documents, ou des blocs de documents, pour fournir une réponse éclairée. En mode Chat, l’IA lit les messages précédents pour comprendre le contexte. Lorsque vous voulez itérer sur un texte, passez en mode Clavardage et décrivez les modifications que vous souhaitez apporter. (Si vous avez de la difficulté à exprimer ce que vous voulez, essayez l’outil « Améliorer l’invite »!)"
     },
     "'Remember, the AI assistant is just a tool to help you accomplish your goals. Be specific and you\\'ll be more likely to get the results you want.'": {
         "fr": "",
@@ -3952,7 +3952,7 @@
         "fr_auto": "Mode de débogage"
     },
     "Start Job": {
-        "fr": "",
+        "fr": "Démarrer la tâcher",
         "fr_auto": "Commencer l’emploi"
     },
     "Are you sure you want to cancel the running job?": {
@@ -3960,7 +3960,7 @@
         "fr_auto": "Êtes-vous sûr de vouloir annuler la tâche en cours d’exécution?"
     },
     "Cancel Job": {
-        "fr": "",
+        "fr": "Annuler la tâche",
         "fr_auto": "Annuler l’emploi"
     },
     "All Laws (Detailed View)": {
@@ -4048,7 +4048,7 @@
         "fr_auto": "Liste des lois chargées - Otto"
     },
     "See when each act or regulation was last loaded into Otto": {
-        "fr": "",
+        "fr": "Voyez la dernière fois que chaque loi ou règlement a été chargé dans Otto",
         "fr_auto": "Voyez quand chaque loi ou règlement a été chargé pour la dernière fois dans Otto"
     },
     "Loading Monitor": {
@@ -4268,7 +4268,7 @@
         "fr_auto": "Exceptions"
     },
     "Description": {
-        "fr": "",
+        "fr": "Description",
         "fr_auto": "Désignation des marchandises"
     },
     "No exceptions found": {
@@ -4516,7 +4516,7 @@
         "fr_auto": "Documents complets"
     },
     "Combine": {
-        "fr": "",
+        "fr": "Combiner",
         "fr_auto": "Moissonneuse-batteuse"
     },
     "Separate": {
@@ -4747,6 +4747,18 @@
         "fr": "",
         "fr_auto": "Afficher la liste des applications"
     },
+    "chunk(s)": {
+        "fr": "bloc(s)",
+        "fr_auto": "Bloc(s)"
+    },
+    "failed": {
+        "fr": "",
+        "fr_auto": "Échec"
+    },
+    "stopped": {
+        "fr": "",
+        "fr_auto": "arrêté"
+    },
     "Invalid download request.": {
         "fr": "",
         "fr_auto": "Demande de téléchargement non valide."
@@ -4771,9 +4783,9 @@
         "fr": "",
         "fr_auto": "Extraire du texte de fichiers..."
     },
-    "Error extracting text from file.": {
+    "Error extracting text from file": {
         "fr": "",
-        "fr_auto": "Erreur lors de l’extraction du texte du fichier."
+        "fr_auto": "Erreur lors de l’extraction du texte du fichier"
     },
     "Extracting text from files": {
         "fr": "",
@@ -4838,5 +4850,321 @@
     "Downloaded on": {
         "fr": "",
         "fr_auto": "Téléchargé le"
+    },
+    "Azure Translator": {
+        "fr": "",
+        "fr_auto": "Azure Translator"
+    },
+    "GPT-4.1 (alternative method)": {
+        "fr": "",
+        "fr_auto": "GPT-4.1 (méthode alternative)"
+    },
+    "Sort": {
+        "fr": "Trier",
+        "fr_auto": "Trier"
+    },
+    "Date": {
+        "fr": "Date",
+        "fr_auto": "Rendez-vous"
+    },
+    "Save as PDF": {
+        "fr": "",
+        "fr_auto": "Enregistrer au format PDF"
+    },
+    "Corrupt doc file.": {
+        "fr": "",
+        "fr_auto": "Fichier doc corrompu."
+    },
+    "Error extracting text from file{file_label}.": {
+        "fr": "",
+        "fr_auto": "Erreur lors de l’extraction du texte de file{file_label}."
+    },
+    "Translate plain text with...": {
+        "fr": "",
+        "fr_auto": "Traduire du texte brut avec..."
+    },
+    "GPT-4.1-mini": {
+        "fr": "",
+        "fr_auto": "GPT-4.1-mini"
+    },
+    "Date modified/created": {
+        "fr": "",
+        "fr_auto": "Date de modification/création"
+    },
+    "File name": {
+        "fr": "",
+        "fr_auto": "Nom du fichier"
+    },
+    "File type": {
+        "fr": "",
+        "fr_auto": "Type de fichier"
+    },
+    "Size (Number of chunks)": {
+        "fr": "Taille (nombres de blocs)",
+        "fr_auto": "Taille (nombre de morceaux)"
+    },
+    "Manage message banner": {
+        "fr": "",
+        "fr_auto": "Gérer la bannière de message"
+    },
+    "Manage banner - Otto": {
+        "fr": "",
+        "fr_auto": "Gérer la bannière - Otto"
+    },
+    "Manage banner": {
+        "fr": "",
+        "fr_auto": "Gérer la bannière"
+    },
+    "All fields required": {
+        "fr": "",
+        "fr_auto": "Tous les champs obligatoires"
+    },
+    "Banner message (English)": {
+        "fr": "",
+        "fr_auto": "Message de bannière (anglais)"
+    },
+    "Banner message (French)": {
+        "fr": "",
+        "fr_auto": "Message de bannière (français)"
+    },
+    "Category": {
+        "fr": "",
+        "fr_auto": "Catégorie"
+    },
+    "Timeout (hours)": {
+        "fr": "",
+        "fr_auto": "Temps d’attente (heures)"
+    },
+    "Defaults to 24 hours.": {
+        "fr": "",
+        "fr_auto": "Valeur par défaut de 24 heures."
+    },
+    "This banner will appear for ALL OTTO USERS ON EVERY PAGE until the timeout is reached. Are you sure?": {
+        "fr": "",
+        "fr_auto": "Cette bannière apparaîtra pour TOUS LES UTILISATEURS OTTO SUR CHAQUE PAGE jusqu’à ce que le délai d’attente soit atteint. Es-tu certain?"
+    },
+    "Save banner": {
+        "fr": "",
+        "fr_auto": "Bannière de sauvegarde"
+    },
+    "Preview banner": {
+        "fr": "",
+        "fr_auto": "Bannière d’aperçu"
+    },
+    "Reset preview & cancel": {
+        "fr": "",
+        "fr_auto": "Réinitialiser l’aperçu et annuler"
+    },
+    "Remove banner": {
+        "fr": "",
+        "fr_auto": "Supprimer la bannière"
+    },
+    "\n                        <strong>Combine:</strong> Read all selected documents together, write single answer. <em>Essential for comparing documents. Usually less detailed.</em>\n                        <br><br>\n                        <strong>Separate:</strong> Read each selected document individually and write a separate answer for each. <em>Usually more detailed. Expensive.</em>\n                        ": {
+        "fr": "",
+        "fr_auto": "\n<strong>Combiner :</strong> Lisez tous les documents sélectionnés ensemble, rédigez une seule réponse. <em>Essentiel pour comparer des documents. Généralement moins détaillé.</em>\n                        <br><br>\n                        <strong>Séparer :</strong> Lisez chaque document sélectionné individuellement et rédigez une réponse distincte pour chacun. <em>Généralement plus détaillé. Coûteux.</em>\n                        "
+    },
+    "File size": {
+        "fr": "",
+        "fr_auto": "Taille du fichier"
+    },
+    "Show search": {
+        "fr": "",
+        "fr_auto": "Afficher la recherche"
+    },
+    "Clear search": {
+        "fr": "",
+        "fr_auto": "Recherche claire"
+    },
+    "Hide search": {
+        "fr": "",
+        "fr_auto": "Masquer la recherche"
+    },
+    "Minimal (fastest, cheapest)": {
+        "fr": "",
+        "fr_auto": "Minimal (le plus rapide, le moins cher)"
+    },
+    "Azure Translator - standard": {
+        "fr": "",
+        "fr_auto": "Azure Translator - standard"
+    },
+    "Azure Translator - JUS custom": {
+        "fr": "",
+        "fr_auto": "Azure Translator - JUS custom"
+    },
+    "Glossary CSV (optional)": {
+        "fr": "",
+        "fr_auto": "Glossaire CSV (optionnel)"
+    },
+    "Remove": {
+        "fr": "",
+        "fr_auto": "Retirer"
+    },
+    " <strong>Combine:</strong> Search once across all selected documents before answer generation. <em>May not include all documents. Cheap, more succint.</em> <br><br> <strong>Separate:</strong> Search each selected document individually and generate answers for each. <em>Includes all selected documents, even if irrelevant. More detailed, expensive.</em> ": {
+        "fr": "",
+        "fr_auto": " <strong>Combine :</strong> Faites une recherche une fois sur tous les documents sélectionnés avant de générer la réponse. <em>Peut ne pas inclure tous les documents. Pas cher, plus sucré.</em> <br><br> <strong>Séparer : Recherchez</strong> chaque document sélectionné individuellement et générez des réponses pour chacun. <em>Inclut tous les documents sélectionnés, même s’ils ne sont pas pertinents. Plus détaillé, plus cher.</em> "
+    },
+    "Text extraction complete. Starting processing...": {
+        "fr": "",
+        "fr_auto": "Extraction de texte terminée. Début du traitement..."
+    },
+    "Error processing translation tasks.": {
+        "fr": "",
+        "fr_auto": "Tâches de traduction en traitement des erreurs."
+    },
+    "(Azure file translation only) CSV file with 2 columns and no header row. Each row must consist of <em>source term</em>, <em>target term</em>. Terms are case-sensitive.": {
+        "fr": "",
+        "fr_auto": "(Traduction de fichiers Azure seulement) Fichier CSV avec 2 colonnes et sans ligne d’en-tête. Chaque ligne doit contenir le <em>terme source</em>, <em>le terme cible</em>. Les termes sont sensibles à la casse."
+    },
+    "GPT-4.1": {
+        "fr": "",
+        "fr_auto": "GPT-4.1"
+    },
+    "Glossary CSV (optional - file translation only)": {
+        "fr": "",
+        "fr_auto": "Glossaire CSV (optionnel - traduction de fichiers seulement)"
+    },
+    "Translate prompt": {
+        "fr": "",
+        "fr_auto": "Invite de traduction"
+    },
+    "Glossary file could not be read: {str(e)}": {
+        "fr": "",
+        "fr_auto": "Fichier glossaire impossible à lire : {str(e)}"
+    },
+    "Glossary CSV": {
+        "fr": "",
+        "fr_auto": "Glossaire CSV"
+    },
+    "(optional, file translation only)": {
+        "fr": "",
+        "fr_auto": "(optionnel, traduction de fichiers seulement)"
+    },
+    "GPT-4.1 (no file output)": {
+        "fr": "",
+        "fr_auto": "GPT-4.1 (pas de sortie de fichier)"
+    },
+    "GPT-4.1-mini (no file output)": {
+        "fr": "",
+        "fr_auto": "GPT-4.1-mini (pas de sortie de fichier)"
+    },
+    "Azure Translator (files, long text, 20x cost)": {
+        "fr": "",
+        "fr_auto": "Azure Translator (fichiers, texte long, coût 20x)"
+    },
+    "GPT-4.1 (most steerable, 1x cost)": {
+        "fr": "",
+        "fr_auto": "GPT-4.1 (le plus orientable, coût 1x)"
+    },
+    "GPT-4.1-mini (steerable, 0.2x cost)": {
+        "fr": "",
+        "fr_auto": "GPT-4.1-mini (orientable, coût 0,2x)"
+    },
+    "Azure Translator - JUS Custom": {
+        "fr": "",
+        "fr_auto": "Azure Translator - JUS Custom"
+    },
+    "Please review translated files prior to distribution.": {
+        "fr": "",
+        "fr_auto": "Veuillez examiner les fichiers traduits avant la distribution."
+    },
+    "Azure Translator (files, long text, 15x cost)": {
+        "fr": "",
+        "fr_auto": "Azure Translator (fichiers, texte long, coût 15x)"
+    },
+    "\n            <strong>Translate</strong> input text or uploaded documents from English to French or vice-versa.\n          ": {
+        "fr": "",
+        "fr_auto": "\n<strong>Traduire</strong> le texte d’entrée ou les documents téléchargés de l’anglais vers le français, ou inversement.\n          "
+    },
+    "(Azure file translation only) CSV file with 2 columns and no header row. Each row must consist of <em>English term</em>, <em>French term</em>. Terms are case-sensitive.": {
+        "fr": "",
+        "fr_auto": "(Traduction de fichiers Azure seulement) Fichier CSV avec 2 colonnes et sans ligne d’en-tête. Chaque ligne doit être composée de <em>terme anglais</em>, <em>terme français</em>. Les termes sont sensibles à la casse."
+    },
+    "Glossary file is invalid:\nEach row must consist of 'English term, French term' and no cell can be empty.\nError on line: ": {
+        "fr": "",
+        "fr_auto": "Le fichier du glossaire est invalide :\nChaque ligne doit contenir « terme anglais, terme français » et aucune case ne peut être vide.\nErreur en ligne : "
+    },
+    "Current date:": {
+        "fr": "",
+        "fr_auto": "Date actuelle :"
+    },
+    "Low (better instruction-following)": {
+        "fr": "",
+        "fr_auto": "Faible (meilleur suivi de l’instruction)"
+    },
+    "Medium (more deliberate reasoning)": {
+        "fr": "",
+        "fr_auto": "Médium (raisonnement plus délibéré)"
+    },
+    "High (complex, multi-step reasoning)": {
+        "fr": "",
+        "fr_auto": "Haut (raisonnement complexe et en plusieurs étapes)"
+    },
+    "Azure Translator (best for files, 15x cost)": {
+        "fr": "",
+        "fr_auto": "Azure Translator (meilleur pour les fichiers, coût 15x)"
+    },
+    "GPT-5 (best for text, 1.5x cost)": {
+        "fr": "",
+        "fr_auto": "GPT-5 (meilleur pour le texte, coût 1,5x)"
+    },
+    "GPT-4.1 (good for text, 1x cost)": {
+        "fr": "",
+        "fr_auto": "GPT-4.1 (bon pour le texte, coût 1x)"
+    },
+    "GPT-4.1-mini (faster, 0.2x cost)": {
+        "fr": "",
+        "fr_auto": "GPT-4.1-mini (plus rapide, coût 0,2x)"
+    },
+    "GPT-4.1-nano (fastest, < 0.1x cost)": {
+        "fr": "",
+        "fr_auto": "GPT-4.1-nano (le plus rapide, coût < 0,1x)"
+    },
+    "This could cancel your file upload. Are you sure you want to continue?": {
+        "fr": "",
+        "fr_auto": "Cela pourrait annuler le téléchargement de votre fichier. Es-tu sûr de vouloir continuer?"
+    },
+    "Users are limited to a monthly budget of $32 for AI use. Exceeding this requires a request to administrators.": {
+        "fr": "",
+        "fr_auto": "Les utilisateurs sont limités à un budget mensuel de 32 $ pour l’utilisation de l’IA. Dépasser ce seuil nécessite une demande aux administrateurs."
+    },
+    "Welcome to Otto.": {
+        "fr": "",
+        "fr_auto": "Bienvenue chez Otto."
+    },
+    "Welcome to the Otto development / test environment.": {
+        "fr": "",
+        "fr_auto": "Bienvenue dans l’environnement de développement / test d’Otto."
+    },
+    "Terms of use for Otto": {
+        "fr": "",
+        "fr_auto": "Conditions d’utilisation pour Otto"
+    },
+    "Chat with GPT models, query document libraries, generate summaries and translate documents.": {
+        "fr": "",
+        "fr_auto": "Discutez avec des modèles GPT, interrogez des bibliothèques de documents, générez des résumés et traduisez des documents."
+    },
+    "Chat with a Justice-hosted AI (like ChatGPT).": {
+        "fr": "",
+        "fr_auto": "Discutez avec une IA hébergée par Justice (comme ChatGPT)."
+    },
+    "Get instant answers from curated and user-uploaded documents.": {
+        "fr": "",
+        "fr_auto": "Obtenez des réponses instantanées grâce à des documents sélectionnés et téléchargés par les utilisateurs."
+    },
+    "Generate brief or detailed summaries from files, URLs or text input using AI.": {
+        "fr": "",
+        "fr_auto": "Générez des résumés courts ou détaillés à partir de fichiers, d’URL ou de textes en utilisant l’IA."
+    },
+    "Translate to French or English from files or text input.": {
+        "fr": "",
+        "fr_auto": "Traduisez en français ou en anglais à partir de fichiers ou de saisies textuelles."
+    },
+    "Admin tools": {
+        "fr": "",
+        "fr_auto": "Outils d’administration"
+    },
+    "and report issues or suggest improvements by": {
+        "fr": "",
+        "fr_auto": "et signalent les problèmes ou suggèrent des améliorations en"
     }
 }

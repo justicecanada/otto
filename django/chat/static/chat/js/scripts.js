@@ -138,8 +138,7 @@ function handleModeChange(mode, element = null) {
   hidden_mode_input.value = mode;
   // Set the #chat-outer class to the selected mode for mode-specific styling
   document.querySelector('#chat-outer').classList = [mode];
-  // Dispatch change event for search mode in order to trigger advance settings options
-  document.getElementById('id_qa_mode').dispatchEvent(new Event("change"));
+  triggerOptionSave();
   updatePlaceholder(mode);
   resizeOtherElements();
   // If the invoking element is an accordion-button we can stop
@@ -181,7 +180,6 @@ function toggleAriaSelected(mode) {
   });
 }
 
-
 // Close the sidebars that are in "overlay mode" when clicking outside of them
 document.querySelector("#chat-container").addEventListener('click', function (e) {
   let clicked_element = e.target;
@@ -220,27 +218,8 @@ function showHideSidebars() {
   resizePromptContainer();
 }
 window.addEventListener('resize', showHideSidebars);
-// On page load...
-document.addEventListener("DOMContentLoaded", function () {
-  // Markdown rendering
-  document.querySelectorAll("div.message-text").forEach(function (element) {
-    render_markdown(element);
-    checkTruncation(element);
-  });
-  // The following line is causing problems. Keeping as a comment in case removing it causes other problems.
-  // limitScopeSelect();
-  showHideSidebars();
-  document.querySelector('#prompt-form-container').classList.remove("d-none");
-  resizeTextarea();
-  let mode = document.querySelector('#chat-outer').classList[0];
-  updateAccordion(mode);
-  updateQaSourceForms();
-  updatePlaceholder(mode);
-  document.querySelector("#chat-prompt").focus();
-  if (document.querySelector("#no-messages-placeholder") === null) {
-    setTimeout(scrollToBottom, 100);
-  }
-  // Initialize tooltips
+// Initialize or re-initialize bootstrap tooltips
+function initializeTooltips() {
   const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
   const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl, {delay: {show: 500, hide: 200}}));
   const presetActionButtons = document.querySelectorAll("div.preset-actions button");
@@ -251,12 +230,65 @@ document.addEventListener("DOMContentLoaded", function () {
       });
     });
   });
+}
+
+// On page load...
+document.addEventListener("DOMContentLoaded", function () {
+  // Markdown rendering
+  document.querySelectorAll("div.message-text").forEach(function (element) {
+    render_markdown(element);
+    checkTruncation(element);
+  });
+  showHideSidebars();
+  document.querySelector('#prompt-form-container').classList.remove("d-none");
+  resizeTextarea();
+  const mode = document.querySelector('#chat-outer').classList[0];
+  updateAccordion(mode);
+  updateQaSourceForms();
+  updateTranslateForms();
+  updatePlaceholder(mode);
+  document.querySelector("#chat-prompt").focus();
+  if (document.querySelector("#no-messages-placeholder") === null) {
+    setTimeout(scrollToBottom, 100);
+  }
+  // Initialize tooltips
+  initializeTooltips();
   document.querySelectorAll('.chat-delete').forEach(button => {
     button.addEventListener('htmx:afterRequest', () => {
       deleteChatSection(button);
     });
   });
+  // Hide RAG-only Q+A options in advanced modal on page load if applicable
+  const ragOptions = document.querySelectorAll(".qa_rag_option");
+  const qa_mode = document.getElementById("id_qa_mode");
+  ragOptions.forEach(function (option) {
+    if (qa_mode.value !== "rag") {
+      option.style.display = "none";
+    }
+  });
+  // If there's a search term in the URL, highlight it in the message and scroll to it
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const term = (params.get('search') || '').trim();
+    const urlHash = window.location.hash;
+    const anchor = urlHash && urlHash.startsWith('#message_') ? document.querySelector(urlHash) : null;
 
+    if (anchor) {
+      // If a search term exists, highlight only the occurrences inside the target message
+      if (term) {
+        expandAllMessages(chat_id);
+        //set a timeout to allow message expansion to complete
+        setTimeout(() => {
+          const firstMark = highlightTermInElement(anchor, term);
+          const scrollTarget = firstMark || anchor;
+          scrollTarget.scrollIntoView({behavior: 'smooth', block: 'center'});
+        }, 300);
+      } else {
+        // Fallback: just scroll to the message
+        anchor.scrollIntoView({behavior: 'smooth', block: 'center'});
+      }
+    }
+  } catch (_) { /* noop */}
 });
 // On prompt form submit...
 document.addEventListener("htmx:afterSwap", function (event) {
@@ -511,7 +543,8 @@ function cancelChatRename() {
 }
 
 function updateQaModal() {
-  // console.log('Updating QA modal');
+  const qa_mode = document.getElementById('id_qa_mode');
+  toggleRagOptions(qa_mode);
   const qa_modal_elements = document.querySelectorAll('#advanced-qa-modal [data-inputname]');
   qa_modal_elements.forEach((modal_element) => {
     const hidden_input_name = modal_element.dataset.inputname;
@@ -551,7 +584,6 @@ function toggleGranularOptions(value) {
   }
 }
 
-
 function toggleRagOptions(elem) {
   var value = elem.value;
   var rag_string = elem.dataset.rag_string;
@@ -580,25 +612,6 @@ function toggleRagOptions(elem) {
   }
   new bootstrap.Tooltip(comb_sep, {delay: {show: 500, hide: 200}});
 }
-
-// Hide RAG-only Q+A options in advanced modal on page load if applicable
-document.addEventListener("DOMContentLoaded", function () {
-  const ragOptions = document.querySelectorAll(".qa_rag_option");
-  const mode = document.getElementById("id_qa_mode");
-  ragOptions.forEach(function (option) {
-    if (mode.value !== "rag") {
-      option.style.display = "none";
-    }
-  });
-});
-
-document.addEventListener("DOMContentLoaded", function () {
-  var select = document.getElementById("id_qa_mode");
-  if (select) {
-    toggleRagOptions(select);
-  }
-});
-
 
 function updatePageTitle(title = null) {
   if (title) {
@@ -662,7 +675,6 @@ function expandAllMessages(chat_id) {
   if (collapseBtn) collapseBtn.classList.remove('d-none');
 }
 
-
 function collapseAllMessages(chat_id) {
   // Find all expanded messages
   const expandedMessages = document.querySelectorAll('.message-outer.show-all');
@@ -712,6 +724,19 @@ function clearRemainingCostWarningButtons() {
   }
 }
 
+function initializeReasoningEffortToggle() {
+  toggleReasoningEffort();
+  toggleQaReasoningEffort();
+  const modelSelect = document.getElementById('id_chat_model');
+  if (modelSelect) {
+    modelSelect.addEventListener('change', toggleReasoningEffort);
+  }
+  const qaModelSelect = document.getElementById('id_qa_model');
+  if (qaModelSelect) {
+    qaModelSelect.addEventListener('change', toggleQaReasoningEffort);
+  }
+}
+
 function afterAccordionSwap() {
   const accordion = document.getElementById('options-accordion');
   const presetLoaded = accordion.dataset.presetLoaded === "true";
@@ -725,15 +750,134 @@ function afterAccordionSwap() {
 
   if (presetLoaded || swap) {
     handleModeChange(mode, null);
-    const qa_mode = document.getElementById('id_qa_mode');
-    switchToDocumentScope();
-    // Update the advanced settings RAG options visibility
-    toggleRagOptions(qa_mode);
-    setTimeout(updateQaSourceForms, 100);
+    // Update forms with delay to ensure DOM is ready
+    setTimeout(() => {
+      updateQaSourceForms();
+      updateTranslateForms();
+      initializeReasoningEffortToggle();
+    }, 100);
   } else if (triggerLibraryChange) {
     // This function calls updateQaSourceForms, so no need to call it twice
     resetQaAutocompletes();
+    initializeReasoningEffortToggle();
   } else {
+    updateTranslateForms();
     updateQaSourceForms();
+    initializeReasoningEffortToggle();
   }
+
+  // Re-initialize tooltips after accordion swap
+  initializeTooltips();
+}
+
+// Printing
+function printChat() {
+  // Expand all messages
+  expandAllMessages(chat_id);
+  // Wait a bit for the messages to expand
+  setTimeout(() => {
+    window.print();
+  }, 300);
+}
+
+// Hijack Ctrl+P / Cmd+P to print the chat
+window.addEventListener("keydown", function (event) {
+  if ((event.ctrlKey) && event.key === "p") {
+    event.preventDefault();
+    printChat();
+  }
+});
+
+function setUploadsInProgress(state) {
+  if (state) {
+    document.addEventListener('click', navigationClickHandler, true);
+    window.addEventListener('beforeunload', beforeUnloadHandler);
+  } else {
+    document.removeEventListener('click', navigationClickHandler, true);
+    window.removeEventListener('beforeunload', beforeUnloadHandler);
+  }
+}
+
+function navigationClickHandler(e) {
+  // ignore clicks on the file upload progress bar and on modals
+  if (e.target.closest('.dff-cancel') || e.target.closest('[data-bs-toggle="modal"]')) {
+    return;
+  }
+
+  // intercept clicks on navigation elements
+  const target = e.target.closest('a[href], button[hx-get], button[hx-post], .nav-link, .list-group-item');
+
+  if (target) {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const confirmLeave = confirm(CANCEL_UPLOAD_WARNING);
+    if (confirmLeave) {
+      setUploadsInProgress(false);
+      // Re-trigger the click
+      target.click();
+    }
+  }
+}
+
+function beforeUnloadHandler(event) {
+  event.preventDefault();
+}
+
+document.addEventListener('htmx:oobAfterSwap', function (event) {
+  // After chat upload is complete, an hx-swap-oob hides/empties #chat-upload-message
+  if (event.detail?.target?.id === 'chat-upload-message') {
+    setUploadsInProgress(false);
+  }
+});
+
+// Highlight a term within only text nodes of a root element; skips code/KaTeX blocks
+function highlightTermInElement(root, term) {
+  if (!root || !term) return null;
+  const skipSelector = 'code, pre, kbd, samp, .katex, .MathJax, .hljs, .no-highlight';
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+    acceptNode: (node) => {
+      if (!node.nodeValue || !node.nodeValue.trim()) return NodeFilter.FILTER_REJECT;
+      if (node.parentElement && node.parentElement.closest(skipSelector)) return NodeFilter.FILTER_REJECT;
+      return NodeFilter.FILTER_ACCEPT;
+    }
+  });
+
+  const regex = new RegExp(term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+  let firstMark = null;
+  const toProcess = [];
+  while (walker.nextNode()) toProcess.push(walker.currentNode);
+
+  for (const textNode of toProcess) {
+    const text = textNode.nodeValue;
+    if (!regex.test(text)) continue;
+    regex.lastIndex = 0; // reset after test
+    const frag = document.createDocumentFragment();
+    let lastIndex = 0;
+    let match;
+    while ((match = regex.exec(text)) !== null) {
+      const start = match.index;
+      const end = start + match[0].length;
+      if (start > lastIndex) frag.appendChild(document.createTextNode(text.slice(lastIndex, start)));
+      const mark = document.createElement('mark');
+      mark.className = 'search-hit';
+      mark.textContent = text.slice(start, end);
+      frag.appendChild(mark);
+      if (!firstMark) firstMark = mark;
+      lastIndex = end;
+    }
+    if (lastIndex < text.length) frag.appendChild(document.createTextNode(text.slice(lastIndex)));
+    textNode.parentNode.replaceChild(frag, textNode);
+  }
+  return firstMark;
+}
+
+// Remove <mark class="search-hit"> wrappers, keeping inner text
+function unmarkInElement(root) {
+  if (!root) return;
+  const marks = root.querySelectorAll('mark.search-hit');
+  marks.forEach(mark => {
+    const text = document.createTextNode(mark.textContent);
+    mark.replaceWith(text);
+  });
 }

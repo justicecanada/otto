@@ -28,6 +28,7 @@
     {% endif %}
     const CHAT_UPLOAD_TOO_LARGE = '{% trans "File too large (max 10MB)" %}'.replace('10', CHAT_MAX_UPLOAD_SIZE/1000000);
     const LIBRARIAN_UPLOAD_TOO_LARGE = '{% trans "File too large (max 10MB)" %}'.replace('10', LIBRARIAN_MAX_UPLOAD_SIZE/1000000);
+    const CANCEL_UPLOAD_WARNING = '{% trans "This could cancel your file upload. Are you sure you want to continue?" %}';
   </script>
   {% include "chat/components/chat_tour_steps.html" %}
   {% include "components/tour_script.html" %}
@@ -69,7 +70,7 @@
             </div>
           {% endif %}
           <div id="messages-container"
-               class="{% if pinned_messages %}pt-2{% else %}pt-3{% endif %} px-2">
+               class="{% if pinned_messages %}pt-2{% else %}pt-3{% endif %} px-2 print-target">
             {% if not chat_messages and not pinned_messages %}
               {% include 'chat/components/chat_welcome.html' %}
             {% endif %}
@@ -100,8 +101,10 @@
   <script src="{% static 'librarian/scripts.js' %}"></script>
   <script src="{% static 'chat/js/presetModal.js' %}"></script>
 
+
   <link rel="stylesheet" href="{% static 'chat/css/highlightjs.css' %}">
   <link rel="stylesheet" href="{% static 'thirdparty/css/katex.min.css' %}">
 
   <link rel="stylesheet" href="{% static 'file_form/file_form.css' %}">
+  <link rel="stylesheet" href="{% static 'chat/css/print.css' %}">
 {% endblock %}

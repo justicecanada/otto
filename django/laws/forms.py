@@ -97,6 +97,12 @@ class LawSearchForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.fields["model"] = forms.ChoiceField(
+            label=_("AI model"),
+            choices=get_grouped_chat_model_choices(),
+            initial=settings.DEFAULT_LAWS_MODEL,
+            widget=SelectWithModelGroups(attrs={"class": "form-select"}),
+        )
         # Set detect_language label based on page language
         lang = get_language()
         if lang == "fr":
@@ -220,12 +226,6 @@ class LawSearchForm(forms.Form):
         required=False,
         initial=True,
         widget=forms.CheckboxInput(attrs={"class": "form-check-input"}),
-    )
-    model = forms.ChoiceField(
-        label=_("AI model"),
-        choices=get_grouped_chat_model_choices(),
-        initial=settings.DEFAULT_LAWS_MODEL,
-        widget=SelectWithModelGroups(attrs={"class": "form-select"}),
     )
     additional_instructions = forms.CharField(
         label=_("Additional instructions for AI answer"),

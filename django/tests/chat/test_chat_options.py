@@ -27,10 +27,11 @@ def test_chat_options(client, all_apps_user):
     assert response.status_code == 500
 
     new_chat = Chat.objects.get(id=new_chat.id)
+    new_library = Library.objects.create(name="New library")
     # Change the chat options through the form
     options_form = ChatOptionsForm(instance=new_chat.options, user=user)
     options_form_data = options_form.initial
-    options_form_data["qa_library"] = 1
+    options_form_data["qa_library"] = new_library.id
     options_form_data["chat_system_prompt"] = (
         "You are a cowboy-themed AI, and always start your response with 'Howdy!'"
     )
@@ -39,6 +40,12 @@ def test_chat_options(client, all_apps_user):
     options_form_data["qa_data_sources"] = [
         data_source.id for data_source in options_form_data["qa_data_sources"]
     ]
+    # Remove translate_glossary if not set (simulate typical form submission)
+    if (
+        "translate_glossary" in options_form_data
+        and not options_form_data["translate_glossary"]
+    ):
+        del options_form_data["translate_glossary"]
     # Submit the form
     response = client.post(
         reverse("chat:chat_options", args=[new_chat.id]), options_form_data

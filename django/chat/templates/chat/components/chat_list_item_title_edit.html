@@ -7,6 +7,7 @@
       onsubmit="event.preventDefault();renameChatHandler();"
       class="row d-flex py-2 border-bottom">
     <div class="col">
+        <input type="hidden" name="rename_intent" value="1">
         <label for="{{ form.title.id_for_label }}" class="visually-hidden">{% trans "Edit chat title" %}</label>
         {{ form.title }}
     </div>

@@ -3,6 +3,7 @@ import os
 from urllib.parse import urlparse
 
 from django import forms
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db.models import Q
 from django.forms import ModelForm
@@ -18,10 +19,12 @@ from structlog import get_logger
 
 from chat.llm_models import get_grouped_chat_model_choices
 from chat.models import (
+    MODE_CHOICES,
     QA_MODE_CHOICES,
     QA_PROCESS_MODE_CHOICES,
     QA_SCOPE_CHOICES,
     REASONING_EFFORT_CHOICES,
+    TRANSLATE_MODEL_CHOICES,
     Chat,
     ChatOptions,
     Preset,
@@ -37,6 +40,11 @@ TEMPERATURES = [
     (1.0, _("Creative")),
 ]
 LANGUAGES = [("en", _("English")), ("fr", _("French"))]
+
+if not settings.CUSTOM_TRANSLATOR_ID:
+    TRANSLATE_MODEL_CHOICES = [
+        t for t in TRANSLATE_MODEL_CHOICES if t[0] != "azure_custom"
+    ]
 
 
 class GroupedLibraryChoiceField(forms.ModelChoiceField):
@@ -280,10 +288,21 @@ class SelectWithModelGroups(SelectWithOptionClasses):
 
 
 class ChatOptionsForm(ModelForm):
+    # Include translate_glossary_filename as a hidden field to ensure it's preserved
+    translate_glossary_filename = forms.CharField(
+        required=False, widget=forms.HiddenInput
+    )
+
     class Meta:
         model = ChatOptions
         fields = "__all__"
-        exclude = ["chat", "english_default", "french_default", "prompt"]
+        exclude = [
+            "chat",
+            "english_default",
+            "french_default",
+            "prompt",
+            "translate_glossary",
+        ]
         widgets = {
             "mode": forms.HiddenInput(attrs={"onchange": "triggerOptionSave();"}),
             "chat_temperature": forms.Select(
@@ -304,7 +323,7 @@ class ChatOptionsForm(ModelForm):
                 choices=QA_MODE_CHOICES,
                 attrs={
                     "class": "form-select form-select-sm",
-                    "onchange": "switchToDocumentScope(); updateQaSourceForms(); toggleRagOptions(this); triggerOptionSave();",
+                    "onchange": "if (this.value=='summarize') {switchToDocumentScope();} updateQaSourceForms(); triggerOptionSave();",
                     "data-rag_string": _(
                         """
                         <strong>Combine:</strong> Search once across all selected documents before answer generation. <em>May not include all documents. Cheap, more succint.</em>
@@ -316,16 +335,23 @@ class ChatOptionsForm(ModelForm):
                         """
                         <strong>Combine:</strong> Read all selected documents together, write single answer. <em>Essential for comparing documents. Usually less detailed.</em>
                         <br><br>
-                        <strong>Separate:</strong> Read each selected document individually and write a separate answer for each. <em>Usually more detailed. Expensive./em>
+                        <strong>Separate:</strong> Read each selected document individually and write a separate answer for each. <em>Usually more detailed. Expensive.</em>
                         """
                     ),
+                },
+            ),
+            "qa_reasoning_effort": forms.Select(
+                choices=REASONING_EFFORT_CHOICES,
+                attrs={
+                    "class": "form-select form-select-sm",
+                    "onchange": "triggerOptionSave();",
                 },
             ),
             "qa_process_mode": forms.Select(
                 choices=QA_PROCESS_MODE_CHOICES,
                 attrs={
                     "class": "form-select form-select-sm",
-                    "onchange": "switchToDocumentScope(); updateQaSourceForms(); triggerOptionSave();",
+                    "onchange": "if (this.value=='per_doc') {switchToDocumentScope();} updateQaSourceForms(); triggerOptionSave();",
                 },
             ),
             "qa_scope": forms.Select(
@@ -363,6 +389,9 @@ class ChatOptionsForm(ModelForm):
                 attrs={"onchange": "triggerOptionSave();"}
             ),
             "qa_rewrite": forms.HiddenInput(attrs={"onchange": "triggerOptionSave();"}),
+            "translate_glossary": forms.FileInput(
+                attrs={"accept": ".csv", "onchange": "triggerOptionSave();"}
+            ),
         }
 
     def __init__(self, *args, **kwargs):
@@ -398,6 +427,25 @@ class ChatOptionsForm(ModelForm):
                 },
             )
 
+        # translate_model has choices for translation service
+        for field in ["translate_model"]:
+            self.fields[field].widget = forms.Select(
+                choices=TRANSLATE_MODEL_CHOICES,
+                attrs={
+                    "class": "form-select form-select-sm",
+                    "onchange": "updateTranslateForms();triggerOptionSave();",
+                },
+            )
+
+        # Add translate_glossary as a separate FileField (not bound to model)
+        self.fields["translate_glossary"] = forms.FileField(
+            required=False,
+            widget=forms.FileInput(
+                attrs={"accept": ".csv", "onchange": "triggerOptionSave();"}
+            ),
+            label="Glossary CSV (optional)",
+        )
+
         # Text areas
         self.fields["chat_system_prompt"].widget = forms.Textarea(
             attrs={
@@ -408,6 +456,14 @@ class ChatOptionsForm(ModelForm):
         )
 
         self.fields["summarize_prompt"].widget = forms.Textarea(
+            attrs={
+                "class": "form-control form-control-sm",
+                "rows": 10,
+                "onkeyup": "triggerOptionSave();",
+            }
+        )
+
+        self.fields["translate_prompt"].widget = forms.Textarea(
             attrs={
                 "class": "form-control form-control-sm",
                 "rows": 10,
@@ -433,7 +489,7 @@ class ChatOptionsForm(ModelForm):
             widget=SelectWithOptionClasses(
                 attrs={
                     "class": "form-select form-select-sm",
-                    "onchange": "resetQaAutocompletes(); triggerOptionSave(); updateLibraryModalButton();",
+                    "onchange": "resetQaElements(); resetQaAutocompletes(); triggerOptionSave(); updateLibraryModalButton();",
                 }
             ),
         )
@@ -477,9 +533,11 @@ class ChatOptionsForm(ModelForm):
         if not library_id:
             library_id = Library.objects.get_default_library().id
         if pk and original_library_id != library_id:
-            instance.qa_scope = "all"
             instance.qa_data_sources.clear()
             instance.qa_documents.clear()
+            instance.qa_mode = "rag"
+            instance.qa_scope = "all"
+            instance.qa_process_mode = "combined_docs"
         if commit:
             instance.save()
         if not (pk and original_library_id != library_id):

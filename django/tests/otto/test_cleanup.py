@@ -51,26 +51,31 @@ def test_redundant_librarian_upload(client, all_apps_user):
     upload_url = reverse(
         "librarian:direct_upload", kwargs={"data_source_id": data_source.id}
     )
+    # Get initial count of SavedFile objects (may include preset CSV files)
+    initial_saved_files_count = SavedFile.objects.count()
+
     # Test uploading this file
     this_file_path = os.path.abspath(__file__)
     with open(this_file_path, "rb") as f:
         response = client.post(upload_url, {"file": f})
         assert response.status_code == 200
-    # Check SavedFile created
+    # Check SavedFile created (should be 1 more than initial)
     saved_files = SavedFile.objects.all()
-    assert saved_files.count() == 1
+    assert saved_files.count() == initial_saved_files_count + 1
     # Check Document created
     documents = data_source.documents.all()
     assert documents.count() == 1
+    # Get the newly created SavedFile (should be the most recent one)
+    test_saved_file = saved_files.order_by("-id").first()
     # Check media directory
-    assert os.path.exists(saved_files[0].file.path)
+    assert os.path.exists(test_saved_file.file.path)
     # Upload the same file again
     with open(this_file_path, "rb") as f:
         response = client.post(upload_url, {"file": f})
         assert response.status_code == 200
-    # Check SavedFile NOT created
+    # Check SavedFile NOT created (count should remain the same)
     saved_files = SavedFile.objects.all()
-    assert saved_files.count() == 1
+    assert saved_files.count() == initial_saved_files_count + 1
     # A document should NOT have been created since hash, filename and data source are the same
     documents = data_source.documents.all()
     assert documents.count() == 1
@@ -83,33 +88,35 @@ def test_redundant_librarian_upload(client, all_apps_user):
         assert response.status_code == 200
     # Delete the file
     os.remove(new_file_path)
-    # Check SavedFile NOT created
+    # Check SavedFile NOT created (count should remain the same)
     saved_files = SavedFile.objects.all()
-    assert saved_files.count() == 1
+    assert saved_files.count() == initial_saved_files_count + 1
     # A document should have been created since the filename is different
     documents = data_source.documents.all()
     assert documents.count() == 2
     # Check that both documents reference the same SavedFile
     assert documents.first().saved_file == documents.last().saved_file
-    # Check media directory. There should be only 1 file
-    folder = os.path.dirname(saved_files[0].file.path)
-    assert len(os.listdir(folder)) == 1
+    # Check media directory. There should be only 1 test file (plus any preset files)
+    folder = os.path.dirname(test_saved_file.file.path)
+    test_files = [f for f in os.listdir(folder) if f.endswith(".py")]
+    assert len(test_files) == 1
     # Delete one of the documents
     document = documents.first()
     document.delete()
-    # Check SavedFile still exists
+    # Check SavedFile still exists (count should remain the same)
     saved_files = SavedFile.objects.all()
-    assert saved_files.count() == 1
+    assert saved_files.count() == initial_saved_files_count + 1
     # Check media directory
-    assert os.path.exists(saved_files[0].file.path)
+    assert os.path.exists(test_saved_file.file.path)
     # Delete the other document
     document = documents.last()
     document.delete()
-    # Check SavedFile is gone
+    # Check test SavedFile is gone (count should be back to initial)
     saved_files = SavedFile.objects.all()
-    assert saved_files.count() == 0
-    # Check media directory
-    len(os.listdir(folder)) == 0
+    assert saved_files.count() == initial_saved_files_count
+    # Check media directory - test file should be gone
+    test_files = [f for f in os.listdir(folder) if f.endswith(".py")]
+    assert len(test_files) == 0
 
 
 @pytest.mark.django_db

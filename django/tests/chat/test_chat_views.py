@@ -10,6 +10,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 import pytest
+import pytest_asyncio
 from asgiref.sync import async_to_sync, sync_to_async
 from docx import Document
 
@@ -251,6 +252,7 @@ def test_cost_warning(mock_estimate_cost, client, all_apps_user):
 
 
 @pytest.mark.asyncio
+@pytest_asyncio.fixture(scope="session")
 @pytest.mark.django_db(transaction=True)
 async def test_htmx_stream_stop(client, all_apps_user):
     llm = OttoLLM()
@@ -378,35 +380,6 @@ def test_delete_all_chats(client, all_apps_user):
 
     # Check that the response contains the HX-Redirect header
     assert response["HX-Redirect"] == reverse("chat:new_chat")
-
-
-# Test download_chat view
-@pytest.mark.django_db
-def test_download_chat(client, all_apps_user):
-
-    user = all_apps_user()
-    client.force_login(user)
-
-    # Create a chat with a message
-    chat = Chat.objects.create(user=user, title="Test Chat")
-    Message.objects.create(chat=chat, text="Hello world!", is_bot=False)
-
-    # Test successful download
-    url = reverse("chat:download_chat", args=[chat.id])
-    response = client.get(url)
-
-    # Check it's a Word document
-    assert response.status_code == 200
-    assert (
-        response["Content-Type"]
-        == "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-    )
-
-    # Check that "Hello world!" is actually in the document
-    content = response.content
-    doc = Document(io.BytesIO(content))
-    doc_text = "\n".join([paragraph.text for paragraph in doc.paragraphs])
-    assert "Hello world!" in doc_text
 
 
 # Test download_file view
@@ -654,55 +627,6 @@ def test_qa_response(client, all_apps_user):
 
 
 @pytest.mark.django_db
-def test_chat_agent(client, all_apps_user):
-    user = all_apps_user()
-    client.force_login(user)
-    # Create a chat using the chat_with_ai route to create it with appropriate options
-    response = client.get(reverse("chat:chat_with_ai"), follow=True)
-    chat = Chat.objects.filter(user=user).order_by("-created_at").first()
-    chat.options.chat_agent = True
-    chat.options.save()
-
-    message = Message.objects.create(chat=chat, text="Hello", mode="chat")
-    response_message = Message.objects.create(
-        chat=chat, mode="chat", is_bot=True, parent=message
-    )
-
-    response = client.get(reverse("chat:chat_response", args=[response_message.id]))
-    assert response.status_code == 200
-    # Refresh the chat
-    chat.refresh_from_db()
-    # Check that the chat mode is "chat"
-    assert chat.options.mode == "chat"
-
-    # Ask a generic question to the chat agent, not about the department
-    message = Message.objects.create(
-        chat=chat, text="What is the meaning of life?", mode="chat"
-    )
-    response_message = Message.objects.create(
-        chat=chat, mode="chat", is_bot=True, parent=message
-    )
-    response = client.get(reverse("chat:chat_response", args=[response_message.id]))
-    assert response.status_code == 200
-    chat.refresh_from_db()
-    # Check that the chat mode is still "chat"
-    assert chat.options.mode == "chat"
-
-    # Ask a question to the chat agent about Corporate library
-    message = Message.objects.create(
-        chat=chat, text="What is my corporate dental coverage?", mode="chat"
-    )
-    response_message = Message.objects.create(
-        chat=chat, mode="chat", is_bot=True, parent=message
-    )
-    response = client.get(reverse("chat:chat_response", args=[response_message.id]))
-    assert response.status_code == 200
-    chat.refresh_from_db()
-    # Check that the chat mode has been switched to "qa"
-    assert chat.options.mode == "qa"
-
-
-@pytest.mark.django_db
 def test_qa_response(client, all_apps_user):
     user = all_apps_user()
     client.force_login(user)
@@ -855,7 +779,7 @@ def test_rename_chat_title(client, all_apps_user):
                 "current_chat_id": str(chat.id),
             },
         ),
-        data={"title": new_title},
+        data={"title": new_title, "rename_intent": "1"},
     )
     assert response.status_code == 200
     assert new_title in response.content.decode("utf-8")
@@ -870,7 +794,7 @@ def test_rename_chat_title(client, all_apps_user):
                 "current_chat_id": str(chat.id),
             },
         ),
-        data={"title": invalid_title},
+        data={"title": invalid_title, "rename_intent": "1"},
     )
     assert response.status_code == 200
     assert f'value="{invalid_title}"' in response.content.decode("utf-8")

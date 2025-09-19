@@ -466,6 +466,12 @@ class Document(models.Model):
         else:
             return self.url_content_type
 
+    @property
+    def file_size(self):
+        if self.saved_file and self.saved_file.file:
+            return self.saved_file.file.size
+        return None
+
     def delete(self, *args, **kwargs):
         from .tasks import delete_documents_from_vector_store
 
@@ -528,7 +534,11 @@ class SavedFile(models.Model):
         return self.sha256_hash
 
     def safe_delete(self):
-        if self.chat_files.exists() or self.documents.exists():
+        if (
+            self.chat_files.exists()
+            or self.documents.exists()
+            or self.glossary_options.exists()
+        ):
             logger.info(f"File {self.file.name} has associated objects; not deleting")
             return
         if self.file:

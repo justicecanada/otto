@@ -42,13 +42,12 @@
       <label class="col-form-label col-form-label-sm"
              for="{{ options_form.qa_mode.auto_id }}">{% trans "Excerpts or full documents" %}</label>
       <button class="p-0 border-0 bg-transparent"
-              disabled
+              type="button"
               data-bs-toggle="tooltip"
               data-bs-html="true"
               data-bs-title='{% trans "<strong>Top excerpts:</strong> Use most relevant excerpts from selected documents. <em>Fast, cheap.</em><br><br><strong>Full documents:</strong> Use full text of selected documents. <em>More comprehensive, but slower and more expensive.</em>" %}'
               id="rag_info">
-        <i class="bi-info-circle-fill text-primary small"
-           style="vertical-align: middle"></i>
+        <i class="bi-info-circle-fill text-secondary small"></i>
       </button>
     </div>
     <div class="px-3">{{ options_form.qa_mode }}</div>
@@ -59,12 +58,12 @@
       <label class="col-form-label col-form-label-sm"
              for="{{ options_form.qa_process_mode.auto_id }}">{% trans "Combine or separate documents" %}</label>
       <button class="p-0 border-0 bg-transparent"
-              disabled
+              type="button"
               data-bs-toggle="tooltip"
               data-bs-html="true"
+              data-bs-title='{% trans " <strong>Combine:</strong> Search once across all selected documents before answer generation. <em>May not include all documents. Cheap, more succint.</em> <br><br> <strong>Separate:</strong> Search each selected document individually and generate answers for each. <em>Includes all selected documents, even if irrelevant. More detailed, expensive.</em> " %}'
               id="comb_sep_info">
-        <i class="bi-info-circle-fill text-primary small"
-           style="vertical-align: middle"></i>
+        <i class="bi-info-circle-fill text-secondary small"></i>
       </button>
     </div>
     <div class="px-3">{{ options_form.qa_process_mode }}</div>
@@ -77,6 +76,15 @@
     </div>
     <div class="px-3">{{ options_form.qa_model }}</div>
   </div>
+
+  <div id="qa-reasoning-effort-container" style="display: none;">
+    <div class="px-3 mt-2">
+      <label class="col-form-label col-form-label-sm"
+             for="{{ options_form.qa_reasoning_effort.auto_id }}">{% trans "Reasoning effort" %}</label>
+    </div>
+    <div class="px-3">{{ options_form.qa_reasoning_effort }}</div>
+  </div>
+
   <div class="px-3 mt-3">
     <button type="button"
             id="advancedQaModalButton"

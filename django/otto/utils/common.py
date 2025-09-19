@@ -20,15 +20,20 @@ def file_size_to_string(filesize):
 
 
 def display_cad_cost(usd_cost):
+    from django.utils.translation import get_language
+
     from otto.models import OttoStatus  # Need to do it here to avoid circular imports
 
     """
     Converts a USD cost to CAD and returns a formatted string
     """
     approx_cost_cad = float(usd_cost) * OttoStatus.objects.singleton().exchange_rate
+    is_fr = (get_language() or "").lower().startswith("fr")
     if approx_cost_cad < 0.01:
-        return "< $0.01"
-    return f"${approx_cost_cad:.2f}"
+        # For tiny amounts, keep the threshold text but position the $ per locale
+        return "< 0.01$" if is_fr else "< $0.01"
+    # Position the $ symbol per locale
+    return f"{approx_cost_cad:.2f}$" if is_fr else f"${approx_cost_cad:.2f}"
 
 
 def cad_cost(usd_cost):
