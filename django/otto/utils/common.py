@@ -127,4 +127,3 @@ def robust_redirect(request, redirect_url):
         response["HX-Redirect"] = redirect_url
         return response
     return redirect(redirect_url)
-    return redirect(redirect_url)
