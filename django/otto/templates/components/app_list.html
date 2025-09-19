@@ -1,44 +1,126 @@
-{# TODO #}
-{% import i18n %}
-<div id="app-list">
-  <a href="{% url 'chat:new_chat' %}"
-     class="text-decoration-none text-body">
-    <div class="card app-card mb-3">
-      <div class="card-body pt-0 mt-3">
-        <h3 class="app-card-title">
-          <i class="bi bi-chat-right small me-1"
-             style="position:relative;
-                    top:1px"></i>
-          {% trans "AI Assistant" %}
-        </h3>
-        <p class="card-text">
-          {% trans "Chat with GPT models, query document libraries, generate summaries and translate documents." %}
-        </p>
-      </div>
+{% load i18n %}
+<div id="app-list" class="cols-2">
+  <!-- AI Assistant grouped card -->
+  <div class="card app-card mb-3 ai-assistant-group-card">
+    <div class="card-body p-0">
+      <h3 class="app-card-title mb-2 px-3 pt-3" style="margin-left: 3px;">{% trans "AI Assistant" %}</h3>
+
+      <!-- Chat Mode -->
+      <a href="{% url 'chat:chat_with_ai' %}"
+         class="text-decoration-none text-body">
+        <div class="card ai-mode-card mb-0 ai-mode-chat">
+          <div class="card-body pt-0">
+            <div class="row">
+              <div class="col mt-3">
+                <div class="row">
+                  <div class="col">
+                    <h3 class="ai-mode-title">{% trans "Chat" %}</h3>
+                  </div>
+                  <div class="col-auto">
+                    <!-- Badge placeholder if needed -->
+                  </div>
+                </div>
+                <p class="card-text">{% trans "Chat with a Justice-hosted AI (like ChatGPT)." %}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </a>
+
+      <!-- Q&A Mode -->
+      <a href="{% url 'chat:qa' %}" class="text-decoration-none text-body">
+        <div class="card ai-mode-card mb-0 ai-mode-qa">
+          <div class="card-body pt-0">
+            <div class="row">
+              <div class="col mt-3">
+                <div class="row">
+                  <div class="col">
+                    <h3 class="ai-mode-title">{% trans "Q&A" %}</h3>
+                  </div>
+                  <div class="col-auto">
+                    <!-- Badge placeholder if needed -->
+                  </div>
+                </div>
+                <p class="card-text">{% trans "Get instant answers from curated and user-uploaded documents." %}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </a>
+
+      <!-- Summarization Mode -->
+      <a href="{% url 'chat:summarize' %}"
+         class="text-decoration-none text-body">
+        <div class="card ai-mode-card mb-0 ai-mode-summarize">
+          <div class="card-body pt-0">
+            <div class="row">
+              <div class="col mt-3">
+                <div class="row">
+                  <div class="col">
+                    <h3 class="ai-mode-title">{% trans "Summarization" %}</h3>
+                  </div>
+                  <div class="col-auto">
+                    <!-- Badge placeholder if needed -->
+                  </div>
+                </div>
+                <p class="card-text">{% trans "Generate brief or detailed summaries from files, URLs or text input using AI." %}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </a>
+
+      <!-- Translation Mode -->
+      <a href="{% url 'chat:translate' %}"
+         class="text-decoration-none text-body">
+        <div class="card ai-mode-card mb-0 ai-mode-translate">
+          <div class="card-body pt-0">
+            <div class="row">
+              <div class="col mt-3">
+                <div class="row">
+                  <div class="col">
+                    <h3 class="ai-mode-title">{% trans "Translation" %}</h3>
+                  </div>
+                  <div class="col-auto">
+                    <!-- Badge placeholder if needed -->
+                  </div>
+                </div>
+                <p class="card-text">{% trans "Translate to French or English from files or text input." %}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </a>
     </div>
-  </a>
+  </div>
+
+  <!-- Legislation Search -->
   <a href="{% url 'laws:index' %}" class="text-decoration-none text-body">
-    <div class="card app-card mb-3">
-      <div class="card-body pt-0 mt-3">
-        <h3 class="app-card-title">
-          <i class="bi bi-search small me-1"></i>
-          {% trans "Legislation Search" %}
-        </h3>
-        <p class="card-text">
-          {% trans "Search federal acts and regulations using natural language." %} {% trans "Does not include case law." %}
-        </p>
+    <div class="card app-card mb-3 app-card-other">
+      <div class="card-body pt-0">
+        <div class="row">
+          <div class="col mt-3">
+            <h3 class="app-card-title">{% trans "Legislation Search" %}</h3>
+            <p class="card-text">
+              {% trans "Search acts and regulations using natural language. Find relevant sections of laws." %}
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   </a>
+
+  <!-- Text Extractor -->
   <a href="{% url 'text_extractor:index' %}"
      class="text-decoration-none text-body">
-    <div class="card app-card mb-3">
-      <div class="card-body pt-0 mt-3">
-        <h3 class="app-card-title">
-          <i class="bi bi-text-left small me-1"></i>
-          {% trans "Text Extractor" %}
-        </h3>
-        <p class="card-text">{% trans "Extract text and handwriting from scanned PDF and images with AI-enabled OCR." %}</p>
+    <div class="card app-card mb-3 app-card-other">
+      <div class="card-body pt-0">
+        <div class="row">
+          <div class="col mt-3">
+            <h3 class="app-card-title">{% trans "Text Extractor" %}</h3>
+            <p class="card-text">{% trans "Extract text and handwriting from scanned PDF and images with AI-enabled OCR." %}</p>
+          </div>
+        </div>
       </div>
     </div>
   </a>
