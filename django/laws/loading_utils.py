@@ -150,6 +150,7 @@ def section_to_nodes(section, lang, chunk_size=1024, chunk_overlap=100):
     if chunk_size < 50:
         raise ValueError("Chunk size must be at least 50 tokens.")
     if "_schedule_" in section["section_id"]:
+        # Schedules are chunked during XML parsing
         chunks = section["chunks"]
     else:
         splitter = SentenceSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
