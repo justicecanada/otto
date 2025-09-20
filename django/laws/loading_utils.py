@@ -1,6 +1,5 @@
 import hashlib
 import os
-import time
 import zipfile
 from datetime import timedelta
 
@@ -12,7 +11,6 @@ from llama_index.core.node_parser import SentenceSplitter
 from llama_index.core.schema import TextNode
 from lxml import etree as ET
 from sqlalchemy import create_engine, text
-from sqlalchemy.orm import sessionmaker
 from structlog import get_logger
 
 logger = get_logger(__name__)
@@ -151,9 +149,13 @@ def law_xml_to_nodes(file_path):
 def section_to_nodes(section, lang, chunk_size=1024, chunk_overlap=100):
     if chunk_size < 50:
         raise ValueError("Chunk size must be at least 50 tokens.")
-    splitter = SentenceSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
-    # Split the text into chunks
-    chunks = splitter.split_text(section["text"])
+    if "_schedule_" in section["section_id"]:
+        # Schedules are chunked during XML parsing
+        chunks = section["chunks"]
+    else:
+        splitter = SentenceSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
+        # Split the text into chunks
+        chunks = splitter.split_text(section["text"])
     # Create a node from each chunk
     nodes = []
     metadata = {
@@ -212,6 +214,156 @@ def _get_link(element):
     )
 
 
+def parse_table(table_elem):
+    tgroup_elem = table_elem.find("tgroup")
+    # Parse headers
+    thead = tgroup_elem.find("thead") if tgroup_elem is not None else None
+    header_rows = []
+    if thead is not None:
+        for header_row in thead.findall("row"):
+            row_cells = [
+                entry.text.strip() if entry.text is not None else ""
+                for entry in header_row.findall("entry")
+            ]
+            header_rows.append(row_cells)
+    # Parse body
+    tbody = tgroup_elem.find("tbody") if tgroup_elem is not None else None
+    body_rows = []
+    if tbody is not None:
+        for row in tbody.findall("row"):
+            cells = [extract_entry_text(entry) for entry in row.findall("entry")]
+            body_rows.append(cells)
+    return header_rows, body_rows
+
+
+def extract_entry_text(entry):
+    # Check for <List> child
+    list_elem = entry.find("List")
+    if list_elem is not None:
+        items = []
+        for item in list_elem.findall("Item"):
+            text_elem = item.find("Text")
+            if text_elem is not None:
+                # Use itertext() to get all text, including from child tags
+                item_text = "".join(text_elem.itertext()).strip()
+                if item_text:
+                    items.append(item_text)
+        return " ".join(items)
+    # Otherwise, use direct text (if any)
+    return entry.text.strip() if entry.text else ""
+
+
+def markdown_header(header_rows):
+    # Join each header row as a Markdown row
+    md = ""
+    for i, row in enumerate(header_rows):
+        md += "| " + " | ".join(row) + " |\n"
+        # Add separator after the last header row
+        if i == len(header_rows) - 1:
+            md += "| " + " | ".join(["---"] * len(row)) + " |\n"
+    return md
+
+
+def markdown_rows(rows):
+    return "\n".join(["| " + " | ".join(row) + " |" for row in rows])
+
+
+# Extract any text after the last <table> in a schedule
+def get_schedule_suffix(elem):
+    suffix_texts = []
+    found_table = False
+    for child in elem:
+        if found_table:
+            text = _get_joined_text(child).strip()
+            if text:
+                suffix_texts.append(text)
+        if child.tag == "table":
+            found_table = True
+    return "\n\n".join(suffix_texts)
+
+
+def get_table_group_and_table_prefix(elem):
+    # All siblings of <table> before <table> in <TableGroup>
+    prefix_texts = []
+    table_elem = None
+    for child in elem:
+        if child.tag == "table":
+            table_elem = child
+            break
+        text = _get_joined_text(child).strip()
+        if text:
+            prefix_texts.append(text)
+    # All siblings of <tgroup> before <tgroup> in <table>
+    if table_elem is not None:
+        for child in table_elem:
+            if child.tag == "tgroup":
+                break
+            text = _get_joined_text(child).strip()
+            if text:
+                prefix_texts.append(text)
+    return "\n\n".join(prefix_texts)
+
+
+def chunk_table(headers, body_rows, rows_per_chunk=25):
+    chunks = []
+    for i in range(0, len(body_rows), rows_per_chunk):
+        chunk = body_rows[i : i + rows_per_chunk]
+        md = markdown_header(headers) + "\n" + markdown_rows(chunk)
+        chunks.append(md)
+    return chunks
+
+
+def parse_schedule_with_all_prefix_suffix(schedule_elem):
+    # Schedule prefix: everything before first TableGroup
+    prefix_elems = []
+    for child in schedule_elem:
+        if child.tag == "TableGroup":
+            break
+        prefix_elems.append(child)
+    schedule_prefix = "\n".join(
+        _get_joined_text(e) for e in prefix_elems if _get_joined_text(e).strip()
+    )
+
+    tables = []
+    for tg in schedule_elem.findall("TableGroup"):
+        table = tg.find("table")
+        if table is None:
+            continue
+        header_rows, body_rows = parse_table(table)
+        table_group_and_table_prefix = get_table_group_and_table_prefix(tg)
+        schedule_suffix = get_schedule_suffix(tg)
+        tables.append(
+            {
+                "schedule_prefix": schedule_prefix,
+                "table_group_and_table_prefix": table_group_and_table_prefix,
+                "header_rows": header_rows,
+                "body_rows": body_rows,
+                "schedule_suffix": schedule_suffix,
+            }
+        )
+    return tables
+
+
+def _chunk_schedule_text(element):
+    tables = parse_schedule_with_all_prefix_suffix(element)
+    chunks = []
+    for table_info in tables:
+        chunk_prefix = ""
+        if table_info["schedule_prefix"]:
+            chunk_prefix += table_info["schedule_prefix"] + "\n\n"
+        if table_info["table_group_and_table_prefix"]:
+            chunk_prefix += table_info["table_group_and_table_prefix"] + "\n\n"
+        chunk_suffix = (
+            "\n\n" + table_info["schedule_suffix"]
+            if table_info["schedule_suffix"]
+            else ""
+        )
+        chunks = chunk_table(
+            table_info["header_rows"], table_info["body_rows"], rows_per_chunk=25
+        )
+    return [chunk_prefix + chunk + chunk_suffix + "\n" for chunk in chunks]
+
+
 def _get_joined_text(
     element,
     exclude_tags=["MarginalNote", "Label"],
@@ -239,7 +391,6 @@ def _get_joined_text(
     underline_tags=[],
     tab_tags={"Subparagraph": 2, "Clause": 3, "Subclause": 4},
 ):
-    # TODO: Improve table parsing
     def stylized_text(text, tag):
         if tag in em_tags:
             return f"*{text}*"
@@ -425,7 +576,7 @@ def get_dict_from_xml(xml_filename):
                 d["title_str"],
                 (schedule["id"] if schedule["id"] else "Schedule"),
                 "",
-                schedule["text"],
+                "\n".join(schedule["chunks"]),
             ]
         )
     # Finally, the preamble also needs a "all_str" field
@@ -611,7 +762,7 @@ def get_schedule(schedule):
             _get_text(schedule.find(".//TitleText")) or "",
         ],
         "marginal_note": _get_text(schedule.find(".//MarginalNote")),
-        "text": _get_joined_text(schedule),
+        "chunks": _chunk_schedule_text(schedule),
         "in_force_start_date": schedule.attrib.get(
             "{http://justice.gc.ca/lims}inforce-start-date", None
         ),
