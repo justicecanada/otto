@@ -34,6 +34,7 @@ from .utils import (
     get_law_url,
     get_other_lang_node,
     get_source_node,
+    html_render,
     htmx_sse_error,
     htmx_sse_response,
     num_tokens,
@@ -670,7 +671,7 @@ def sources_to_html(sources):
                 else None
             ),
             "headings": s.node.metadata.get("headings", None),
-            "html": md.convert(s.node.text),
+            "html": html_render(s.node.text, md),
         }
         for s in sources
     ]
