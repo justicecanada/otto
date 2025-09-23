@@ -1,4 +1,5 @@
 from importlib import import_module
+from zoneinfo import ZoneInfo
 
 from django.conf import settings
 from django.contrib.messages import get_messages
@@ -82,3 +83,18 @@ class PreventConcurrentLoginsMiddleware(MiddlewareMixin):
                     request.user.visitor.save()
             else:
                 Visitor.objects.create(user=request.user, session_key=key_from_cookie)
+
+
+class TimezoneMiddleware(MiddlewareMixin):
+    def process_request(self, request):
+        if request.user.is_authenticated:
+            tzname = request.COOKIES.get("otto-timezone")
+            if tzname:
+                try:
+                    timezone.activate(ZoneInfo(tzname))
+                    return
+                except Exception:
+                    timezone.deactivate()
+            else:
+                timezone.deactivate()
+        return self.get_response(request)

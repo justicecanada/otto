@@ -5,6 +5,14 @@
 <html lang="{{ LANGUAGE_CODE }}">
 
   <head>
+    <script>
+      // Set timezone cookie and reload before rendering if not set
+      if (!document.cookie.includes('otto-timezone')) {
+        var tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        document.cookie = "otto-timezone=" + tz + ";path=/";
+        location.reload();
+      }
+    </script>
     <!-- Required meta tags -->
     <meta charset="utf-8" />
     <meta name="viewport"
