@@ -5,7 +5,13 @@ from django.core.cache import cache
 import pytest
 import requests
 
-from laws.utils import format_llm_string, get_law_url, htmx_sse_error, htmx_sse_response
+from laws.utils import (
+    format_llm_string,
+    get_law_url,
+    html_render,
+    htmx_sse_error,
+    htmx_sse_response,
+)
 
 # def test_get_other_lang_node(): TO-DO
 #     node_id = "test_eng_node_id"
@@ -159,3 +165,17 @@ async def test_htmx_sse_error():
     assert any(
         expected_substring in item for item in result
     ), f"Expected substring '{expected_substring}' not found in result: {result}"
+
+
+@pytest.mark.asyncio
+def test_html_render():
+    import markdown
+
+    md = markdown.Markdown(extensions=["fenced_code", "nl2br", "tables"], tab_length=2)
+
+    text = "A nested list that was split into chunks. \n\n  - This is the first list item in this chunk."
+
+    html_output = html_render(text, md)
+
+    assert "<code>" not in html_output
+    assert "<ul>\n<li>\n<ul>\n<li>" in html_output
