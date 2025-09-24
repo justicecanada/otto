@@ -193,6 +193,7 @@ MIDDLEWARE = [
     "azure_auth.middleware.AzureMiddleware",
     "otto.utils.auth.AcceptTermsMiddleware",
     "django.middleware.locale.LocaleMiddleware",
+    "otto.utils.middleware.TimezoneMiddleware",
     "data_fetcher.middleware.GlobalRequestMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
