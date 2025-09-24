@@ -979,7 +979,7 @@ def test_preset(client, basic_user, all_apps_user):
     response = client.get(
         reverse("chat:get_presets", kwargs={"chat_id": chat2.id}), follow=True
     )
-    assert "Updated Preset" in response.streaming_content.decode("utf-8")
+    assert "Updated Preset" in response.content.decode("utf-8")
 
     user3 = all_apps_user("user3")
     chat3 = Chat.objects.create(user=user3)
