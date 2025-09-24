@@ -663,7 +663,8 @@ def test_qa_response(client, all_apps_user):
     chat.options.save()
     response = client.get(reverse("chat:chat_response", args=[response_message.id]))
     assert response.status_code == 200
-    assert "keywords in your query" in response.content.decode()
+    response_text = final_response(response.streaming_content).decode("utf-8")
+    assert "keywords in your query" in response_text
 
     content = async_to_sync(final_response_helper)(response.streaming_content)
     content_str = content.decode("utf-8")
@@ -978,7 +979,7 @@ def test_preset(client, basic_user, all_apps_user):
     response = client.get(
         reverse("chat:get_presets", kwargs={"chat_id": chat2.id}), follow=True
     )
-    assert "Updated Preset" in response.content.decode()
+    assert "Updated Preset" in response.streaming_content.decode("utf-8")
 
     user3 = all_apps_user("user3")
     chat3 = Chat.objects.create(user=user3)
