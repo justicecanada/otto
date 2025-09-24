@@ -5,7 +5,7 @@ from django.conf import settings
 from django.db import connections, models
 from django.db.models import BooleanField, Q, Value
 from django.db.models.functions import Coalesce
-from django.db.models.signals import post_delete, post_save
+from django.db.models.signals import post_delete, post_save, pre_delete
 from django.dispatch import receiver
 from django.template.loader import render_to_string
 from django.utils import timezone
@@ -23,7 +23,7 @@ from chat.llm_models import (
     get_updated_model_id,
 )
 from chat.prompts import current_time_prompt
-from librarian.models import DataSource, Library, SavedFile
+from librarian.models import DataSource, Document, Library, SavedFile
 from librarian.utils.process_engine import guess_content_type
 from otto.models import User
 from otto.utils.common import display_cad_cost, set_costs
@@ -766,3 +766,20 @@ def message_post_save(sender, instance, **kwargs):
         )
     except Exception as e:
         logger.exception(f"Message post save error: {e}")
+
+
+@receiver(pre_delete, sender=Message)
+def message_pre_delete(sender, instance, **kwargs):
+    try:
+        # Delete documents uploaded in this message in Q&A mode
+        if instance.mode == "qa":
+            chat_files = ChatFile.objects.filter(message=instance)
+            for chat_file in chat_files:
+                if chat_file.saved_file:
+                    document = Document.objects.filter(
+                        saved_file=chat_file.saved_file
+                    ).first()
+                    if document:
+                        document.delete()
+    except Exception as e:
+        logger.exception(f"Message pre delete error: {e}")
