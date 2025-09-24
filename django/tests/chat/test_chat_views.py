@@ -595,7 +595,7 @@ def test_translate_response(client, all_apps_user):
 
 
 @pytest.mark.django_db
-def test_qa_response(client, all_apps_user):
+def test_qa_response_specify_library(client, all_apps_user):
     user = all_apps_user()
     client.force_login(user)
 
@@ -653,8 +653,13 @@ def test_qa_response(client, all_apps_user):
     response = client.get(reverse("chat:chat_response", args=[response_message.id]))
     assert response.status_code == 200
 
-    # Once more with empty library
+    # Once more through both qa_process_mode options with empty library
     chat.options.qa_library = user.personal_library
+    chat.options.save()
+    response = client.get(reverse("chat:chat_response", args=[response_message.id]))
+    assert response.status_code == 200
+
+    chat.options.qa_process_mode = "combined_docs"
     chat.options.save()
     response = client.get(reverse("chat:chat_response", args=[response_message.id]))
     assert response.status_code == 200
