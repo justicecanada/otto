@@ -1,0 +1,64 @@
+<div id="librarian-file-dropzone">
+  <i class="bi bi-upload"></i>
+  <div id="librarian-file-dropzone-overlay"
+       class="d-flex align-items-center justify-content-center">
+    <i class="bi bi-upload"></i>
+  </div>
+</div>
+
+<script>
+function showOverlay_librarian() {
+  const dz = document.querySelector('#librarian-file-dropzone');
+  const ov = document.querySelector('#librarian-file-dropzone-overlay');
+  dz.classList.add('show');   // enables pointer events on the dropzone
+  ov.classList.add('show');   // makes overlay visible
+}
+
+function hideOverlay_librarian() {
+  const dz = document.querySelector('#librarian-file-dropzone');
+  const ov = document.querySelector('#librarian-file-dropzone-overlay');
+  dz.classList.remove('show');   // disables pointer events again
+  ov.classList.remove('show');
+}
+
+// Arm the dropzone globally (since it can't receive events while disabled)
+document.addEventListener('dragenter', (e) => {
+  const dt = e.dataTransfer;
+  if (dt && Array.from(dt.types || []).includes('Files')) {
+    showOverlay_librarian();
+  }
+});
+
+// While armed, the dropzone handles the rest
+let librarian_dropZone = document.querySelector('#librarian-file-dropzone');
+
+function ePrevent_librarian(e) {
+  e.preventDefault();
+  e.stopPropagation();
+}
+
+function onDrop_librarian(e) {
+  e.preventDefault();
+  e.stopPropagation();
+  document.querySelector('#id_librarian-input_file').value = null;
+  document.querySelector('#id_librarian-input_file').files = e.dataTransfer.files;
+  document.querySelector('#id_librarian-input_file').dispatchEvent(new Event('change'));
+  hideOverlay_librarian();
+}
+
+function handleDragLeave_librarian(e) {
+  const dropZoneElement = librarian_dropZone;
+  if (!e.relatedTarget || !dropZoneElement.contains(e.relatedTarget)) {
+    hideOverlay_librarian();
+  }
+}
+
+librarian_dropZone.addEventListener('dragover', ePrevent_librarian);
+librarian_dropZone.addEventListener('dragleave', handleDragLeave_librarian);
+librarian_dropZone.addEventListener('dragexit', handleDragLeave_librarian);
+librarian_dropZone.addEventListener('drop', onDrop_librarian);
+
+// Belt & suspenders: hide when the drag finishes anywhere
+window.addEventListener('dragend', hideOverlay_librarian);
+window.addEventListener('drop', hideOverlay_librarian);
+</script>
