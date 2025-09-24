@@ -21,13 +21,22 @@ function hideOverlay_librarian() {
   ov.classList.remove('show');
 }
 
-// Arm the dropzone globally (since it can't receive events while disabled)
-document.addEventListener('dragenter', (e) => {
-  const dt = e.dataTransfer;
-  if (dt && Array.from(dt.types || []).includes('Files')) {
-    showOverlay_librarian();
+function handleDragEnter_librarian(e) {
+  console.log("drag enter");
+  // make sure we're dragging a file
+  var dt = (e && e.dataTransfer);
+  if (!dt) {
+    return;
   }
-});
+  // required to create an array for Firefox
+  Array.from(dt.types)?.forEach((type) => {
+    if (type === "Files") {
+      showOverlay_librarian();
+    }
+  });
+}
+
+document.addEventListener('dragenter', handleDragEnter_librarian);
 
 // While armed, the dropzone handles the rest
 let librarian_dropZone = document.querySelector('#librarian-file-dropzone');
@@ -57,8 +66,4 @@ librarian_dropZone.addEventListener('dragover', ePrevent_librarian);
 librarian_dropZone.addEventListener('dragleave', handleDragLeave_librarian);
 librarian_dropZone.addEventListener('dragexit', handleDragLeave_librarian);
 librarian_dropZone.addEventListener('drop', onDrop_librarian);
-
-// Belt & suspenders: hide when the drag finishes anywhere
-window.addEventListener('dragend', hideOverlay_librarian);
-window.addEventListener('drop', hideOverlay_librarian);
 </script>
