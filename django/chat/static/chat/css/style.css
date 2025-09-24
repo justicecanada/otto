@@ -941,7 +941,7 @@ div#chat-toolbar {
 #librarian-file-dropzone-overlay {
   height: 100%;
   width: 100%;
-  background: rgba(0, 123, 255, 0.8);
+  background: var(--chat-file-drop);
   z-index: 100;
   position: absolute;
   top: 0;
