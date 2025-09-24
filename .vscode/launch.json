@@ -53,7 +53,7 @@
             }
         },
         {
-            "name": "Django: Run Legislation Search Testss",
+            "name": "Django: Run Legislation Search Tests",
             "type": "debugpy",
             "request": "launch",
             "module": "pytest",

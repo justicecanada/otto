@@ -2396,7 +2396,7 @@
         "fr_auto": "Modifier le(s) utilisateur(s)"
     },
     "Terms of use for Otto Protected B Pilot": {
-        "fr": "Conditions d'utilisation du projet pilot Otto Protégé B ",
+        "fr": "Conditions d'utilisation du projet pilote Otto Protégé B ",
         "fr_auto": "Conditions d’utilisation d’Otto Protected B Pilot"
     },
     "You agreed to these terms on": {
@@ -2792,7 +2792,7 @@
         "fr_auto": "Commencer la visite"
     },
     "Welcome to Otto!": {
-        "fr": "",
+        "fr": "Bienvenue sur le site du projet Otto!",
         "fr_auto": "Bienvenue chez Otto!"
     },
     "Reset flags for demo": {
@@ -4500,7 +4500,7 @@
         "fr_auto": "\nCombiné : lire tous les documents sélectionnés ensemble, rédiger une seule réponse. <em>Essentiel pour comparer des documents. Généralement moins détaillé.</em>\n\nSéparer : lisez chaque document sélectionné individuellement et rédigez une réponse distincte pour chacun. <em>Généralement plus détaillé. Coûteux.</em>\n                        "
     },
     "\n                        Combine: search once across all selected documents before answer generation. <em>May not include all documents. Cheap, more succint.</em>\n                        <br><br>\n                        Separate: search each selected document individually and generate answers for each. <em>Includes all selected documents, even if irrelevant. More detailed, expensive.</em>\n                        ": {
-        "fr": "",
+        "fr": "\nCombiné : tente de faire une recherche de tous les documents sélectionnés avant de générer une réponse. <em>Peut ne pas inclure tous les documents. Bon marché, plus succinct.</em>\n                        <br><br>\n                        Séparer : effectue une recherche individuelle de chaque document sélectionné  et génére une réponse pour chaque d'entre eux. <em>Comprend tous les documents sélectionnés, même s’ils ne sont pas pertinents. Plus détaillé, plus coûteux.</em>\n                        ",
         "fr_auto": "\nCombiner : rechercher une fois dans tous les documents sélectionnés avant de générer la réponse. <em>Peut ne pas inclure tous les documents. Bon marché, plus succinct.</em>\n                        <br><br>\n                        Séparer : rechercher chaque document sélectionné individuellement et générer des réponses pour chacun. <em>Comprend tous les documents sélectionnés, même s’ils ne sont pas pertinents. Plus détaillé, plus coûteux.</em>\n                        "
     },
     "\n                        Combine: read all selected documents together, write single answer. <em>Essential for comparing documents. Usually less detailed.</em>\n                        <br><br>\n                        Separate: read each selected document individually and write a separate answer for each. <em>Usually more detailed. Expensive.</em>\n                        ": {
@@ -4516,11 +4516,11 @@
         "fr_auto": "Documents complets"
     },
     "Combine": {
-        "fr": "Combiner",
+        "fr": "Combiné",
         "fr_auto": "Moissonneuse-batteuse"
     },
     "Separate": {
-        "fr": "",
+        "fr": "Séparé",
         "fr_auto": "Séparer"
     },
     "Excerpts or full documents": {
@@ -4660,11 +4660,11 @@
         "fr_auto": "Fichier(s) en cours de traitement"
     },
     "No pinned chats": {
-        "fr": "",
+        "fr": "Aucun clavardage épinglé",
         "fr_auto": "Pas de clavardage épinglé"
     },
     "Unpin": {
-        "fr": "",
+        "fr": "Désépingler",
         "fr_auto": "Détacher"
     },
     "Pin": {
@@ -4672,7 +4672,7 @@
         "fr_auto": "Épingler"
     },
     "Error generating response.": {
-        "fr": "",
+        "fr": "Une erreur s'est produite lors de la génération de la réponse.",
         "fr_auto": "Réponse génératrice d’erreurs."
     },
     "Pinned chats": {
@@ -4692,11 +4692,11 @@
         "fr_auto": "Visible publiquement."
     },
     "The following users have been granted access to the Q&A library": {
-        "fr": "",
+        "fr": "Les utilisateurs suivants ont maintenant accès à la bibliothèque de questions et réponses",
         "fr_auto": "Les utilisateurs suivants ont eu accès à la bibliothèque de questions et réponses"
     },
     "Other users may not be able to see the attached Q&A library": {
-        "fr": "",
+        "fr": "Certains utilisateurs peuvent ne pas avoir accès à la bibliothèque de questions et réponses jointe",
         "fr_auto": "D’autres utilisateurs peuvent ne pas voir la bibliothèque de questions et réponses jointe"
     },
     "unless a library administrator has granted them access.": {
@@ -4704,15 +4704,15 @@
         "fr_auto": "à moins qu’un administrateur de bibliothèque ne leur ait accordé l’accès."
     },
     "Note: This action does NOT change permissions for the previously attached Q&A library": {
-        "fr": "",
+        "fr": "Remarque : Cette action ne modifie PAS les autorisations de la bibliothèque de questions et réponses précédemment associées.",
         "fr_auto": "Remarque : Cette action ne modifie PAS les autorisations de la bibliothèque de questions et réponses précédemment attachée"
     },
     "Error ID": {
-        "fr": "",
+        "fr": "ID de l’erreur",
         "fr_auto": "ID d’erreur"
     },
     "done": {
-        "fr": "",
+        "fr": "terminé",
         "fr_auto": "Fait"
     },
     "MB": {
@@ -4728,15 +4728,15 @@
         "fr_auto": "octets"
     },
     "Azure Form Recognizer finished OCR text.": {
-        "fr": "",
+        "fr": "Azure Form Recognizer a terminé le ROC du texte",
         "fr_auto": "Azure Form Recognizer a terminé le texte OCR."
     },
     "Azure Form Recognizer finished OCR text. Number of pages:": {
-        "fr": "",
+        "fr": "Azure Form Recognizer a terminé le ROC du texte. Nombre de pages :",
         "fr_auto": "Azure Form Recognizer a terminé le texte OCR. Nombre de pages :"
     },
     "Error ID: {error_id} - {message}": {
-        "fr": "",
+        "fr": "ID de l’erreur : {error_id} - {message}",
         "fr_auto": "ID d’erreur : {error_id} - {message}"
     },
     "Maximum 2000 files / 300MB total": {
@@ -4752,11 +4752,11 @@
         "fr_auto": "Bloc(s)"
     },
     "failed": {
-        "fr": "",
+        "fr": "échoué",
         "fr_auto": "Échec"
     },
     "stopped": {
-        "fr": "",
+        "fr": "arrêté",
         "fr_auto": "arrêté"
     },
     "Invalid download request.": {
@@ -4780,19 +4780,19 @@
         "fr_auto": "Cliquez sur l’icône en forme de point d’interrogation pour revoir cette visite, ouvrir le guide de l’utilisateur, accéder aux conditions d’utilisation ou obtenir de l’aide de l’équipe d’Otto."
     },
     "Extracting text from files...": {
-        "fr": "",
+        "fr": "Extraction du texte des fichiers...",
         "fr_auto": "Extraire du texte de fichiers..."
     },
     "Error extracting text from file": {
-        "fr": "",
+        "fr": "Une erreur s'est produite lors de l’extraction du texte du fichier",
         "fr_auto": "Erreur lors de l’extraction du texte du fichier"
     },
     "Extracting text from files": {
-        "fr": "",
+        "fr": "Extraction du texte des fichiers",
         "fr_auto": "Extraction de texte de fichiers"
     },
     "complete": {
-        "fr": "",
+        "fr": "terminé",
         "fr_auto": "Terminé"
     },
     "Text extraction complete. Starting summarization...": {
@@ -4808,15 +4808,15 @@
         "fr_auto": "Erreurs de traitement des fichiers."
     },
     "Error: File has no extracted text. Try re-uploading the file.": {
-        "fr": "",
+        "fr": "Erreur : Le fichier n’a pas de texte extrait. Essayez de téléverser le fichier à nouveau.",
         "fr_auto": "Erreur : Le fichier n’a pas de texte extrait. Essayez de télécharger à nouveau le fichier."
     },
     "text & layout": {
-        "fr": "",
+        "fr": "texte et mise en page",
         "fr_auto": "Texte et mise en page"
     },
     "OCR & layout": {
-        "fr": "",
+        "fr": "ROC et mise en page",
         "fr_auto": "OCR et mise en page"
     },
     "(fastest, $)": {
@@ -4828,7 +4828,7 @@
         "fr_auto": "Mise en page PDF"
     },
     "(keeps formatting, $)": {
-        "fr": "",
+        "fr": "(guarde le même format, $)",
         "fr_auto": "(continue de formater, $)"
     },
     "(for scans, $$)": {
@@ -4852,7 +4852,7 @@
         "fr_auto": "Téléchargé le"
     },
     "Azure Translator": {
-        "fr": "",
+        "fr": "Azure Traducteur",
         "fr_auto": "Azure Translator"
     },
     "GPT-4.1 (alternative method)": {
@@ -4880,7 +4880,7 @@
         "fr_auto": "Erreur lors de l’extraction du texte de file{file_label}."
     },
     "Translate plain text with...": {
-        "fr": "",
+        "fr": "Traduire le texte avec...",
         "fr_auto": "Traduire du texte brut avec..."
     },
     "GPT-4.1-mini": {
@@ -4984,11 +4984,11 @@
         "fr_auto": "Minimal (le plus rapide, le moins cher)"
     },
     "Azure Translator - standard": {
-        "fr": "",
+        "fr": "Azure Traducteur - standard",
         "fr_auto": "Azure Translator - standard"
     },
     "Azure Translator - JUS custom": {
-        "fr": "",
+        "fr": "Azure Traducteur - JUS personnalisé",
         "fr_auto": "Azure Translator - JUS custom"
     },
     "Glossary CSV (optional)": {
@@ -4997,10 +4997,10 @@
     },
     "Remove": {
         "fr": "",
-        "fr_auto": "Retirer"
+        "fr_auto": "Supprimer"
     },
     " <strong>Combine:</strong> Search once across all selected documents before answer generation. <em>May not include all documents. Cheap, more succint.</em> <br><br> <strong>Separate:</strong> Search each selected document individually and generate answers for each. <em>Includes all selected documents, even if irrelevant. More detailed, expensive.</em> ": {
-        "fr": "",
+        "fr": " <strong>Combiné :</strong> tente de faire une recherche de tous les documents avant de générer une réponse. <em>Peut ne pas inclure tous les documents. Bon marché, plus succinct.</em> <br><br>  <strong>Séparé</strong> : effectue une recherche individuelle de chaque document sélectionné et génére une réponse pour chacun d’entre eux. <em>Comprend tous les documents sélectionnés, même s’ils ne sont pas pertinents. Plus détaillé, plus coûteux.</em> ",
         "fr_auto": " <strong>Combine :</strong> Faites une recherche une fois sur tous les documents sélectionnés avant de générer la réponse. <em>Peut ne pas inclure tous les documents. Pas cher, plus sucré.</em> <br><br> <strong>Séparer : Recherchez</strong> chaque document sélectionné individuellement et générez des réponses pour chacun. <em>Inclut tous les documents sélectionnés, même s’ils ne sont pas pertinents. Plus détaillé, plus cher.</em> "
     },
     "Text extraction complete. Starting processing...": {
@@ -5008,7 +5008,7 @@
         "fr_auto": "Extraction de texte terminée. Début du traitement..."
     },
     "Error processing translation tasks.": {
-        "fr": "",
+        "fr": "Une erreur s'est produite lors du traitement des tâches de traduction.",
         "fr_auto": "Tâches de traduction en traitement des erreurs."
     },
     "(Azure file translation only) CSV file with 2 columns and no header row. Each row must consist of <em>source term</em>, <em>target term</em>. Terms are case-sensitive.": {
@@ -5048,7 +5048,7 @@
         "fr_auto": "GPT-4.1-mini (pas de sortie de fichier)"
     },
     "Azure Translator (files, long text, 20x cost)": {
-        "fr": "",
+        "fr": "Azure Traducteur (fichiers, texte long, coût 20x)",
         "fr_auto": "Azure Translator (fichiers, texte long, coût 20x)"
     },
     "GPT-4.1 (most steerable, 1x cost)": {
@@ -5060,19 +5060,19 @@
         "fr_auto": "GPT-4.1-mini (orientable, coût 0,2x)"
     },
     "Azure Translator - JUS Custom": {
-        "fr": "",
+        "fr": "Azure Traducteur - JUS personnalisé",
         "fr_auto": "Azure Translator - JUS Custom"
     },
     "Please review translated files prior to distribution.": {
-        "fr": "",
+        "fr": "Veuillez examiner les fichiers traduits avant de les partager.",
         "fr_auto": "Veuillez examiner les fichiers traduits avant la distribution."
     },
     "Azure Translator (files, long text, 15x cost)": {
-        "fr": "",
+        "fr": "Azure Traducteur (fichiers, texte long, coût 15x)",
         "fr_auto": "Azure Translator (fichiers, texte long, coût 15x)"
     },
     "\n            <strong>Translate</strong> input text or uploaded documents from English to French or vice-versa.\n          ": {
-        "fr": "",
+        "fr": "\n<strong>Traduire</strong> du texte ou des documents téléversés de l’anglais vers le français, ou inversement.\n          ",
         "fr_auto": "\n<strong>Traduire</strong> le texte d’entrée ou les documents téléchargés de l’anglais vers le français, ou inversement.\n          "
     },
     "(Azure file translation only) CSV file with 2 columns and no header row. Each row must consist of <em>English term</em>, <em>French term</em>. Terms are case-sensitive.": {
@@ -5080,7 +5080,7 @@
         "fr_auto": "(Traduction de fichiers Azure seulement) Fichier CSV avec 2 colonnes et sans ligne d’en-tête. Chaque ligne doit être composée de <em>terme anglais</em>, <em>terme français</em>. Les termes sont sensibles à la casse."
     },
     "Glossary file is invalid:\nEach row must consist of 'English term, French term' and no cell can be empty.\nError on line: ": {
-        "fr": "",
+        "fr": "Le fichier du glossaire est invalide :\nChaque ligne doit contenir « terme anglais, terme français » et aucune case ne peut être vide.\nErreur sur la ligne : ",
         "fr_auto": "Le fichier du glossaire est invalide :\nChaque ligne doit contenir « terme anglais, terme français » et aucune case ne peut être vide.\nErreur en ligne : "
     },
     "Current date:": {
@@ -5100,11 +5100,11 @@
         "fr_auto": "Haut (raisonnement complexe et en plusieurs étapes)"
     },
     "Azure Translator (best for files, 15x cost)": {
-        "fr": "",
+        "fr": "Azure Traducteur (plus efficace pour les fichiers, coût 15x)",
         "fr_auto": "Azure Translator (meilleur pour les fichiers, coût 15x)"
     },
     "GPT-5 (best for text, 1.5x cost)": {
-        "fr": "",
+        "fr": "GPT-5 (plus efficace pour le texte, coût 1,5x)",
         "fr_auto": "GPT-5 (meilleur pour le texte, coût 1,5x)"
     },
     "GPT-4.1 (good for text, 1x cost)": {
@@ -5120,15 +5120,15 @@
         "fr_auto": "GPT-4.1-nano (le plus rapide, coût < 0,1x)"
     },
     "This could cancel your file upload. Are you sure you want to continue?": {
-        "fr": "",
+        "fr": "Vous pourriez accidentellement annuler le téléversement de votre fichier. Êtes-vous sûr de vouloir continuer?",
         "fr_auto": "Cela pourrait annuler le téléchargement de votre fichier. Es-tu sûr de vouloir continuer?"
     },
     "Users are limited to a monthly budget of $32 for AI use. Exceeding this requires a request to administrators.": {
-        "fr": "",
+        "fr": "Les utilisateurs ont un budget mensuel limité à 32 $ pour l’utilisation de l’IA. Pour dépasser ce seuil, veuillez faire une demande aux administrateurs.",
         "fr_auto": "Les utilisateurs sont limités à un budget mensuel de 32 $ pour l’utilisation de l’IA. Dépasser ce seuil nécessite une demande aux administrateurs."
     },
     "Welcome to Otto.": {
-        "fr": "",
+        "fr": "Bienvenue sur le site du projet Otto.",
         "fr_auto": "Bienvenue chez Otto."
     },
     "Welcome to the Otto development / test environment.": {
@@ -5136,7 +5136,7 @@
         "fr_auto": "Bienvenue dans l’environnement de développement / test d’Otto."
     },
     "Terms of use for Otto": {
-        "fr": "",
+        "fr": "Conditions d’utilisation du projet Otto",
         "fr_auto": "Conditions d’utilisation pour Otto"
     },
     "Chat with GPT models, query document libraries, generate summaries and translate documents.": {
@@ -5164,7 +5164,7 @@
         "fr_auto": "Outils d’administration"
     },
     "and report issues or suggest improvements by": {
-        "fr": "",
+        "fr": "et signaler tous problèmes ou suggérer des améliorations à apporter à l'application en",
         "fr_auto": "et signalent les problèmes ou suggèrent des améliorations en"
     }
 }

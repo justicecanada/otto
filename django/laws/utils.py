@@ -158,3 +158,15 @@ def get_display_title(metadata):
         title = title.replace("Subsection", "paragraphe").replace("Section", "article")
 
     return title
+
+
+def html_render(text, md):
+    if "  -" not in text:  # Don't bother with RegEx if there are no nested lists
+        return md.convert(text)
+
+    first_list_indent = re.search("(?<=\n) +(?=-)", text)
+    if not first_list_indent or len(first_list_indent[0]) < 2:
+        return md.convert(text)
+
+    prefix = "-".join([" " * x for x in range(0, len(first_list_indent[0]) + 1)])
+    return md.convert(f"{prefix}{text}")

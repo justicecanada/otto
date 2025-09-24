@@ -5,7 +5,7 @@ Template for updating document list items and, optionally, selected document sta
 {% load i18n %}
 
 {# Swapped out of band #}
-{% if selected_document %}
+{% if selected_document and selected_document.celery_task_id %}
   {% include "librarian/components/document_status.html" with document=selected_document swap="true" %}
 {% endif %}
 {% include "librarian/components/poller.html" %}
