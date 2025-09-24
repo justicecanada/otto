@@ -663,6 +663,7 @@ def test_qa_response(client, all_apps_user):
     chat.options.save()
     response = client.get(reverse("chat:chat_response", args=[response_message.id]))
     assert response.status_code == 200
+    assert "keywords in your query" in response.content.decode()
 
     content = async_to_sync(final_response_helper)(response.streaming_content)
     content_str = content.decode("utf-8")
