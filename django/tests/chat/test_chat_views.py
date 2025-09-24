@@ -653,22 +653,35 @@ def test_qa_response(client, all_apps_user):
     response = client.get(reverse("chat:chat_response", args=[response_message.id]))
     assert response.status_code == 200
 
-    # Once more through both qa_process_mode options with empty library
+    # Again with empty library
     chat.options.qa_library = user.personal_library
     chat.options.save()
     response = client.get(reverse("chat:chat_response", args=[response_message.id]))
     assert response.status_code == 200
 
-    chat.options.qa_process_mode = "combined_docs"
-    chat.options.save()
-    response = client.get(reverse("chat:chat_response", args=[response_message.id]))
-    assert response.status_code == 200
-    response_text = final_response(response.streaming_content).decode("utf-8")
-    assert "keywords in your query" in response_text
-
     content = async_to_sync(final_response_helper)(response.streaming_content)
     content_str = content.decode("utf-8")
     assert "a different library" in content_str
+
+    # Test keyword search that won't have any matches
+    chat.options.qa_process_mode = "combined_docs"
+    chat.options.qa_library = Library.objects.get_default_library()
+    chat.options.qa_vector_ratio = 0
+    chat.options.save()
+    message = Message.objects.create(
+        chat=chat,
+        text="Yoda",
+        mode="qa",
+    )
+    response_message = Message.objects.create(
+        chat=chat, mode="qa", is_bot=True, parent=message
+    )
+    response = client.get(reverse("chat:chat_response", args=[response_message.id]))
+    assert response.status_code == 200
+
+    content = async_to_sync(final_response_helper)(response.streaming_content)
+    content_str = content.decode("utf-8")
+    assert "keywords in your query" in content_str
 
 
 @pytest.mark.django_db
