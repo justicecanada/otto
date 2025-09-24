@@ -1,0 +1,69 @@
+<div id="librarian-file-dropzone">
+  <i class="bi bi-upload"></i>
+  <div id="librarian-file-dropzone-overlay"
+       class="d-flex align-items-center justify-content-center">
+    <i class="bi bi-upload"></i>
+  </div>
+</div>
+
+<script>
+function showOverlay_librarian() {
+  const dz = document.querySelector('#librarian-file-dropzone');
+  const ov = document.querySelector('#librarian-file-dropzone-overlay');
+  dz.classList.add('show');   // enables pointer events on the dropzone
+  ov.classList.add('show');   // makes overlay visible
+}
+
+function hideOverlay_librarian() {
+  const dz = document.querySelector('#librarian-file-dropzone');
+  const ov = document.querySelector('#librarian-file-dropzone-overlay');
+  dz.classList.remove('show');   // disables pointer events again
+  ov.classList.remove('show');
+}
+
+function handleDragEnter_librarian(e) {
+  console.log("drag enter");
+  // make sure we're dragging a file
+  var dt = (e && e.dataTransfer);
+  if (!dt) {
+    return;
+  }
+  // required to create an array for Firefox
+  Array.from(dt.types)?.forEach((type) => {
+    if (type === "Files") {
+      showOverlay_librarian();
+    }
+  });
+}
+
+document.addEventListener('dragenter', handleDragEnter_librarian);
+
+// While armed, the dropzone handles the rest
+let librarian_dropZone = document.querySelector('#librarian-file-dropzone');
+
+function ePrevent_librarian(e) {
+  e.preventDefault();
+  e.stopPropagation();
+}
+
+function onDrop_librarian(e) {
+  e.preventDefault();
+  e.stopPropagation();
+  document.querySelector('#id_librarian-input_file').value = null;
+  document.querySelector('#id_librarian-input_file').files = e.dataTransfer.files;
+  document.querySelector('#id_librarian-input_file').dispatchEvent(new Event('change'));
+  hideOverlay_librarian();
+}
+
+function handleDragLeave_librarian(e) {
+  const dropZoneElement = librarian_dropZone;
+  if (!e.relatedTarget || !dropZoneElement.contains(e.relatedTarget)) {
+    hideOverlay_librarian();
+  }
+}
+
+librarian_dropZone.addEventListener('dragover', ePrevent_librarian);
+librarian_dropZone.addEventListener('dragleave', handleDragLeave_librarian);
+librarian_dropZone.addEventListener('dragexit', handleDragLeave_librarian);
+librarian_dropZone.addEventListener('drop', onDrop_librarian);
+</script>
