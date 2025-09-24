@@ -815,10 +815,25 @@ def qa_response(chat, response_message, switch_mode=False):
             answer_components = rag_answer(
                 chat, response_message, llm, filter_documents, qa_scope
             )
-            response_replacer = answer_components["response_replacer"]
-            response_generator = answer_components["response_generator"]
-            source_groups = answer_components["source_groups"]
-            batch_generators = answer_components["batch_generators"]
+            if answer_components:
+                response_replacer = answer_components["response_replacer"]
+                response_generator = answer_components["response_generator"]
+                source_groups = answer_components["source_groups"]
+                batch_generators = answer_components["batch_generators"]
+            else:
+                response_str = _(
+                    "Sorry, I couldn't find any information about that. Try using different keywords in your query."
+                )
+                return StreamingHttpResponse(
+                    streaming_content=htmx_stream(
+                        chat,
+                        response_message.id,
+                        llm,
+                        response_str=response_str,
+                        switch_mode=switch_mode,
+                    ),
+                    content_type="text/event-stream",
+                )
         else:
             source_groups = []
             doc_responses = []
