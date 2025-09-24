@@ -158,7 +158,7 @@ def dist(p1, p2):
     return math.sqrt((p1.x - p2.x) * (p1.x - p2.x) + (p1.y - p2.y) * (p1.y - p2.y))
 
 
-def create_searchable_pdf(input_file):
+def create_searchable_pdf(input_file, file_type):
     document_analysis_client = None
     vision_client = None
     try:
@@ -166,34 +166,34 @@ def create_searchable_pdf(input_file):
         if hasattr(input_file, "read"):
             input_file.seek(0)
             body_data = input_file.read()
-            document_analysis_client = DocumentIntelligenceClient(
-                endpoint=settings.AZURE_COGNITIVE_SERVICE_ENDPOINT,
-                credential=AzureKeyCredential(settings.AZURE_COGNITIVE_SERVICE_KEY),
-                headers={"x-ms-useragent": "searchable-pdf-blog/1.0.0"},
-            )
-            # Call Azure Form Recognizer with raw bytes
-            poller = document_analysis_client.begin_analyze_document(
-                model_id="prebuilt-read",
-                body=body_data,
-                output=[AnalyzeOutputOption.PDF],
-                output_content_format=DocumentContentFormat.MARKDOWN,
-            )
-        else:
-            with open(input_file, "rb") as f:
-                body_data = f.read()
-            vision_client = ImageAnalysisClient(
-                endpoint=settings.AZURE_COGNITIVE_SERVICE_ENDPOINT,
-                credential=AzureKeyCredential(settings.AZURE_COGNITIVE_SERVICE_KEY),
-            )
-            # Extract text (OCR) from an image stream. This will be a synchronously (blocking) call.
-            poller = vision_client.analyze(
-                image_data=body_data, visual_features=[VisualFeatures.READ]
-            )
+            # check if it is image or pdf
+            if file_type == "application/pdf":
+                document_analysis_client = DocumentIntelligenceClient(
+                    endpoint=settings.AZURE_COGNITIVE_SERVICE_ENDPOINT,
+                    credential=AzureKeyCredential(settings.AZURE_COGNITIVE_SERVICE_KEY),
+                    headers={"x-ms-useragent": "searchable-pdf-blog/1.0.0"},
+                )
+                # Call Azure Form Recognizer with raw bytes
+                poller = document_analysis_client.begin_analyze_document(
+                    model_id="prebuilt-read",
+                    body=body_data,
+                    output=[AnalyzeOutputOption.PDF],
+                    output_content_format=DocumentContentFormat.MARKDOWN,
+                )
+                start_time_ocr = time.perf_counter()
+                ocr_results = poller.result()
+                elapsed_time_ocr = time.perf_counter() - start_time_ocr
+                logger.info(f"OCR polling took {elapsed_time_ocr:.2f} seconds")
 
-        start_time_ocr = time.perf_counter()
-        ocr_results = poller.result()
-        elapsed_time_ocr = time.perf_counter() - start_time_ocr
-        logger.info(f"OCR polling took {elapsed_time_ocr:.2f} seconds")
+            elif file_type in img_extensions or file_type.startswith("image/"):
+                vision_client = ImageAnalysisClient(
+                    endpoint=settings.AZURE_COGNITIVE_SERVICE_ENDPOINT,
+                    credential=AzureKeyCredential(settings.AZURE_COGNITIVE_SERVICE_KEY),
+                )
+                # Extract text (OCR) from an image stream. This will be a synchronously (blocking) call.
+                ocr_results = vision_client.analyze(
+                    image_data=body_data, visual_features=[VisualFeatures.READ]
+                )
 
     except Exception as e:
         error_id = str(uuid.uuid4())[:7]
@@ -214,18 +214,18 @@ def create_searchable_pdf(input_file):
             + str(page_count)
         )
         cost = Cost.objects.new(cost_type="doc-ai-read", count=page_count)
+        all_text = ocr_results["content"]
     else:
         # For Vision OCR, use number of images (assume 1 image per call)
-        image_count = 1
-        logger.debug(
-            _("Azure Vision OCR finished OCR text. Number of images:")
-            + str(image_count)
-        )
-        cost = Cost.objects.new(cost_type="vision-ocr", count=image_count)
-
-    all_text = ocr_results["content"]
+        cost = Cost.objects.new(cost_type="vision-ocr", count=1)
+        all_text = []
+        for block in ocr_results["readResult"]["blocks"]:
+            for line in block["lines"]:
+                for word in line["words"]:
+                    all_text.append(word["text"])
 
     # Get the OCR'd PDF from Azure
+    print(all_text)
     pdf_content = None
     if document_analysis_client:
         start_time_pdf = time.perf_counter()

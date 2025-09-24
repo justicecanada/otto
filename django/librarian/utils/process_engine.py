@@ -292,7 +292,7 @@ def extract_markdown(
         if process_engine == "IMAGE":
             content = resize_to_azure_requirements(content)
             enable_markdown = False
-            md = pdf_to_text_azure_read(content)
+            md = img_to_text_azure_read(content)
         elif process_engine == "PDF":
             if pdf_method == "default":
                 enable_markdown = False
@@ -738,6 +738,24 @@ def _pdf_to_html_azure_layout(content):
     return html
 
 
+def img_to_text_azure_read(content: bytes) -> str:
+    from azure.ai.vision.imageanalysis import ImageAnalysisClient
+    from azure.ai.vision.imageanalysis.models import VisualFeatures
+    from azure.core.credentials import AzureKeyCredential
+
+    vision_client = ImageAnalysisClient(
+        endpoint=settings.AZURE_COGNITIVE_SERVICE_ENDPOINT,
+        credential=AzureKeyCredential(settings.AZURE_COGNITIVE_SERVICE_KEY),
+    )
+    # Extract text (OCR) from an image stream. This will be a synchronously (blocking) call.
+    poller = vision_client.analyze(
+        image_data=content, visual_features=[VisualFeatures.READ]
+    )
+    result = poller.result()
+    text = result["content"]
+    return text
+
+
 def pdf_to_text_azure_read(content: bytes) -> str:
     from azure.ai.documentintelligence import DocumentIntelligenceClient
     from azure.core.credentials import AzureKeyCredential
@@ -746,10 +764,8 @@ def pdf_to_text_azure_read(content: bytes) -> str:
         endpoint=settings.AZURE_COGNITIVE_SERVICE_ENDPOINT,
         credential=AzureKeyCredential(settings.AZURE_COGNITIVE_SERVICE_KEY),
     )
-
     poller = document_analysis_client.begin_analyze_document("prebuilt-read", content)
     result = poller.result()
-
     num_pages = len(result.pages)
     cost = Cost.objects.new(cost_type="doc-ai-read", count=num_pages)
 

@@ -97,6 +97,7 @@ def submit_document(request):
                 result = process_ocr_document.delay(
                     file_content,
                     file.name,
+                    file.content_type,
                     str(output_file.id),
                     str(request.user.id),
                 )

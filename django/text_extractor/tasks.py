@@ -138,7 +138,7 @@ def process_document_merge(
 
 # passing the OCR method to celery
 @shared_task
-def process_ocr_document(file_content, file_name, output_file_id, user_id):
+def process_ocr_document(file_content, file_name, file_type, output_file_id, user_id):
     if current_task:
         current_task.update_state(state="PROCESSING")
 
@@ -157,7 +157,7 @@ def process_ocr_document(file_content, file_name, output_file_id, user_id):
             charset=None,
         )
 
-        result = create_searchable_pdf(file)
+        result = create_searchable_pdf(file, file_type)
 
         if result["error"] == True:
             raise Exception(result["message"])
