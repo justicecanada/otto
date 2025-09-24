@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>Coverage for django/chat/models.py: 83%</title>
+    <title>Coverage for django/chat/models.py: 84%</title>
     <link rel="icon" sizes="32x32" href="favicon_32_cb_58284776.png">
     <link rel="stylesheet" href="style_cb_6b508a39.css" type="text/css">
     <script src="coverage_html_cb_6fb7b396.js" defer></script>
@@ -12,7 +12,7 @@
     <div class="content">
         <h1>
             <span class="text">Coverage for </span><b>django/chat/models.py</b>:
-            <span class="pc_cov">83%</span>
+            <span class="pc_cov">84%</span>
         </h1>
         <aside id="help_panel_wrapper">
             <input id="help_panel_state" type="checkbox">
@@ -54,9 +54,9 @@
             </div>
         </aside>
         <h2>
-            <span class="text">381 statements &nbsp;</span>
-            <button type="button" class="run button_toggle_run" value="run" data-shortcut="r" title="Toggle lines run">317<span class="text"> run</span></button>
-            <button type="button" class="mis show_mis button_toggle_mis" value="mis" data-shortcut="m" title="Toggle lines missing">64<span class="text"> missing</span></button>
+            <span class="text">393 statements &nbsp;</span>
+            <button type="button" class="run button_toggle_run" value="run" data-shortcut="r" title="Toggle lines run">331<span class="text"> run</span></button>
+            <button type="button" class="mis show_mis button_toggle_mis" value="mis" data-shortcut="m" title="Toggle lines missing">62<span class="text"> missing</span></button>
             <button type="button" class="exc show_exc button_toggle_exc" value="exc" data-shortcut="x" title="Toggle lines excluded">0<span class="text"> excluded</span></button>
         </h2>
         <p class="text">
@@ -65,7 +65,7 @@
             <a id="nextFileLink" class="nav" href="z_5aabb7febf6ec373_prompts_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.10.6">coverage.py v7.10.6</a>,
-            created at 2025-09-23 17:46 +0000
+            created at 2025-09-24 19:57 +0000
         </p>
         <aside class="hidden">
             <button type="button" class="button_next_chunk" data-shortcut="j"></button>
@@ -87,7 +87,7 @@
     <p class="run"><span class="n"><a id="t5" href="#t5">5</a></span><span class="t"><span class="key">from</span> <span class="nam">django</span><span class="op">.</span><span class="nam">db</span> <span class="key">import</span> <span class="nam">connections</span><span class="op">,</span> <span class="nam">models</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t6" href="#t6">6</a></span><span class="t"><span class="key">from</span> <span class="nam">django</span><span class="op">.</span><span class="nam">db</span><span class="op">.</span><span class="nam">models</span> <span class="key">import</span> <span class="nam">BooleanField</span><span class="op">,</span> <span class="nam">Q</span><span class="op">,</span> <span class="nam">Value</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t7" href="#t7">7</a></span><span class="t"><span class="key">from</span> <span class="nam">django</span><span class="op">.</span><span class="nam">db</span><span class="op">.</span><span class="nam">models</span><span class="op">.</span><span class="nam">functions</span> <span class="key">import</span> <span class="nam">Coalesce</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t8" href="#t8">8</a></span><span class="t"><span class="key">from</span> <span class="nam">django</span><span class="op">.</span><span class="nam">db</span><span class="op">.</span><span class="nam">models</span><span class="op">.</span><span class="nam">signals</span> <span class="key">import</span> <span class="nam">post_delete</span><span class="op">,</span> <span class="nam">post_save</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t8" href="#t8">8</a></span><span class="t"><span class="key">from</span> <span class="nam">django</span><span class="op">.</span><span class="nam">db</span><span class="op">.</span><span class="nam">models</span><span class="op">.</span><span class="nam">signals</span> <span class="key">import</span> <span class="nam">post_delete</span><span class="op">,</span> <span class="nam">post_save</span><span class="op">,</span> <span class="nam">pre_delete</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t9" href="#t9">9</a></span><span class="t"><span class="key">from</span> <span class="nam">django</span><span class="op">.</span><span class="nam">dispatch</span> <span class="key">import</span> <span class="nam">receiver</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t10" href="#t10">10</a></span><span class="t"><span class="key">from</span> <span class="nam">django</span><span class="op">.</span><span class="nam">template</span><span class="op">.</span><span class="nam">loader</span> <span class="key">import</span> <span class="nam">render_to_string</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t11" href="#t11">11</a></span><span class="t"><span class="key">from</span> <span class="nam">django</span><span class="op">.</span><span class="nam">utils</span> <span class="key">import</span> <span class="nam">timezone</span>&nbsp;</span><span class="r"></span></p>
@@ -105,7 +105,7 @@
     <p class="run run2"><span class="n"><a id="t23" href="#t23">23</a></span><span class="t">    <span class="nam">get_updated_model_id</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
     <p class="run run2"><span class="n"><a id="t24" href="#t24">24</a></span><span class="t"><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t25" href="#t25">25</a></span><span class="t"><span class="key">from</span> <span class="nam">chat</span><span class="op">.</span><span class="nam">prompts</span> <span class="key">import</span> <span class="nam">current_time_prompt</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t26" href="#t26">26</a></span><span class="t"><span class="key">from</span> <span class="nam">librarian</span><span class="op">.</span><span class="nam">models</span> <span class="key">import</span> <span class="nam">DataSource</span><span class="op">,</span> <span class="nam">Library</span><span class="op">,</span> <span class="nam">SavedFile</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t26" href="#t26">26</a></span><span class="t"><span class="key">from</span> <span class="nam">librarian</span><span class="op">.</span><span class="nam">models</span> <span class="key">import</span> <span class="nam">DataSource</span><span class="op">,</span> <span class="nam">Document</span><span class="op">,</span> <span class="nam">Library</span><span class="op">,</span> <span class="nam">SavedFile</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t27" href="#t27">27</a></span><span class="t"><span class="key">from</span> <span class="nam">librarian</span><span class="op">.</span><span class="nam">utils</span><span class="op">.</span><span class="nam">process_engine</span> <span class="key">import</span> <span class="nam">guess_content_type</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t28" href="#t28">28</a></span><span class="t"><span class="key">from</span> <span class="nam">otto</span><span class="op">.</span><span class="nam">models</span> <span class="key">import</span> <span class="nam">User</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t29" href="#t29">29</a></span><span class="t"><span class="key">from</span> <span class="nam">otto</span><span class="op">.</span><span class="nam">utils</span><span class="op">.</span><span class="nam">common</span> <span class="key">import</span> <span class="nam">display_cad_cost</span><span class="op">,</span> <span class="nam">set_costs</span>&nbsp;</span><span class="r"></span></p>
@@ -823,8 +823,8 @@
     <p class="run"><span class="n"><a id="t741" href="#t741">741</a></span><span class="t"><span class="key">def</span> <span class="nam">delete_saved_file</span><span class="op">(</span><span class="nam">sender</span><span class="op">,</span> <span class="nam">instance</span><span class="op">,</span> <span class="op">**</span><span class="nam">kwargs</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t742" href="#t742">742</a></span><span class="t">    <span class="com"># NOTE: If file was uploaded to chat in Q&amp;A mode, this won't delete unless</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t743" href="#t743">743</a></span><span class="t">    <span class="com"># document is also deleted from librarian modal (or entire chat is deleted)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t744" href="#t744">744</a></span><span class="t">    <span class="key">try</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t745" href="#t745">745</a></span><span class="t">        <span class="nam">instance</span><span class="op">.</span><span class="nam">saved_file</span><span class="op">.</span><span class="nam">safe_delete</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t744" href="#t744">744</a></span><span class="t">    <span class="key">try</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t745" href="#t745">745</a></span><span class="t">        <span class="nam">instance</span><span class="op">.</span><span class="nam">saved_file</span><span class="op">.</span><span class="nam">safe_delete</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="mis show_mis"><span class="n"><a id="t746" href="#t746">746</a></span><span class="t">    <span class="key">except</span> <span class="nam">Exception</span> <span class="key">as</span> <span class="nam">e</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="mis show_mis"><span class="n"><a id="t747" href="#t747">747</a></span><span class="t">        <span class="nam">logger</span><span class="op">.</span><span class="nam">error</span><span class="op">(</span><span class="fst">f"</span><span class="fst">Failed to delete saved file: </span><span class="op">{</span><span class="nam">e</span><span class="op">}</span><span class="fst">"</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t748" href="#t748">748</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
@@ -848,6 +848,23 @@
     <p class="run run2"><span class="n"><a id="t766" href="#t766">766</a></span><span class="t">        <span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="mis show_mis"><span class="n"><a id="t767" href="#t767">767</a></span><span class="t">    <span class="key">except</span> <span class="nam">Exception</span> <span class="key">as</span> <span class="nam">e</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="mis show_mis"><span class="n"><a id="t768" href="#t768">768</a></span><span class="t">        <span class="nam">logger</span><span class="op">.</span><span class="nam">exception</span><span class="op">(</span><span class="fst">f"</span><span class="fst">Message post save error: </span><span class="op">{</span><span class="nam">e</span><span class="op">}</span><span class="fst">"</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t769" href="#t769">769</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t770" href="#t770">770</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t771" href="#t771">771</a></span><span class="t"><span class="op">@</span><span class="nam">receiver</span><span class="op">(</span><span class="nam">pre_delete</span><span class="op">,</span> <span class="nam">sender</span><span class="op">=</span><span class="nam">Message</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t772" href="#t772">772</a></span><span class="t"><span class="key">def</span> <span class="nam">message_pre_delete</span><span class="op">(</span><span class="nam">sender</span><span class="op">,</span> <span class="nam">instance</span><span class="op">,</span> <span class="op">**</span><span class="nam">kwargs</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t773" href="#t773">773</a></span><span class="t">    <span class="key">try</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t774" href="#t774">774</a></span><span class="t">        <span class="com"># Delete documents uploaded in this message in Q&amp;A mode</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t775" href="#t775">775</a></span><span class="t">        <span class="key">if</span> <span class="nam">instance</span><span class="op">.</span><span class="nam">mode</span> <span class="op">==</span> <span class="str">"qa"</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t776" href="#t776">776</a></span><span class="t">            <span class="nam">chat_files</span> <span class="op">=</span> <span class="nam">ChatFile</span><span class="op">.</span><span class="nam">objects</span><span class="op">.</span><span class="nam">filter</span><span class="op">(</span><span class="nam">message</span><span class="op">=</span><span class="nam">instance</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t777" href="#t777">777</a></span><span class="t">            <span class="key">for</span> <span class="nam">chat_file</span> <span class="key">in</span> <span class="nam">chat_files</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t778" href="#t778">778</a></span><span class="t">                <span class="key">if</span> <span class="nam">chat_file</span><span class="op">.</span><span class="nam">saved_file</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t779" href="#t779">779</a></span><span class="t">                    <span class="nam">document</span> <span class="op">=</span> <span class="nam">Document</span><span class="op">.</span><span class="nam">objects</span><span class="op">.</span><span class="nam">filter</span><span class="op">(</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run run2"><span class="n"><a id="t780" href="#t780">780</a></span><span class="t">                        <span class="nam">saved_file</span><span class="op">=</span><span class="nam">chat_file</span><span class="op">.</span><span class="nam">saved_file</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run run2"><span class="n"><a id="t781" href="#t781">781</a></span><span class="t">                    <span class="op">)</span><span class="op">.</span><span class="nam">first</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t782" href="#t782">782</a></span><span class="t">                    <span class="key">if</span> <span class="nam">document</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t783" href="#t783">783</a></span><span class="t">                        <span class="nam">document</span><span class="op">.</span><span class="nam">delete</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t784" href="#t784">784</a></span><span class="t">    <span class="key">except</span> <span class="nam">Exception</span> <span class="key">as</span> <span class="nam">e</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t785" href="#t785">785</a></span><span class="t">        <span class="nam">logger</span><span class="op">.</span><span class="nam">exception</span><span class="op">(</span><span class="fst">f"</span><span class="fst">Message pre delete error: </span><span class="op">{</span><span class="nam">e</span><span class="op">}</span><span class="fst">"</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
 </main>
 <footer>
     <div class="content">
@@ -857,7 +874,7 @@
             <a class="nav" href="z_5aabb7febf6ec373_prompts_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.10.6">coverage.py v7.10.6</a>,
-            created at 2025-09-23 17:46 +0000
+            created at 2025-09-24 19:57 +0000
         </p>
     </div>
 </footer>
