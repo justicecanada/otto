@@ -595,7 +595,7 @@ def test_translate_response(client, all_apps_user):
 
 
 @pytest.mark.django_db
-def test_qa_response(client, all_apps_user):
+def test_qa_response_specify_library(client, all_apps_user):
     user = all_apps_user()
     client.force_login(user)
 
@@ -653,7 +653,7 @@ def test_qa_response(client, all_apps_user):
     response = client.get(reverse("chat:chat_response", args=[response_message.id]))
     assert response.status_code == 200
 
-    # Once more with empty library
+    # Again with empty library
     chat.options.qa_library = user.personal_library
     chat.options.save()
     response = client.get(reverse("chat:chat_response", args=[response_message.id]))
@@ -662,6 +662,26 @@ def test_qa_response(client, all_apps_user):
     content = async_to_sync(final_response_helper)(response.streaming_content)
     content_str = content.decode("utf-8")
     assert "a different library" in content_str
+
+    # Test keyword search that won't have any matches
+    chat.options.qa_process_mode = "combined_docs"
+    chat.options.qa_library = Library.objects.get_default_library()
+    chat.options.qa_vector_ratio = 0
+    chat.options.save()
+    message = Message.objects.create(
+        chat=chat,
+        text="Yoda",
+        mode="qa",
+    )
+    response_message = Message.objects.create(
+        chat=chat, mode="qa", is_bot=True, parent=message
+    )
+    response = client.get(reverse("chat:chat_response", args=[response_message.id]))
+    assert response.status_code == 200
+
+    content = async_to_sync(final_response_helper)(response.streaming_content)
+    content_str = content.decode("utf-8")
+    assert "keywords in your query" in content_str
 
 
 @pytest.mark.django_db
@@ -972,7 +992,7 @@ def test_preset(client, basic_user, all_apps_user):
     response = client.get(
         reverse("chat:get_presets", kwargs={"chat_id": chat2.id}), follow=True
     )
-    assert "Updated Preset" in response.content.decode()
+    assert "Updated Preset" in response.content.decode("utf-8")
 
     user3 = all_apps_user("user3")
     chat3 = Chat.objects.create(user=user3)
