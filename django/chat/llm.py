@@ -318,7 +318,7 @@ class OttoLLM:
             similarity_top_k=top_k,
             num_queries=1,  # set this to 1 to disable query generation
             mode="relative_score",
-            use_async=True,
+            # use_async=True, # See bug 3344
             retriever_weights=[vector_weight, 1 - vector_weight],
             llm=self.llm,
         )
@@ -392,7 +392,7 @@ class OttoLLM:
             summary_template=summary_template,
             output_cls=None,
             streaming=True,
-            use_async=True,
+            # use_async=True, # See bug 3344
             verbose=True,
         )
 
