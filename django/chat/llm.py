@@ -427,25 +427,9 @@ class OttoLLM:
 
 
 class OttoVectorStore(PGVectorStore):
-    # Override from LlamaIndex to add retrying, connection test, and correct pooling
-    @retry(
-        wait_exponential_multiplier=1000,
-        wait_exponential_max=20000,
-    )
     def _connect(self):
 
-        # Pooling for sync engine only
-        sync_engine_kwargs = {
-            "pool_size": 10,
-            "max_overflow": 20,
-            "pool_pre_ping": True,
-            "pool_recycle": 3600,
-            **self.create_engine_kwargs,
-        }
-
-        self._engine = create_engine(
-            self.connection_string, echo=self.debug, **sync_engine_kwargs
-        )
+        self._engine = create_engine(self.connection_string, echo=self.debug)
         self._session = sessionmaker(self._engine)
 
         # Async engine: only pass async-appropriate kwargs
@@ -459,7 +443,3 @@ class OttoVectorStore(PGVectorStore):
             self.async_connection_string, echo=self.debug, **async_engine_kwargs
         )
         self._async_session = sessionmaker(self._async_engine, class_=AsyncSession)  # type: ignore
-
-        # Optionally test the sync connection
-        # with self._engine.connect() as connection:
-        #     connection.execute(sqlalchemy.text("SELECT 1"))
