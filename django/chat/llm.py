@@ -95,12 +95,16 @@ class OttoLLM:
     "model" must match the name of the LLM deployment in Azure.
     """
 
+    # Since the questions deployment has less quota, use it by default for embeddings
+    # Document processing must be explicitly configured, which is appropriate since it's a specialized use case
+
     def __init__(
         self,
         deployment: str = settings.DEFAULT_CHAT_MODEL,
         temperature: float = 0.1,
         mock_embedding: bool = False,
         reasoning_effort: str = "minimal",
+        embedding_deployment: str = "text-embedding-3-large-questions",
     ):
         # Check if mock_llm is enabled via contextvar (for load testing)
         self.use_mock_llm = mock_llm_context.get(False)
@@ -124,6 +128,7 @@ class OttoLLM:
         self.llm = self._get_llm()
         # If mock_llm context is set, always use mock embedding regardless of mock_embedding parameter
         self.mock_embedding = mock_embedding or self.use_mock_llm
+        self.embedding_deployment = embedding_deployment
         self.embed_model = self._get_embed_model()
         self.max_input_tokens = self.llm_config.max_tokens_in
         self.max_output_tokens = self.llm_config.max_tokens_out
@@ -416,7 +421,7 @@ class OttoLLM:
             return MockEmbedding(1536)
         return AzureOpenAIEmbedding(
             model="text-embedding-3-large",
-            deployment_name="text-embedding-3-large",
+            deployment_name=self.embedding_deployment,
             dimensions=1536,
             embed_batch_size=16,
             api_key=settings.AZURE_OPENAI_KEY,
