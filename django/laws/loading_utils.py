@@ -56,22 +56,39 @@ CONSTITUTION_FILE_PATHS = (
 
 
 def _download_repo():
-    # Download and extract to media folder
+    # Download and extract to media folder, with periodic sleep to allow Celery heartbeat
     repo_url = (
         "https://github.com/justicecanada/laws-lois-xml/archive/refs/heads/main.zip"
     )
     zip_file_path = os.path.join(settings.MEDIA_ROOT, "laws-lois-xml.zip")
 
     logger.info("Downloading laws-lois-xml repo to media folder...")
-    response = requests.get(repo_url)
+
+    # Do the download in chunks
+    response = requests.get(repo_url, stream=True)
     response.raise_for_status()
 
+    chunk_size = 5 * 1024 * 1024  # 5MB per chunk
     with open(zip_file_path, "wb") as file:
-        file.write(response.content)
+        for i, chunk in enumerate(response.iter_content(chunk_size=chunk_size)):
+            if chunk:
+                file.write(chunk)
+                file.flush()
+            if i % 2 == 0:
+                time.sleep(
+                    0.1
+                )  # Brief sleep lets the Celery worker loop send heartbeat
+
+    logger.info("Download complete, extracting zip...")
 
     with zipfile.ZipFile(zip_file_path, "r") as zip_ref:
-        zip_ref.extractall(settings.MEDIA_ROOT)
+        members = zip_ref.namelist()
+        for i, member in enumerate(members):
+            zip_ref.extract(member, settings.MEDIA_ROOT)
+            if i % 10 == 0:
+                time.sleep(0.1)  # Allows the process to yield and send heartbeats
 
+    logger.info("Extraction complete, cleaning up zip...")
     os.remove(zip_file_path)
 
 

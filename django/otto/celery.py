@@ -16,6 +16,13 @@ app.steps["worker"].add(DjangoStructLogInitStep)
 app.config_from_object("django.conf:settings", namespace="CELERY")
 app.autodiscover_tasks()
 
+# Acknowledge tasks after they have been executed, not just before. This ensures
+# that if a task crashes during execution, it will be retried (at the cost of
+# potentially being executed more than once). This is generally safer, as tasks
+# that crash during execution are more likely to have failed to complete their
+# work than tasks that have been acknowledged but not yet executed.
+app.conf.task_acks_late = True
+
 app.conf.beat_schedule = {
     # Sync entra users every day at 1 am UTC
     "sync-entra-users-every-morning": {

@@ -19,12 +19,18 @@ logger = get_logger(__name__)
 ten_minutes = 600
 
 
-@shared_task(soft_time_limit=ten_minutes)
-def extract_text_task(file_id, pdf_method="default", context_vars=None):
+@shared_task(bind=True)
+def extract_text_task(
+    self, file_id, pdf_method="default", context_vars=None, rerouted=False
+):
     """
     Celery task to extract text from a ChatFile.
+    If file is small (< threshold), routes to light queue; otherwise uses heavy worker.
     Returns the file_id when complete, or raises an exception on error.
     """
+
+    MAX_LIGHT_FILE_SIZE = 5 * 1024 * 1024  # 5MB
+
     try:
         from chat.models import ChatFile
         from librarian.utils.process_engine import (
@@ -41,7 +47,35 @@ def extract_text_task(file_id, pdf_method="default", context_vars=None):
 
         if not file.saved_file:
             raise Exception("No saved file found")
+        file_size = file.saved_file.file.size
 
+        if not rerouted:
+            queue = self.request.delivery_info.get("routing_key")
+            if file_size < MAX_LIGHT_FILE_SIZE and queue != "light":
+                logger.info(
+                    f"extract_text_task: rerouting small file ({file_size} bytes) to lightworker."
+                )
+                result = extract_text_task.apply_async(
+                    args=[file_id, pdf_method, context_vars],
+                    kwargs={"rerouted": True},
+                    queue="light",
+                )
+                return result.get(timeout=ten_minutes)
+            elif file_size >= MAX_LIGHT_FILE_SIZE and queue != "heavy":
+                logger.info(
+                    f"extract_text_task: rerouting large file ({file_size} bytes) to heavyworker."
+                )
+                result = extract_text_task.apply_async(
+                    args=[file_id, pdf_method, context_vars],
+                    kwargs={"rerouted": True},
+                    queue="heavy",
+                )
+                return result.get(timeout=ten_minutes)
+
+        logger.info(
+            f"extract_text_task: processing file {file_id} of size {file_size} bytes in queue {self.request.delivery_info.get('routing_key')}."
+        )
+        # Process the file and extract text
         with file.saved_file.file.open("rb") as file_handle:
             content = file_handle.read()
             content_type = guess_content_type(
@@ -53,9 +87,7 @@ def extract_text_task(file_id, pdf_method="default", context_vars=None):
             )
             file.text = extraction_result.markdown
             file.save()
-
         return file_id
-
     except Exception as e:
         logger.exception(f"Error in extract_text_task for file {file_id}: {e}")
         raise
@@ -73,10 +105,51 @@ def azure_delete(path):
         pass
 
 
-@shared_task(soft_time_limit=ten_minutes)
+@shared_task(bind=True)
 def translate_file(
-    file_path, target_language, custom_translator_id=None, glossary_path=None
+    self,
+    file_path,
+    target_language,
+    custom_translator_id=None,
+    glossary_path=None,
+    rerouted=False,
 ):
+    """
+    Celery task to process file translation.
+    Dynamically routes to heavy or light queue by input file size.
+    Returns translation result or raises on error.
+    """
+    MAX_LIGHT_FILE_SIZE = 5 * 1024 * 1024  # 5MB
+
+    # Look up the file on disk and determine size
+    file_size = os.path.getsize(file_path) if os.path.isfile(file_path) else 0
+    queue = self.request.delivery_info.get("routing_key")
+
+    if not rerouted:
+        if file_size < MAX_LIGHT_FILE_SIZE and queue != "light":
+            logger.info(
+                f"translate_file: rerouting small file ({file_size} bytes) to lightworker."
+            )
+            result = translate_file.apply_async(
+                args=[file_path, target_language, custom_translator_id, glossary_path],
+                kwargs={"rerouted": True},
+                queue="light",
+            )
+            return result.get(timeout=ten_minutes)
+        elif file_size >= MAX_LIGHT_FILE_SIZE and queue != "heavy":
+            logger.info(
+                f"translate_file: rerouting large file ({file_size} bytes) to heavyworker."
+            )
+            result = translate_file.apply_async(
+                args=[file_path, target_language, custom_translator_id, glossary_path],
+                kwargs={"rerouted": True},
+                queue="heavy",
+            )
+            return result.get(timeout=ten_minutes)
+
+    logger.info(
+        f"translate_file: processing file {file_path} of size {file_size} bytes in queue {self.request.delivery_info.get('routing_key')}."
+    )
     if target_language == "fr":
         target_language = "fr-ca"
     input_file_path = None

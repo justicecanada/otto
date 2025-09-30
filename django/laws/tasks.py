@@ -1,11 +1,14 @@
 import os
 import shutil
 import sys
+import traceback
+import uuid
 from contextlib import contextmanager
 
 from django.conf import settings
 from django.utils import timezone
 from django.utils.timezone import now
+from django.utils.translation import gettext as _
 
 from celery import shared_task
 from llama_index.core.schema import (
@@ -33,6 +36,7 @@ from .loading_utils import (
     recreate_indexes,
 )
 from .models import JobStatus, Law, LawLoadingStatus
+
 
 logger = get_logger(__name__)
 
@@ -68,7 +72,169 @@ def cancellation_guard(task_id):
     yield
 
 
-@shared_task(bind=True, max_retries=10)
+@shared_task(bind=True)
+def process_file_celery(
+    self,
+    law_status_id,
+    file_path,
+    mock_embedding,
+    debug,
+    current_task_id,
+    rerouted=False,
+):
+    MAX_LIGHT_FILE_SIZE = 5 * 1024 * 1024
+
+    law_status = LawLoadingStatus.objects.get(id=law_status_id)
+    file_size = os.path.getsize(file_path)
+    queue = self.request.delivery_info.get("routing_key")
+
+    try:
+        if not rerouted:
+            if file_size < MAX_LIGHT_FILE_SIZE and queue != "light":
+                return process_file_celery.apply_async(
+                    args=[
+                        law_status_id,
+                        file_path,
+                        mock_embedding,
+                        debug,
+                        current_task_id,
+                    ],
+                    kwargs={"rerouted": True},
+                    queue="light",
+                ).get(timeout=900)
+            elif file_size >= MAX_LIGHT_FILE_SIZE and queue != "heavy":
+                return process_file_celery.apply_async(
+                    args=[
+                        law_status_id,
+                        file_path,
+                        mock_embedding,
+                        debug,
+                        current_task_id,
+                    ],
+                    kwargs={"rerouted": True},
+                    queue="heavy",
+                ).get(timeout=1800)
+
+        with cancellation_guard(current_task_id):
+            logger.info(f"Extracting nodes for file {file_path} in queue '{queue}'")
+            node_dict = law_xml_to_nodes(file_path)
+
+            if not node_dict["nodes"]:
+                law_status.status = "empty"
+                law_status.finished_at = now()
+                if law_status.law:
+                    law = law_status.law
+                    law_status.law = None
+                    law_status.status = "deleted"
+                    law_status.details = "Existing law deleted due to now being empty"
+                    law.delete()
+                law_status.save()
+                return
+
+            doc_metadata = {
+                "id": node_dict["id"],
+                "lang": node_dict["lang"],
+                "filename": node_dict["filename"],
+                "type": node_dict["type"],
+                "short_title": node_dict["short_title"],
+                "long_title": node_dict["long_title"],
+                "bill_number": node_dict["bill_number"],
+                "instrument_number": node_dict["instrument_number"],
+                "consolidated_number": node_dict["consolidated_number"],
+                "last_amended_date": node_dict["last_amended_date"],
+                "current_date": node_dict["current_date"],
+                "enabling_authority": node_dict["enabling_authority"],
+                "node_type": "document",
+            }
+
+            if file_path in CONSTITUTION_FILE_PATHS:
+                doc_metadata["consolidated_number"] = "Const"
+                doc_metadata["last_amended_date"] = "2011-12-16"
+                doc_metadata["current_date"] = "2024-05-23"
+                doc_metadata["type"] = "act"
+
+            exclude_keys = list(doc_metadata.keys())
+            doc_metadata["display_metadata"] = (
+                f'{doc_metadata["short_title"] or ""}'
+                f'{": " if doc_metadata["short_title"] and doc_metadata["long_title"] else ""}'
+                f'{doc_metadata["long_title"] or ""} '
+                f'({doc_metadata["consolidated_number"] or doc_metadata["instrument_number"] or doc_metadata["bill_number"]})'
+            )
+
+            doc_id = f'{node_dict["id"]}_{node_dict["lang"]}'
+            document = Document(
+                doc_id=doc_id,
+                text=doc_metadata["display_metadata"],
+                metadata=doc_metadata,
+                excluded_llm_metadata_keys=exclude_keys,
+                excluded_embed_metadata_keys=exclude_keys,
+                metadata_template="{value}",
+                text_template="{metadata_str}",
+            )
+
+            nodes = node_dict["nodes"]
+            for i, node in enumerate(nodes):
+                node.id_ = node.metadata["section_id"]
+                if node.metadata["parent_id"] is not None:
+                    node.relationships[NodeRelationship.PARENT] = RelatedNodeInfo(
+                        node_id=node.metadata["parent_id"]
+                    )
+                node.relationships[NodeRelationship.SOURCE] = RelatedNodeInfo(
+                    node_id=document.doc_id
+                )
+            for i in range(len(nodes) - 1):
+                nodes[i].relationships[NodeRelationship.NEXT] = RelatedNodeInfo(
+                    node_id=nodes[i + 1].node_id
+                )
+                nodes[i + 1].relationships[NodeRelationship.PREVIOUS] = RelatedNodeInfo(
+                    node_id=nodes[i].node_id
+                )
+
+            # Assign as needed: document_en, document_fr, nodes_en, nodes_fr, etc—if you need per-law aggregation,
+            # persist info to DB for later aggregation or finish here.
+
+            # Write text files of nodes (for debugging purposes)
+            if debug:
+                nodes_file_path = os.path.join(
+                    os.path.dirname(file_path),
+                    "nodes",
+                    f"{os.path.splitext(os.path.basename(file_path))[0]}.md",
+                )
+                if not os.path.exists(os.path.dirname(nodes_file_path)):
+                    os.makedirs(os.path.dirname(nodes_file_path))
+                with open(nodes_file_path, "w") as f:
+                    f.write(
+                        f"{document.get_content(metadata_mode=MetadataMode.LLM)}\n\n---\n\n"
+                    )
+                    for node in nodes:
+                        f.write(
+                            f"{node.get_content(metadata_mode=MetadataMode.LLM)}\n\n---\n\n"
+                        )
+    except CancelledError:
+        logger.info("Job was cancelled in process_file_celery.")
+        law_status.status = "cancelled"
+        law_status.finished_at = now()
+        law_status.error_message = "Job was cancelled by user."
+        law_status.save()
+    except Exception as e:
+        full_error = traceback.format_exc()
+        error_id = str(uuid.uuid4())[:7]
+        logger.error(
+            f"Error processing law XML: {file_path}",
+            law_status_id=law_status_id,
+            error_id=error_id,
+            error=full_error,
+        )
+        law_status.status = "error"
+        law_status.finished_at = now()
+        if settings.DEBUG:
+            law_status.error_message = full_error + f" ({_('Error ID')}: {error_id})"
+        else:
+            law_status.error_message = f"({_('Error ID')}: {error_id})"
+        law_status.save()
+
+
+@shared_task(bind=True, max_retries=10, queue="light")
 def update_laws(
     self,
     small=False,
@@ -363,114 +529,11 @@ def process_law_status(law_status, laws_root, mock_embedding, debug, current_tas
         nodes_fr = None
         # Create nodes for the English and French XML files
         for k, file_path in enumerate(file_paths):
-            with cancellation_guard(current_task_id):
-                logger.info(f"Processing file: {file_path}")
-                # Create nodes from XML
-                node_dict = law_xml_to_nodes(file_path)
-            with cancellation_guard(current_task_id):
-                if not node_dict["nodes"]:
-                    law_status.status = "empty"
-                    law_status.finished_at = now()
-                    if law_status.law:
-                        law = law_status.law
-                        law_status.law = None
-                        law_status.status = "deleted"
-                        law_status.details = (
-                            "Existing law deleted due to now being empty"
-                        )
-                        law.delete()
-                    law_status.save()
-                    return
-
-                doc_metadata = {
-                    "id": node_dict["id"],
-                    "lang": node_dict["lang"],
-                    "filename": node_dict["filename"],
-                    "type": node_dict["type"],
-                    "short_title": node_dict["short_title"],
-                    "long_title": node_dict["long_title"],
-                    "bill_number": node_dict["bill_number"],
-                    "instrument_number": node_dict["instrument_number"],
-                    "consolidated_number": node_dict["consolidated_number"],
-                    "last_amended_date": node_dict["last_amended_date"],
-                    "current_date": node_dict["current_date"],
-                    "enabling_authority": node_dict["enabling_authority"],
-                    "node_type": "document",
-                }
-
-                if file_path in CONSTITUTION_FILE_PATHS:
-                    # This is used as a reference in other Acts/Regulations
-                    doc_metadata["consolidated_number"] = "Const"
-                    # The date metadata in these files is missing
-                    # Last amendment reference I can find in the document
-                    doc_metadata["last_amended_date"] = "2011-12-16"
-                    # Date this script was written
-                    doc_metadata["current_date"] = "2024-05-23"
-                    doc_metadata["type"] = "act"
-
-                exclude_keys = list(doc_metadata.keys())
-                doc_metadata["display_metadata"] = (
-                    f'{doc_metadata["short_title"] or ""}'
-                    f'{": " if doc_metadata["short_title"] and doc_metadata["long_title"] else ""}'
-                    f'{doc_metadata["long_title"] or ""} '
-                    f'({doc_metadata["consolidated_number"] or doc_metadata["instrument_number"] or doc_metadata["bill_number"]})'
-                )
-
-                doc_id = f'{node_dict["id"]}_{node_dict["lang"]}'
-                document = Document(
-                    doc_id=doc_id,
-                    text=doc_metadata["display_metadata"],
-                    metadata=doc_metadata,
-                    excluded_llm_metadata_keys=exclude_keys,
-                    excluded_embed_metadata_keys=exclude_keys,
-                    metadata_template="{value}",
-                    text_template="{metadata_str}",
-                )
-
-                nodes = node_dict["nodes"]
-                for i, node in enumerate(nodes):
-                    node.id_ = node.metadata["section_id"]
-                    if node.metadata["parent_id"] is not None:
-                        node.relationships[NodeRelationship.PARENT] = RelatedNodeInfo(
-                            node_id=node.metadata["parent_id"]
-                        )
-                    node.relationships[NodeRelationship.SOURCE] = RelatedNodeInfo(
-                        node_id=document.doc_id
-                    )
-                # Set prev/next relationships
-                for i in range(len(nodes) - 1):
-                    nodes[i].relationships[NodeRelationship.NEXT] = RelatedNodeInfo(
-                        node_id=nodes[i + 1].node_id
-                    )
-                    nodes[i + 1].relationships[NodeRelationship.PREVIOUS] = (
-                        RelatedNodeInfo(node_id=nodes[i].node_id)
-                    )
-
-                if doc_metadata["lang"] == "eng":
-                    document_en = document
-                    nodes_en = nodes
-                elif doc_metadata["lang"] == "fra":
-                    document_fr = document
-                    nodes_fr = nodes
-
-                # Write text files of nodes (for debugging purposes)
-                if debug:
-                    nodes_file_path = os.path.join(
-                        os.path.dirname(file_path),
-                        "nodes",
-                        f"{os.path.splitext(os.path.basename(file_path))[0]}.md",
-                    )
-                    # Create the /nodes directory if it doesn't exist
-                    if not os.path.exists(os.path.dirname(nodes_file_path)):
-                        os.makedirs(os.path.dirname(nodes_file_path))
-                    with open(nodes_file_path, "w") as f:
-                        f.write(
-                            f"{document.get_content(metadata_mode=MetadataMode.LLM)}\n\n---\n\n"
-                        )
-                        for node in nodes:
-                            f.write(
-                                f"{node.get_content(metadata_mode=MetadataMode.LLM)}\n\n---\n\n"
-                            )
+            # Instead of processing files inline, always submit to the Celery file task
+            process_file_celery.apply_async(
+                args=[law_status.id, file_path, mock_embedding, debug, current_task_id],
+                queue="light",
+            )
 
         with cancellation_guard(current_task_id):
             # Nodes and document should be ready now! Let's add to our Django model
@@ -560,7 +623,7 @@ def finalize_law_loading_task(downloaded=False):
         raise exc
 
 
-@shared_task
+@shared_task(queue="light")
 def delete_old_law_searches():
     """Delete LawSearch objects older than 30 days."""
     from datetime import timedelta

@@ -22,15 +22,53 @@ from .utils import (
 )
 
 logger = logging.getLogger(__name__)
+ten_minutes = 600
 
 
 # New task for merging files before OCR
-@shared_task
-def process_document_merge(
-    files_data,
-    output_file_id,
-    user_id,
-):
+@shared_task(bind=True)
+def process_document_merge(self, files_data, output_file_id, user_id, rerouted=False):
+    """
+    Celery task to merge document files.
+    Dynamically routes to heavy or light queue by total input file size.
+    Returns the output file ID or raises on error.
+    """
+    MAX_LIGHT_FILE_SIZE = 5 * 1024 * 1024  # 5MB
+
+    # Compute total input file size (assumes files_data is a list of file bytes or dicts)
+    total_file_size = 0
+    if isinstance(files_data, list):
+        for file in files_data:
+            if hasattr(file, "__len__"):
+                total_file_size += len(file)
+            elif isinstance(file, dict) and "content" in file:
+                total_file_size += len(file["content"])
+
+    queue = self.request.delivery_info.get("routing_key")
+
+    # Reroute if necessary
+    if not rerouted:
+        if total_file_size < MAX_LIGHT_FILE_SIZE and queue != "light":
+            logger.info(
+                f"process_document_merge: rerouting small merge job ({total_file_size} bytes) to lightworker."
+            )
+            result = process_document_merge.apply_async(
+                args=[files_data, output_file_id, user_id],
+                kwargs={"rerouted": True},
+                queue="light",
+            )
+            return result.get(timeout=ten_minutes)
+        elif total_file_size >= MAX_LIGHT_FILE_SIZE and queue != "heavy":
+            logger.info(
+                f"process_document_merge: rerouting large merge job ({total_file_size} bytes) to heavyworker."
+            )
+            result = process_document_merge.apply_async(
+                args=[files_data, output_file_id, user_id],
+                kwargs={"rerouted": True},
+                queue="heavy",
+            )
+            return result.get(timeout=ten_minutes)
+
     if current_task:
         current_task.update_state(state="PROCESSING")
 
@@ -137,8 +175,44 @@ def process_document_merge(
 
 
 # passing the OCR method to celery
-@shared_task
-def process_ocr_document(file_content, file_name, output_file_id, user_id):
+@shared_task(bind=True)
+def process_ocr_document(
+    self, file_content, file_name, output_file_id, user_id, rerouted=False
+):
+    """
+    Celery task to perform OCR on a document (bytestream or file).
+    Dynamically routes to the heavy or light queue by file size.
+    """
+
+    MAX_LIGHT_FILE_SIZE = 5 * 1024 * 1024  # 5MB
+
+    # Compute file size
+    file_size = len(file_content) if hasattr(file_content, "__len__") else 0
+    queue = self.request.delivery_info.get("routing_key")
+
+    # Reroute to appropriate queue if necessary
+    if not rerouted:
+        if file_size < MAX_LIGHT_FILE_SIZE and queue != "light":
+            logger.info(
+                f"process_ocr_document: rerouting small file ({file_size} bytes) to lightworker."
+            )
+            result = process_ocr_document.apply_async(
+                args=[file_content, file_name, output_file_id, user_id],
+                kwargs={"rerouted": True},
+                queue="light",
+            )
+            return result.get(timeout=ten_minutes)
+        elif file_size >= MAX_LIGHT_FILE_SIZE and queue != "heavy":
+            logger.info(
+                f"process_ocr_document: rerouting large file ({file_size} bytes) to heavyworker."
+            )
+            result = process_ocr_document.apply_async(
+                args=[file_content, file_name, output_file_id, user_id],
+                kwargs={"rerouted": True},
+                queue="heavy",
+            )
+            return result.get(timeout=ten_minutes)
+
     if current_task:
         current_task.update_state(state="PROCESSING")
 
