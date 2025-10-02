@@ -353,7 +353,10 @@ def process_law_status(law_status, laws_root, mock_embedding, debug, current_tas
         # Update law status to "processing"
         law_status.save()
 
-        llm = OttoLLM(mock_embedding=mock_embedding)
+        llm = OttoLLM(
+            mock_embedding=mock_embedding,
+            embedding_deployment="text-embedding-3-large-documents",
+        )
         document_en = None
         document_fr = None
         nodes_en = None

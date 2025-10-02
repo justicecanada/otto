@@ -50,7 +50,10 @@ def process_document(
     document.celery_task_id = current_task.request.id
     document.save()
 
-    llm = OttoLLM(mock_embedding=mock_embedding)
+    llm = OttoLLM(
+        mock_embedding=mock_embedding,
+        embedding_deployment="text-embedding-3-large-documents",
+    )
     try:
         with translation.override(language):
             process_document_helper(document, llm, pdf_method)
