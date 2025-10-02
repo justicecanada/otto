@@ -22,6 +22,7 @@ from structlog.contextvars import bind_contextvars
 from chat.llm import OttoLLM
 from otto.models import Cost, OttoStatus
 from otto.utils.common import display_cad_cost
+from otto.utils.decorators import reroute_task
 
 from .loading_utils import (
     CONSTITUTION_FILE_PATHS,
@@ -371,8 +372,24 @@ def update_laws(
             pass
         raise
 
-
+def process_law_status_queue(law_status_id, laws_root, *args, **kwargs):
+    try:
+        law_status = LawLoadingStatus.objects.get(id=law_status_id)
+        file_paths = _get_en_fr_law_file_paths(laws_root, law_status.eng_law_id)
+        if not file_paths or len(file_paths) != 2:
+            return settings.CELERY_TASK_LIGHT_QUEUE
+        en_path, fr_path = file_paths
+        largest_size = max(os.path.getsize(en_path), os.path.getsize(fr_path))
+        max_size = 5 * 1024 * 1024  # 5MB
+        if largest_size >= max_size:
+            return settings.CELERY_TASK_HEAVY_QUEUE
+        return settings.CELERY_TASK_LIGHT_QUEUE
+    except Exception:
+        return settings.CELERY_TASK_LIGHT_QUEUE
+    
+    
 @shared_task(bind=True)
+@reroute_task(process_law_status_queue)
 def process_law_status(
     self,
     law_status_id,
@@ -380,10 +397,8 @@ def process_law_status(
     mock_embedding,
     debug,
     current_task_id,
-    rerouted=False,
 ):
-
-    MAX_LIGHT_FILE_SIZE = 5 * 1024 * 1024
+    
     law_status = LawLoadingStatus.objects.get(id=law_status_id)
     eng_law_id = law_status.eng_law_id
     file_paths = _get_en_fr_law_file_paths(laws_root, eng_law_id)
@@ -397,25 +412,6 @@ def process_law_status(
         return
 
     en_path, fr_path = file_paths
-    largest_size = max(os.path.getsize(en_path), os.path.getsize(fr_path))
-    current_queue = self.request.delivery_info.get("routing_key", None)
-
-    # If not rerouted, reroute to the correct queue
-    if not rerouted:
-        if largest_size < MAX_LIGHT_FILE_SIZE and current_queue != "light":
-            # Re-dispatch to the light queue
-            return process_law_status.apply_async(
-                args=[law_status_id, laws_root, mock_embedding, debug, current_task_id],
-                kwargs={"rerouted": True},
-                queue="light",
-            ).get(timeout=ten_minutes)
-        elif largest_size >= MAX_LIGHT_FILE_SIZE and current_queue != "heavy":
-            # Re-dispatch to the heavy queue
-            return process_law_status.apply_async(
-                args=[law_status_id, laws_root, mock_embedding, debug, current_task_id],
-                kwargs={"rerouted": True},
-                queue="heavy",
-            ).get(timeout=ten_minutes)
 
     try:
         law_status.started_at = now()

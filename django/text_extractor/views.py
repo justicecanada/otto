@@ -126,6 +126,7 @@ def submit_document(request):
                 str(merged_output_file.id),
                 str(request.user.id),
             )
+
             # Store the task ID
             merged_output_file.celery_task_ids = [result.id]
             merged_output_file.save(access_key=access_key)
@@ -203,6 +204,7 @@ def poll_tasks(request, user_request_id):
                     str(output_file.id),
                     str(request.user.id),
                 )
+
                 # Store the task ID
                 output_file.celery_task_ids = [result.id]
                 output_file.status = "PROCESSING"

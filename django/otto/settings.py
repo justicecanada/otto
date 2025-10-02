@@ -447,6 +447,9 @@ CELERY_ACCEPT_CONTENT = ["application/json"]
 CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
 CELERY_TIMEZONE = "UTC"
+CELERY_TASK_LIGHT_QUEUE = "light"
+CELERY_TASK_HEAVY_QUEUE = "heavy"
+CELERY_TASK_DEFAULT_QUEUE = CELERY_TASK_LIGHT_QUEUE
 
 CACHES = {
     "default": {
@@ -487,10 +490,12 @@ LOGGING = {
         "console": {
             "class": "logging.StreamHandler",
             "formatter": "console",
+            "filters": ["raise_endpoint_level"],
         },
         "json": {
             "class": "logging.StreamHandler",
             "formatter": "json_formatter",
+            "filters": ["raise_endpoint_level"],
         },
         "null": {
             "class": "logging.NullHandler",
@@ -500,6 +505,11 @@ LOGGING = {
         "handlers": ["json"],
         "level": LOG_LEVEL,
         "stream": sys.stdout,
+    },
+    "filters": {
+        "raise_endpoint_level": {
+            "()": "otto.utils.logging.RaiseLevelForEndpointsFilter",
+        },
     },
 }
 

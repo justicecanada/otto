@@ -25,6 +25,7 @@ from librarian.utils.process_engine import (
     guess_content_type,
 )
 from otto.models import User
+from otto.utils.decorators import reroute_task
 
 logger = get_logger(__name__)
 
@@ -122,7 +123,30 @@ def process_document(
         document.save()
 
 
+def process_document_helper_queue(
+    document_id,
+    content,
+    content_type,
+    base_url,
+    language,
+    pdf_method,
+    mock_embedding,
+    *args,
+    **kwargs,
+):
+    # Defensive - if content is None or not bytes, always use light
+    try:
+        content_size = len(content) if hasattr(content, "__len__") else 0
+    except Exception:
+        content_size = 0
+    max_size = 5 * 1024 * 1024  # 5MB
+    if content_size >= max_size:
+        return settings.CELERY_TASK_HEAVY_QUEUE
+    return settings.CELERY_TASK_LIGHT_QUEUE
+
+
 @shared_task(bind=True, soft_time_limit=ten_minutes)
+@reroute_task(process_document_helper_queue)
 def process_document_helper(
     self,
     document_id,
@@ -132,59 +156,12 @@ def process_document_helper(
     language,
     pdf_method,
     mock_embedding,
-    rerouted=False,
 ):
     """
     Helper Celery task that performs processing after content (file or URL) is available.
     Dynamically routes to heavy or light depending on content size.
     """
 
-    MAX_LIGHT_FILE_SIZE = 5 * 1024 * 1024  # 5MB
-
-    queue = self.request.delivery_info.get("routing_key")
-    content_size = len(content) if hasattr(content, "__len__") else 0
-
-    if not rerouted:
-        if content_size < MAX_LIGHT_FILE_SIZE and queue != "light":
-            logger.info(
-                f"process_document_helper: rerouting small content ({content_size} bytes) to lightworker."
-            )
-            result = process_document_helper.apply_async(
-                args=[
-                    document_id,
-                    content,
-                    content_type,
-                    base_url,
-                    language,
-                    pdf_method,
-                    mock_embedding,
-                ],
-                kwargs={"rerouted": True},
-                queue="light",
-            )
-            return result.get(timeout=ten_minutes)
-        elif content_size >= MAX_LIGHT_FILE_SIZE and queue != "heavy":
-            logger.info(
-                f"process_document_helper: rerouting large content ({content_size} bytes) to heavyworker."
-            )
-            result = process_document_helper.apply_async(
-                args=[
-                    document_id,
-                    content,
-                    content_type,
-                    base_url,
-                    language,
-                    pdf_method,
-                    mock_embedding,
-                ],
-                kwargs={"rerouted": True},
-                queue="heavy",
-            )
-            return result.get(timeout=ten_minutes)
-
-    logger.info(
-        f"process_document_helper: processing document {document_id} in queue {self.request.delivery_info.get('routing_key')}."
-    )
     try:
         document = Document.objects.get(id=document_id)
         llm = OttoLLM(

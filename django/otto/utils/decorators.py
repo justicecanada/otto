@@ -144,3 +144,27 @@ def budget_required(func):
         return func(request, *args, **kwargs)
 
     return wrapper
+
+
+def reroute_task(predicate, timeout=600):
+    """
+    Decorator for rerouting Celery tasks to specific queues based on a predicate.
+    - predicate: function (*args, **kwargs) -> queue name (e.g., 'light', 'heavy')
+    """
+
+    def decorator(task_func):
+        @wraps(task_func)
+        def wrapper(self, *args, **kwargs):
+            rerouted = kwargs.pop("__rerouted", False)
+            queue = self.request.delivery_info.get("routing_key")
+            target_queue = predicate(*args, **kwargs)
+
+            if not rerouted and target_queue and queue != target_queue:
+                return self.apply_async(
+                    args=args, kwargs={**kwargs, "__rerouted": True}, queue=target_queue
+                ).get(timeout=timeout)
+            return task_func(self, *args, **kwargs)
+
+        return wrapper
+
+    return decorator
