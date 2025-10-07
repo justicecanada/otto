@@ -2,6 +2,7 @@ import asyncio
 import uuid
 
 from django.conf import settings
+from django.db import IntegrityError
 
 from attr import dataclass
 from azure.identity import ClientSecretCredential
@@ -117,17 +118,20 @@ def sync_users_with_entra():
 
 def update_or_create_users(users):
     for user in users:
-        User.objects.update_or_create(
-            upn=user.upn,
-            defaults={
-                "oid": user.id,
-                "upn": user.upn,
-                "email": user.email,
-                "last_name": user.last_name,
-                "first_name": user.first_name,
-                "is_active": True,
-            },
-        )
+        try:
+            User.objects.update_or_create(
+                upn=user.upn,
+                defaults={
+                    "oid": user.id,
+                    "upn": user.upn,
+                    "email": user.email,
+                    "last_name": user.last_name,
+                    "first_name": user.first_name,
+                    "is_active": True,
+                },
+            )
+        except IntegrityError:
+            logger.exception(f"Error updating or creating user {user.upn}")
 
 
 # AC-2(3): Inactive Accounts
