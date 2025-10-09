@@ -2,6 +2,7 @@ from typing import Any, Mapping, MutableMapping
 
 from django.dispatch import receiver
 
+import logging
 import structlog
 from django_structlog.signals import bind_extra_request_metadata
 from structlog.processors import CallsiteParameter
@@ -24,9 +25,15 @@ def merge_pathname_lineno_function_to_location(
     return event_dict
 
 
-def filter_logs(logger, name, event_dict):
-    request_val = event_dict.get("request", "")
-    keywords = ("healthz", "user_cost", "notifications")
-    if isinstance(request_val, str) and any(kw in request_val for kw in keywords):
-        return structlog.DropEvent
-    return event_dict
+class RaiseLevelForEndpointsFilter(logging.Filter):
+    IMPORTANT_PATHS = ["/user_cost/", "/notifications/", "/healthz"]
+
+    def filter(self, record):
+        msg = getattr(record, "getMessage", lambda: record.msg)()
+        # Only allow info-level logs for endpoints NOT in important paths
+        # For these paths, pass only WARNING or ERROR and above
+        for path in self.IMPORTANT_PATHS:
+            if path in msg:
+                # Only pass if level is WARNING or higher
+                return record.levelno >= logging.WARNING
+        return True
