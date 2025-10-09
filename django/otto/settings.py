@@ -525,6 +525,7 @@ structlog.configure(
             ]
         ),
         logging_utils.merge_pathname_lineno_function_to_location,
+        logging_utils.filter_logs,
         structlog.processors.StackInfoRenderer(),
         structlog.processors.format_exc_info,
         structlog.processors.UnicodeDecoder(),

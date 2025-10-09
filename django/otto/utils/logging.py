@@ -22,3 +22,11 @@ def merge_pathname_lineno_function_to_location(
     func_name = event_dict.pop(CallsiteParameter.FUNC_NAME.value, None)
     event_dict["location"] = f"{pathname}:{lineno}({func_name})"
     return event_dict
+
+
+def filter_logs(logger, name, event_dict):
+    request_val = event_dict.get("request", "")
+    keywords = ("healthz", "user_cost", "notifications")
+    if isinstance(request_val, str) and any(kw in request_val for kw in keywords):
+        return structlog.DropEvent
+    return event_dict
