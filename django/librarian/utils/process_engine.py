@@ -290,52 +290,71 @@ def extract_markdown(
     try:
         enable_markdown = True
         if process_engine == "IMAGE":
+            logger.info("Resizing image for Azure OCR")
             content = resize_to_azure_requirements(content)
             enable_markdown = False
+            logger.info("PDF to text via Azure Read API")
             md = pdf_to_text_azure_read(content)
         elif process_engine == "PDF":
             if pdf_method == "default":
                 enable_markdown = False
+                logger.info("PDF to text via PyMuPDF")
                 md = pdf_to_text_pymupdf(content)
                 if is_mostly_empty(md):
                     pdf_method = "azure_read"
             if pdf_method == "layout":
+                logger.info("PDF to markdown via pymupdf4llm")
                 md = pdf_to_markdown_pymupdf4llm(content)
                 if is_mostly_empty(md):
                     pdf_method = "azure_read"
             if pdf_method == "azure_read":
                 enable_markdown = False
+                logger.info("PDF to text via Azure Read API")
                 md = pdf_to_text_azure_read(content)
             if pdf_method == "azure_layout":
+                logger.info(
+                    "PDF to markdown via HTML conversion with Azure Document Intelligence"
+                )
                 md = pdf_to_markdown_via_html_azure_layout(content)
         elif process_engine == "WORD":
+            logger.info("Extracting docx to markdown")
             md = docx_to_markdown(content)
         elif process_engine == "POWERPOINT":
+            logger.info("Extracting pptx to markdown")
             md = pptx_to_markdown(content)
         elif process_engine == "HTML":
+            logger.info("Extracting HTML to markdown")
             md = html_to_markdown(decode_content(content), base_url, selector)
         elif process_engine == "MARKDOWN":
+            logger.info("Decoding markdown content")
             md = decode_content(content)
         elif process_engine == "OUTLOOK_MSG":
             enable_markdown = False
+            logger.info("Extracting Outlook .msg to markdown")
             md = extract_msg(content, root_document_id)
         elif process_engine == "ZIP":
             enable_markdown = False
+            logger.info("Processing zip file")
             md = process_zip_file(content, root_document_id)
         elif process_engine == "EML":
             enable_markdown = False
+            logger.info("Extracting EML to markdown")
             md = extract_eml(content, root_document_id)
         elif process_engine == "CSV":
+            logger.info("Extracting CSV to markdown")
             md = csv_to_markdown(content)
         elif process_engine == "EXCEL":
+            logger.info("Extracting Excel to markdown")
             md = excel_to_markdown(content)
         else:
             enable_markdown = False
             try:
+                logger.info("Decoding text content")
                 md = decode_content(content)
             except Exception as e:
                 raise e
 
+        logger.info("Cleaning markdown")
         md = remove_nul_characters(md)
 
         # Strip leading/trailing whitespace; replace all >2 line breaks with 2 line breaks
@@ -344,11 +363,15 @@ def extract_markdown(
         # Divide the markdown into chunks
         if chunk_size:
             try:
+                logger.info(
+                    "Splitting markdown using MarkdownSplitter", chunk_size=chunk_size
+                )
                 md_splitter = MarkdownSplitter(
                     chunk_size=chunk_size,
                     chunk_overlap=100,
                     enable_markdown=enable_markdown,
                 )
+                logger.info("MarkdownSplitter initialized")
                 md_chunks = md_splitter.split_markdown(md)
             except Exception as e:
                 logger.debug("Error splitting markdown using MarkdownSplitter:")
