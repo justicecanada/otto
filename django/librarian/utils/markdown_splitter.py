@@ -20,7 +20,6 @@ class MarkdownSplitter:
         self.current_headings = {i: None for i in range(1, 7)}
         self.last_table_header = None
         self.enable_markdown = enable_markdown
-        self.sentence_splitter = WTPSplit()
 
     def split_markdown(self, markdown_text: str) -> List[str]:
         """
@@ -47,7 +46,6 @@ class MarkdownSplitter:
         # 2. Chunk ends with a table header (with or without underline row)
         # Although this content would be repeated in the next chunk,
         # it would improve retrieval to simply split right before these elements.
-        logger.info("Splitting into lines")
         for line in markdown_text.split("\n"):
             line_tokens = self._token_count(line)
             if current_tokens + line_tokens > self.chunk_size:
@@ -61,15 +59,15 @@ class MarkdownSplitter:
 
         # Ensure each chunk is within token limits. Lines > chunk_size will get split.
         sentence_split_texts = []
-        logger.info("Splitting into sentences", chunks=len(line_split_texts))
         sentence_splitter = SentenceSplitter(
             chunk_overlap=self.chunk_overlap, chunk_size=self.chunk_size
         )
+        for text in line_split_texts:
+            sentence_split_texts.extend(sentence_splitter.split_text(text))
 
         # Fix page tags.
         last_page_number = None
         split_texts = []
-        logger.info("Fixing page tags", chunks=len(sentence_split_texts))
         for t in sentence_split_texts:
             if self.debug:
                 logger.debug(f"\nClosing tags for chunk:\n---\n{t}\n---\n")
@@ -93,7 +91,6 @@ class MarkdownSplitter:
                     )
                 split_texts.append(closed_text)
 
-        logger.info("Page tags fixed", chunks=len(split_texts))
         return split_texts
 
     def _close_page_tags(self, html_string: str) -> str:
