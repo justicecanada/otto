@@ -75,7 +75,8 @@ RUN mkdir -p /root/.cache/llama_index/_static/nltk_cache && \
 
 # Preload WTPSplit model data
 ENV WTPSPLIT_CACHE_DIR=/opt/wtpsplit_cache
-RUN python3 -c "from wtpsplit import WTPSplit; WTPSplit()"
+RUN python3 -c "from wtpsplit.wtpsplit import WTPSplit; WTPSplit()"
+
 
 # Ensure Python uses the system CA bundle instead of certifi’s
 RUN rm -f /usr/local/lib/python3.11/site-packages/certifi/cacert.pem && \
