@@ -95,9 +95,6 @@ class OttoLLM:
     "model" must match the name of the LLM deployment in Azure.
     """
 
-    # Since the questions deployment has less quota, use it by default for embeddings
-    # Document processing must be explicitly configured, which is appropriate since it's a specialized use case
-
     def __init__(
         self,
         deployment: str = settings.DEFAULT_CHAT_MODEL,
