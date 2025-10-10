@@ -3,7 +3,10 @@ from typing import List, Tuple
 
 import tiktoken
 from bs4 import BeautifulSoup
-from llama_index.core.node_parser import SentenceSplitter
+
+# from llama_index.core.node_parser import SentenceSplitter
+from wtpsplit import WTPSplit
+
 from structlog import get_logger
 
 logger = get_logger(__name__)
@@ -19,6 +22,7 @@ class MarkdownSplitter:
         self.current_headings = {i: None for i in range(1, 7)}
         self.last_table_header = None
         self.enable_markdown = enable_markdown
+        self.sentence_splitter = WTPSplit()
 
     def split_markdown(self, markdown_text: str) -> List[str]:
         """
@@ -60,12 +64,13 @@ class MarkdownSplitter:
         # Ensure each chunk is within token limits. Lines > chunk_size will get split.
         sentence_split_texts = []
         logger.info("Splitting into sentences", chunks=len(line_split_texts))
-        sentence_splitter = SentenceSplitter(
-            chunk_overlap=self.chunk_overlap, chunk_size=self.chunk_size
-        )
-        logger.info("Sentence splitter created")
+        # sentence_splitter = SentenceSplitter(
+        #     chunk_overlap=self.chunk_overlap, chunk_size=self.chunk_size
+        # )
         for text in line_split_texts:
-            sentence_split_texts.extend(sentence_splitter.split_text(text))
+            # sentence_split_texts.extend(sentence_splitter.split_text(text))
+            sentences = self.sentence_splitter.split(text)
+            sentence_split_texts.extend(sentences)
 
         # Fix page tags.
         last_page_number = None

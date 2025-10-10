@@ -61,6 +61,10 @@ RUN mkdir -p /root/.cache/llama_index/_static/nltk_cache && \
     nltk.download('maxent_ne_chunker', download_dir='/root/.cache/llama_index/_static/nltk_cache'); \
     nltk.download('words', download_dir='/root/.cache/llama_index/_static/nltk_cache')"
 
+# Preload WTPSplit model data
+ENV WTPSPLIT_CACHE_DIR=/opt/wtpsplit_cache
+RUN python3 -c "from wtpsplit import WTPSplit; WTPSplit()"
+
 # Install Python dependencies
 # Vulnerability CVE-2024-6345 is fixed in setuptools 70.0.0
 # and later. The vulnerability is present in all versions of
