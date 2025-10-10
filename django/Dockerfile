@@ -62,6 +62,7 @@ RUN pip3 --disable-pip-version-check install --upgrade pip "setuptools>=70.0" wh
     rm -rf /tmp/pip-tmp
 
 # Preload essential NLTK corpora for llama_index and common NLP operations
+ENV NLTK_DATA=/root/.cache/llama_index/_static/nltk_cache
 RUN mkdir -p /root/.cache/llama_index/_static/nltk_cache && \
     python3 -m pip install nltk && \
     python3 -c "import nltk; \
@@ -72,11 +73,6 @@ RUN mkdir -p /root/.cache/llama_index/_static/nltk_cache && \
     nltk.download('omw-1.4', download_dir='/root/.cache/llama_index/_static/nltk_cache'); \
     nltk.download('maxent_ne_chunker', download_dir='/root/.cache/llama_index/_static/nltk_cache'); \
     nltk.download('words', download_dir='/root/.cache/llama_index/_static/nltk_cache')"
-
-# Preload WTPSplit model data
-ENV WTPSPLIT_CACHE_DIR=/opt/wtpsplit_cache
-RUN python3 -c "from wtpsplit.wtpsplit import WTPSplit; WTPSplit()"
-
 
 # Ensure Python uses the system CA bundle instead of certifi’s
 RUN rm -f /usr/local/lib/python3.11/site-packages/certifi/cacert.pem && \
