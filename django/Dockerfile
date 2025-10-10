@@ -49,6 +49,18 @@ RUN wget -q --header="Host: pki-icp.canada.ca" \
     chmod 644 /usr/local/share/ca-certificates/GoC-GdC-Root-A.crt && \
     update-ca-certificates --fresh
 
+# Install Python dependencies
+# Vulnerability CVE-2024-6345 is fixed in setuptools 70.0.0
+# and later. The vulnerability is present in all versions of
+# setuptools prior to 70.0.0; however, the fix is not included in
+# the Python 3.11-slim-bookworm image. This is a workaround to
+# ensure that the latest version of setuptools is installed.
+COPY requirements*.txt /tmp/pip-tmp/
+RUN pip3 --disable-pip-version-check install --upgrade pip "setuptools>=70.0" wheel && \
+    pip3 --disable-pip-version-check --no-cache-dir install \
+    -r /tmp/pip-tmp/requirements.txt && \
+    rm -rf /tmp/pip-tmp
+
 # Preload essential NLTK corpora for llama_index and common NLP operations
 RUN mkdir -p /root/.cache/llama_index/_static/nltk_cache && \
     python3 -m pip install nltk && \
@@ -64,18 +76,6 @@ RUN mkdir -p /root/.cache/llama_index/_static/nltk_cache && \
 # Preload WTPSplit model data
 ENV WTPSPLIT_CACHE_DIR=/opt/wtpsplit_cache
 RUN python3 -c "from wtpsplit import WTPSplit; WTPSplit()"
-
-# Install Python dependencies
-# Vulnerability CVE-2024-6345 is fixed in setuptools 70.0.0
-# and later. The vulnerability is present in all versions of
-# setuptools prior to 70.0.0; however, the fix is not included in
-# the Python 3.11-slim-bookworm image. This is a workaround to
-# ensure that the latest version of setuptools is installed.
-COPY requirements*.txt /tmp/pip-tmp/
-RUN pip3 --disable-pip-version-check install --upgrade pip "setuptools>=70.0" wheel && \
-    pip3 --disable-pip-version-check --no-cache-dir install \
-    -r /tmp/pip-tmp/requirements.txt && \
-    rm -rf /tmp/pip-tmp
 
 # Ensure Python uses the system CA bundle instead of certifi’s
 RUN rm -f /usr/local/lib/python3.11/site-packages/certifi/cacert.pem && \
