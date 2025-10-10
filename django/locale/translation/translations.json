@@ -5166,5 +5166,9 @@
     "and report issues or suggest improvements by": {
         "fr": "et signaler tous problèmes ou suggérer des améliorations à apporter à l'application en",
         "fr_auto": "et signalent les problèmes ou suggèrent des améliorations en"
+    },
+    "Sorry, I couldn't find any information about that. Try using different keywords in your query.": {
+        "fr": "",
+        "fr_auto": "Désolé, je n’ai trouvé aucune information à ce sujet. Essayez d’utiliser différents mots-clés dans votre requête."
     }
 }

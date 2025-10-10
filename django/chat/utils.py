@@ -1006,7 +1006,9 @@ def translate_text_with_azure(text, target_language, custom_translator_id=None):
         # Create translation client
         credential = AzureKeyCredential(settings.AZURE_COGNITIVE_SERVICE_KEY)
         text_translator = TextTranslationClient(
-            credential=credential, region=settings.AZURE_COGNITIVE_SERVICE_REGION
+            credential=credential,
+            region=settings.AZURE_COGNITIVE_SERVICE_REGION,
+            endpoint=settings.AZURE_COGNITIVE_SERVICE_ENDPOINT,
         )
 
         # Translate the text

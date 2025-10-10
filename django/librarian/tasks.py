@@ -50,7 +50,10 @@ def process_document(
     document.celery_task_id = current_task.request.id
     document.save()
 
-    llm = OttoLLM(mock_embedding=mock_embedding)
+    llm = OttoLLM(
+        mock_embedding=mock_embedding,
+        embedding_deployment="text-embedding-3-large-documents",
+    )
     try:
         with translation.override(language):
             process_document_helper(document, llm, pdf_method)
@@ -132,7 +135,6 @@ def process_document_helper(document, llm, pdf_method="default"):
         selector=document.selector,
         root_document_id=document.id,
     )
-
     document.extracted_text = extraction_result.markdown
     if document.content_type == "application/pdf":
         # The PDF method may have been changed during extraction, due to OCR fallback
@@ -150,6 +152,7 @@ def process_document_helper(document, llm, pdf_method="default"):
                 "status_text": _("Adding to library..."),
             },
         )
+
     nodes = create_nodes(extraction_result.chunks, document)
 
     document.num_chunks = len(nodes)
@@ -158,6 +161,7 @@ def process_document_helper(document, llm, pdf_method="default"):
     library_uuid = document.data_source.library.uuid_hex
     vector_store_index = llm.get_index(library_uuid)
     # Delete existing nodes
+
     document_uuid = document.uuid_hex
     vector_store_index.delete_ref_doc(document_uuid, delete_from_docstore=True)
     # Insert new nodes in batches

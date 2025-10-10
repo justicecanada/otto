@@ -3,6 +3,7 @@ from typing import List, Tuple
 
 import tiktoken
 from bs4 import BeautifulSoup
+
 from llama_index.core.node_parser import SentenceSplitter
 from structlog import get_logger
 
@@ -89,6 +90,7 @@ class MarkdownSplitter:
                         f"\nAfter all split_with_page_numbers logic:\n---\n{closed_text}\n---\n"
                     )
                 split_texts.append(closed_text)
+
         return split_texts
 
     def _close_page_tags(self, html_string: str) -> str:
