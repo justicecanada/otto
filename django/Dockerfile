@@ -49,6 +49,12 @@ RUN wget -q --header="Host: pki-icp.canada.ca" \
     chmod 644 /usr/local/share/ca-certificates/GoC-GdC-Root-A.crt && \
     update-ca-certificates --fresh
 
+# Preload NLTK stopwords—required for llama_index SentenceSplitter,
+# avoiding runtime errors when NLTK data isn't present.
+RUN mkdir -p /root/.cache/llama_index/_static/nltk_cache && \
+    python3 -m pip install nltk && \
+    python3 -c "import nltk; nltk.download('stopwords', download_dir='/root/.cache/llama_index/_static/nltk_cache')"
+
 # Install Python dependencies
 # Vulnerability CVE-2024-6345 is fixed in setuptools 70.0.0
 # and later. The vulnerability is present in all versions of
