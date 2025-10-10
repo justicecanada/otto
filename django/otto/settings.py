@@ -487,10 +487,12 @@ LOGGING = {
         "console": {
             "class": "logging.StreamHandler",
             "formatter": "console",
+            "filters": ["raise_endpoint_level"],
         },
         "json": {
             "class": "logging.StreamHandler",
             "formatter": "json_formatter",
+            "filters": ["raise_endpoint_level"],
         },
         "null": {
             "class": "logging.NullHandler",
@@ -500,6 +502,11 @@ LOGGING = {
         "handlers": ["json"],
         "level": LOG_LEVEL,
         "stream": sys.stdout,
+    },
+    "filters": {
+        "raise_endpoint_level": {
+            "()": "otto.utils.logging.RaiseLevelForEndpointsFilter",
+        },
     },
 }
 

@@ -118,6 +118,9 @@ def sync_users_with_entra():
 
 def update_or_create_users(users):
     for user in users:
+        if not user.email:
+            logger.exception(f"Skipping user {user.upn} due to missing email")
+            continue
         try:
             User.objects.update_or_create(
                 upn=user.upn,

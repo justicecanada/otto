@@ -61,6 +61,20 @@ RUN pip3 --disable-pip-version-check install --upgrade pip "setuptools>=70.0" wh
     -r /tmp/pip-tmp/requirements.txt && \
     rm -rf /tmp/pip-tmp
 
+# Preload essential NLTK corpora for llama_index and common NLP operations
+ENV NLTK_DATA=/root/.cache/llama_index/_static/nltk_cache
+RUN mkdir -p /root/.cache/llama_index/_static/nltk_cache && \
+    python3 -m pip install nltk && \
+    python3 -c "import nltk; \
+    nltk.download('punkt', download_dir='/root/.cache/llama_index/_static/nltk_cache'); \
+    nltk.download('punkt_tab', download_dir='/root/.cache/llama_index/_static/nltk_cache'); \
+    nltk.download('stopwords', download_dir='/root/.cache/llama_index/_static/nltk_cache'); \
+    nltk.download('wordnet', download_dir='/root/.cache/llama_index/_static/nltk_cache'); \
+    nltk.download('averaged_perceptron_tagger', download_dir='/root/.cache/llama_index/_static/nltk_cache'); \
+    nltk.download('omw-1.4', download_dir='/root/.cache/llama_index/_static/nltk_cache'); \
+    nltk.download('maxent_ne_chunker', download_dir='/root/.cache/llama_index/_static/nltk_cache'); \
+    nltk.download('words', download_dir='/root/.cache/llama_index/_static/nltk_cache')"
+
 # Ensure Python uses the system CA bundle instead of certifi’s
 RUN rm -f /usr/local/lib/python3.11/site-packages/certifi/cacert.pem && \
     ln -s /etc/ssl/certs/ca-certificates.crt /usr/local/lib/python3.11/site-packages/certifi/cacert.pem && \
