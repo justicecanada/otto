@@ -332,7 +332,6 @@ def extract_markdown(
         else:
             enable_markdown = False
             try:
-                logger.info("Decoding text content")
                 md = decode_content(content)
             except Exception as e:
                 raise e

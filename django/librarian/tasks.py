@@ -127,7 +127,6 @@ def process_document_helper(document, llm, pdf_method="default"):
         for key, value in extracted_metadata.items():
             setattr(document, key, value)
 
-    logger.info("Extracting markdown", process_engine=process_engine)
     extraction_result = extract_markdown(
         content,
         process_engine,
@@ -136,7 +135,6 @@ def process_document_helper(document, llm, pdf_method="default"):
         selector=document.selector,
         root_document_id=document.id,
     )
-    logger.info("Extraction complete", chunks=len(extraction_result.chunks))
     document.extracted_text = extraction_result.markdown
     if document.content_type == "application/pdf":
         # The PDF method may have been changed during extraction, due to OCR fallback
@@ -155,19 +153,15 @@ def process_document_helper(document, llm, pdf_method="default"):
             },
         )
 
-    logger.info("Creating nodes")
     nodes = create_nodes(extraction_result.chunks, document)
 
-    logger.info("Nodes created", nodes=len(nodes))
     document.num_chunks = len(nodes)
     document.save()
 
-    logger.info("Updating vector store")
     library_uuid = document.data_source.library.uuid_hex
     vector_store_index = llm.get_index(library_uuid)
     # Delete existing nodes
 
-    logger.info("Deleting existing nodes")
     document_uuid = document.uuid_hex
     vector_store_index.delete_ref_doc(document_uuid, delete_from_docstore=True)
     # Insert new nodes in batches
