@@ -49,11 +49,17 @@ RUN wget -q --header="Host: pki-icp.canada.ca" \
     chmod 644 /usr/local/share/ca-certificates/GoC-GdC-Root-A.crt && \
     update-ca-certificates --fresh
 
-# Preload NLTK "punkt" and "stopwords" corpora—required for llama_index SentenceSplitter.
-# This avoids runtime failures due to missing data/corpora when running in airgapped or restricted environments.
+# Preload essential NLTK corpora for llama_index and common NLP operations
 RUN mkdir -p /root/.cache/llama_index/_static/nltk_cache && \
     python3 -m pip install nltk && \
-    python3 -c "import nltk; nltk.download('stopwords', download_dir='/root/.cache/llama_index/_static/nltk_cache'); nltk.download('punkt', download_dir='/root/.cache/llama_index/_static/nltk_cache')"
+    python3 -c "import nltk; \
+    nltk.download('punkt', download_dir='/root/.cache/llama_index/_static/nltk_cache'); \
+    nltk.download('stopwords', download_dir='/root/.cache/llama_index/_static/nltk_cache'); \
+    nltk.download('wordnet', download_dir='/root/.cache/llama_index/_static/nltk_cache'); \
+    nltk.download('averaged_perceptron_tagger', download_dir='/root/.cache/llama_index/_static/nltk_cache'); \
+    nltk.download('omw-1.4', download_dir='/root/.cache/llama_index/_static/nltk_cache'); \
+    nltk.download('maxent_ne_chunker', download_dir='/root/.cache/llama_index/_static/nltk_cache'); \
+    nltk.download('words', download_dir='/root/.cache/llama_index/_static/nltk_cache')"
 
 # Install Python dependencies
 # Vulnerability CVE-2024-6345 is fixed in setuptools 70.0.0
