@@ -67,6 +67,7 @@ RUN mkdir -p /root/.cache/llama_index/_static/nltk_cache && \
     python3 -m pip install nltk && \
     python3 -c "import nltk; \
     nltk.download('punkt', download_dir='/root/.cache/llama_index/_static/nltk_cache'); \
+    nltk.download('punkt_tab', download_dir='/root/.cache/llama_index/_static/nltk_cache'); \
     nltk.download('stopwords', download_dir='/root/.cache/llama_index/_static/nltk_cache'); \
     nltk.download('wordnet', download_dir='/root/.cache/llama_index/_static/nltk_cache'); \
     nltk.download('averaged_perceptron_tagger', download_dir='/root/.cache/llama_index/_static/nltk_cache'); \
