@@ -515,7 +515,14 @@ async def combine_response_generators(generators, titles, query, llm, prune=Fals
                     tmpl = PromptTemplate(QA_PRUNING_INSTRUCTIONS).format(
                         query_str=query, answer_str=final_streams[i]
                     )
-                    relevance_check = llm.complete(tmpl)
+                    try:
+                        # Prefer async completion to avoid nested event loop errors
+                        if hasattr(llm, "acomplete"):
+                            relevance_check = await llm.acomplete(tmpl)
+                        else:
+                            relevance_check = llm.complete(tmpl)
+                    except Exception:
+                        relevance_check = "yes"
                     if relevance_check is None:
                         relevance_check = "yes"
                     if str(relevance_check).lower().startswith("no"):
