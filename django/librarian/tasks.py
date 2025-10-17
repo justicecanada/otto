@@ -184,7 +184,7 @@ def process_document_helper(document, llm, pdf_method="default"):
             except Exception as e:
                 logger.error(f"Error inserting nodes: {e}")
                 logger.debug("Retrying...")
-                time.sleep(2**j)
+                time.sleep(2**min(j,6))
 
     # Done!
     document.status = "SUCCESS"

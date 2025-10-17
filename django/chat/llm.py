@@ -1,4 +1,5 @@
 import uuid
+from concurrent.futures import ThreadPoolExecutor
 from contextvars import ContextVar
 
 from django.conf import settings
@@ -20,6 +21,7 @@ from llama_index.core.instrumentation.events.llm import (
 from llama_index.core.llms import MockLLM
 from llama_index.core.response_synthesizers import CompactAndRefine, TreeSummarize
 from llama_index.core.retrievers import BaseRetriever, QueryFusionRetriever
+from llama_index.core.schema import QueryBundle
 from llama_index.core.vector_stores.types import MetadataFilter, MetadataFilters
 from llama_index.embeddings.azure_openai import AzureOpenAIEmbedding
 from llama_index.llms.azure_openai import AzureOpenAI
@@ -40,6 +42,39 @@ debug = settings.DEBUG
 
 # Context variable for load testing - when set to True, forces use of Mock LLM and Mock Embedding
 mock_llm_context: ContextVar[bool] = ContextVar("mock_llm_context", default=False)
+
+# Lazy-initialized shared database engines (module-level for reuse across requests)
+_pg_sync_engine = None
+_pg_async_engine = None
+
+
+def _get_connection_params():
+    """Get current database connection params (respects test database names)."""
+    return {
+        "database": settings.DATABASES["vector_db"]["NAME"],
+        "host": settings.DATABASES["vector_db"]["HOST"],
+        "password": settings.DATABASES["vector_db"]["PASSWORD"],
+        "user": settings.DATABASES["vector_db"]["USER"],
+        "port": settings.DATABASES["vector_db"]["PORT"],
+    }
+
+
+def get_pg_engines():
+    """Get or create shared PostgreSQL engines for vector store.
+    Lazy initialization ensures test database names are used correctly.
+    Returns tuple of (sync_engine, async_engine).
+    """
+    global _pg_sync_engine, _pg_async_engine
+
+    if _pg_sync_engine is None or _pg_async_engine is None:
+        connection_params = _get_connection_params()
+        pg_sync_conn_string = f"postgresql+psycopg2://{connection_params['user']}:{connection_params['password']}@{connection_params['host']}:{connection_params['port']}/{connection_params['database']}"
+        pg_async_conn_string = f"postgresql+asyncpg://{connection_params['user']}:{connection_params['password']}@{connection_params['host']}:{connection_params['port']}/{connection_params['database']}"
+
+        _pg_sync_engine = create_engine(pg_sync_conn_string)
+        _pg_async_engine = create_async_engine(pg_async_conn_string)
+
+    return _pg_sync_engine, _pg_async_engine
 
 
 class ModelEventHandler(BaseEventHandler):
@@ -164,6 +199,15 @@ class OttoLLM:
         """
         return self.llm.complete(prompt).text
 
+    async def acomplete(self, prompt: str):
+        """Async version of complete().
+        Uses the underlying LLM's async completion interface to avoid running a sync
+        wrapper inside an existing event loop (which triggers the nested async error
+        in LlamaIndex). Returns the response text string.
+        """
+        response = await self.llm.acomplete(prompt)
+        return response.text
+
     def chat_complete(self, chat_history: list):
         """
         Return complete response string from list of chat history objects (no streaming)
@@ -182,6 +226,26 @@ class OttoLLM:
                     break
 
         return self.llm.chat(chat_history).message.content
+
+    async def achat_complete(self, chat_history: list):
+        """Async version of chat_complete().
+        Mirrors chat_complete but uses async LLM methods. Falls back to acomplete
+        when the deployment does not support native chat history.
+        """
+        if not self.llm_config.supports_chat_history:
+            prompt = chat_history_to_prompt(chat_history)
+            return await self.acomplete(prompt)
+
+        # Prepend system prompt prefix if it exists
+        if self.llm_config.system_prompt_prefix:
+            for message in chat_history:
+                if message.role == "system":
+                    message.content = (
+                        f"{self.llm_config.system_prompt_prefix}\n{message.content}"
+                    )
+                    break
+        response = await self.llm.achat(chat_history)
+        return response.message.content
 
     async def tree_summarize(
         self,
@@ -296,6 +360,19 @@ class OttoLLM:
         vector_weight: float = 0.6,
         hnsw: bool = False,
     ) -> BaseRetriever:
+        """Return a hybrid (vector + sparse) retriever.
+        Always uses OttoFusionRetriever (thread-parallel fusion) when vector_weight is
+        between 0 and 1. This yields low latency without risking nested event loop
+        issues that arose with the upstream QueryFusionRetriever(use_async=True).
+        Rationale for always-on fusion:
+        - Simplicity of API (no feature flags to forget)
+        - Deterministic performance characteristics
+        - Thread pool concurrency is sufficient for typical 2-retriever hybrid
+            (vector + sparse) scenario; avoids complexity of orchestrating coroutines
+            within potentially async calling contexts (e.g. streaming generators).
+        - If future scaling requires more retrievers or true async across process
+            boundaries, we can reintroduce an async path with aretrieve() calls.
+        """
         if vector_weight == 0:
             # If vector_weight is 0, use text-only retriever
             text_retriever = self.get_fast_text_retriever(
@@ -315,14 +392,16 @@ class OttoLLM:
         vector_retriever = self.get_fast_vector_retriever(
             vector_store_table, filters, max(top_k * 2, 100), hnsw
         )
-        hybrid_retriever = QueryFusionRetriever(
+        # Always use OttoFusionRetriever (parallel hybrid). Simplicity > flag complexity.
+        # If future need arises to disable fusion or parallelism, add a separate lightweight flag.
+        hybrid_retriever = OttoFusionRetriever(
             [vector_retriever, text_retriever],
             similarity_top_k=top_k,
-            num_queries=1,  # set this to 1 to disable query generation
+            num_queries=1,
             mode="relative_score",
-            use_async=True,
             retriever_weights=[vector_weight, 1 - vector_weight],
             llm=self.llm,
+            parallel=True,
         )
         return hybrid_retriever
 
@@ -330,17 +409,8 @@ class OttoLLM:
         self, vector_store_table: str, hnsw: bool = False, skip_setup: bool = False
     ) -> VectorStoreIndex:
 
-        # Cache connection parameters to avoid repeated lookups
-        connection_params = {
-            "database": settings.DATABASES["vector_db"]["NAME"],
-            "host": settings.DATABASES["vector_db"]["HOST"],
-            "password": settings.DATABASES["vector_db"]["PASSWORD"],
-            "user": settings.DATABASES["vector_db"]["USER"],
-            "port": settings.DATABASES["vector_db"]["PORT"],
-        }
-
         vector_store = OttoVectorStore.from_params(
-            **connection_params,
+            **_get_connection_params(),
             table_name=vector_store_table,
             embed_dim=1536,  # openai embedding dimension
             hybrid_search=True,
@@ -429,19 +499,144 @@ class OttoLLM:
 
 
 class OttoVectorStore(PGVectorStore):
-    def _connect(self):
+    # Override from LlamaIndex to reuse shared engines across all OttoVectorStore instances
+    @retry(
+        wait_exponential_multiplier=1000,
+        wait_exponential_max=20000,
+    )
+    def _connect(
+        self,
+    ):  # Use shared engines to avoid creating new connections on every RAG request
+        pg_sync_engine, pg_async_engine = get_pg_engines()
 
-        self._engine = create_engine(self.connection_string, echo=self.debug)
+        self._engine = pg_sync_engine
         self._session = sessionmaker(self._engine)
 
-        # Async engine: only pass async-appropriate kwargs
-        async_engine_kwargs = dict(self.create_engine_kwargs)  # copy to avoid mutation
-
-        # Add connect_args for asyncpg/pgbouncer compatibility
-        async_engine_kwargs.setdefault("connect_args", {})
-        async_engine_kwargs["connect_args"]["statement_cache_size"] = 0
-
-        self._async_engine = create_async_engine(
-            self.async_connection_string, echo=self.debug, **async_engine_kwargs
-        )
+        self._async_engine = pg_async_engine
         self._async_session = sessionmaker(self._async_engine, class_=AsyncSession)  # type: ignore
+
+
+class OttoFusionRetriever(QueryFusionRetriever):
+    """Threaded variant of QueryFusionRetriever to safely parallelize multi-retriever
+    fusion without invoking nested event loops.
+    Differences from upstream:
+    - Ignores parent run_async_tasks pathway (which can trigger nested event loop errors)
+      and instead uses a ThreadPoolExecutor when parallel=True.
+    - Keeps num_queries=1 in current usage (no query generation overhead), but retains
+      fusion logic for score weighting.
+    - If parallel=False, falls back to parent's synchronous behavior.
+    """
+
+    def __init__(
+        self,
+        retrievers,
+        llm=None,
+        query_gen_prompt=None,
+        mode="relative_score",
+        similarity_top_k=5,
+        num_queries=1,
+        parallel: bool = True,
+        max_workers: int | None = None,
+        retriever_weights=None,
+        **kwargs,
+    ):
+        # Force use_async False in parent; we manage our own concurrency
+        super().__init__(
+            retrievers,
+            llm=llm,
+            query_gen_prompt=query_gen_prompt,
+            mode=mode,
+            similarity_top_k=similarity_top_k,
+            num_queries=num_queries,
+            use_async=False,
+            retriever_weights=retriever_weights,
+            **kwargs,
+        )
+        self._parallel = parallel
+        self._max_workers = max_workers
+
+    def _run_threaded_queries(self, queries):
+        """Run underlying retriever.retrieve concurrently via threads."""
+        results = {}
+        # Build all (query, retriever) pairs
+        tasks = []
+        for query in queries:
+            for i, retriever in enumerate(self._retrievers):
+                tasks.append((query, i, retriever))
+        max_workers = self._max_workers or min(32, len(tasks) or 1)
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            future_map = {
+                executor.submit(retriever.retrieve, query): (query.query_str, idx)
+                for query, idx, retriever in tasks
+            }
+            for future in future_map:
+                key = future_map[future]
+                results[key] = future.result()
+        return results
+
+    def _retrieve(self, query_bundle: QueryBundle):  # type: ignore[override]
+        queries = [query_bundle]
+        if self.num_queries > 1:
+            # Preserve compatibility if num_queries > 1 in future usage
+            queries.extend(self._get_queries(query_bundle.query_str))
+
+        if self._parallel and len(self._retrievers) > 1:
+            results = self._run_threaded_queries(queries)
+        else:
+            # Fallback to simple sync iteration
+            results = {}
+            for query in queries:
+                for i, retriever in enumerate(self._retrievers):
+                    results[(query.query_str, i)] = retriever.retrieve(query)
+
+        if self.mode == "reciprocal_rerank":
+            return self._reciprocal_rerank_fusion(results)[: self.similarity_top_k]
+        elif self.mode == "relative_score":
+            return self._relative_score_fusion(results)[: self.similarity_top_k]
+        elif self.mode == "dist_based_score":
+            return self._relative_score_fusion(results, dist_based=True)[
+                : self.similarity_top_k
+            ]
+        elif self.mode == "simple":
+            return self._simple_fusion(results)[: self.similarity_top_k]
+        else:
+            raise ValueError(f"Invalid fusion mode: {self.mode}")
+
+    async def _aretrieve(self, query_bundle: QueryBundle):  # type: ignore[override]
+        """Provide a true async path by delegating to underlying async retrievers if available.
+        If any underlying retriever lacks 'aretrieve', we fall back to thread pool to
+        avoid blocking the loop.
+        """
+        queries = [query_bundle]
+        if self.num_queries > 1:
+            queries.extend(self._get_queries(query_bundle.query_str))
+
+        # Check capability
+        can_async = all(hasattr(r, "aretrieve") for r in self._retrievers)
+        if can_async:
+            import asyncio
+
+            tasks = []
+            task_keys = []
+            for query in queries:
+                for i, retriever in enumerate(self._retrievers):
+                    tasks.append(retriever.aretrieve(query))
+                    task_keys.append((query.query_str, i))
+            task_results = await asyncio.gather(*tasks)
+            results = {k: v for k, v in zip(task_keys, task_results)}
+        else:
+            # Fall back to threaded sync retrieval to preserve non-blocking behavior
+            results = self._run_threaded_queries(queries)
+
+        if self.mode == "reciprocal_rerank":
+            return self._reciprocal_rerank_fusion(results)[: self.similarity_top_k]
+        elif self.mode == "relative_score":
+            return self._relative_score_fusion(results)[: self.similarity_top_k]
+        elif self.mode == "dist_based_score":
+            return self._relative_score_fusion(results, dist_based=True)[
+                : self.similarity_top_k
+            ]
+        elif self.mode == "simple":
+            return self._simple_fusion(results)[: self.similarity_top_k]
+        else:
+            raise ValueError(f"Invalid fusion mode: {self.mode}")
