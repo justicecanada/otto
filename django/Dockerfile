@@ -15,7 +15,7 @@
 # - All other security and dependency practices are standard for AKS workloads.
 # ============================================================================
 
-FROM python:3.11-slim-bookworm
+FROM python:3.14-slim-bookworm
 
 ARG SITE_URL
 ARG ENTRA_REDIRECT_URI
