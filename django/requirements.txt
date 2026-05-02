@@ -43,7 +43,7 @@ llama-index-vector-stores-postgres==0.6.5
 llama-index-embeddings-azure-openai==0.4.0
 
 # Document extraction ----------------------------------------------------------
-beautifulsoup4==4.13.4
+beautifulsoup4==4.14.3
 markdownify==1.1.0
 Markdown==3.7
 bleach==6.1.0
