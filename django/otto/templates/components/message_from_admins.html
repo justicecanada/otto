@@ -1,5 +1,34 @@
-{% if message_from_admins %}
+{% load i18n %}
+{% if preview %}
+  {# Preview should render a minimal banner so management UI can verify output #}
   <div id="message-from-admins" class="{{ message_from_admins_category }}">{{ message_from_admins }}</div>
+{% elif message_from_admins and request.user.is_authenticated %}
+  <div id="message-from-admins"
+       class="{{ message_from_admins_category }}"
+       data-banner-hash="{{ message_from_admins_hash }}">
+    <span class="banner-text">{{ message_from_admins }}</span>
+    <button type="button"
+            class="banner-dismiss-btn"
+            aria-label="{% trans 'Dismiss' %}"
+            onclick="dismissBanner()">&times;</button>
+  </div>
+  <script>
+    (function() {
+      var banner = document.getElementById('message-from-admins');
+      var hash = banner.getAttribute('data-banner-hash');
+      if (sessionStorage.getItem('dismissed-banner') === hash) {
+        banner.classList.add('d-none');
+      }
+    })();
+    function dismissBanner() {
+      var banner = document.getElementById('message-from-admins');
+      var hash = banner.getAttribute('data-banner-hash');
+      sessionStorage.setItem('dismissed-banner', hash);
+      banner.classList.add('d-none');
+      // Update --banner-height for chat layout if the function exists
+      if (typeof updateBannerHeight === 'function') updateBannerHeight();
+    }
+  </script>
 {% else %}
   <div id="message-from-admins" class="d-none"></div>
 {% endif %}

@@ -5,19 +5,17 @@
      {% if swap %}hx-swap-oob="true"{% endif %}>
 
   {% if item.library.is_personal_library %}
-    {% if item.chat.title %}
-      {{ item.chat.title }}
-    {% else %}
-      {% trans "Untitled chat" %}
-    {% endif %}
+    {{ item.chat_title }}
     <br>
-    ({{ item.chat.accessed_at }})
+    ({{ item.chat_accessed_at }})
   {% elif item.is_personal_library %}
-    {% trans "Chat uploads" %}
+    {% trans "Chat files" %}
+  {% elif item.is_skill_library %}
+    {% trans "Skill files" %}
   {% else %}
     {{ item.name }}
   {% endif %}
-  {% if item.is_public or item_type == "data_source" or item.status or item.is_personal_library %}
+  {% if item.is_public or item_type == "data_source" or item.status or item.is_personal_library or item.is_skill_library %}
     <div>
       {% if item.is_public %}
         <i class="bi bi-globe text-muted position-relative"
@@ -27,8 +25,12 @@
         <i class="bi bi-chat-right-text-fill text-muted position-relative"
            style="top: 1px"
            title="{% trans 'Personal library' %}"></i><span class="visually-hidden">{% trans "Personal library" %}</span>
+      {% elif item.is_skill_library %}
+        <i class="bi bi-lightbulb-fill text-muted position-relative"
+           style="top: 1px"
+           title="{% trans 'Skill library' %}"></i><span class="visually-hidden">{% trans "Skill library" %}</span>
       {% elif item_type == "data_source" %}
-        {% if not item.chat %}
+        {% if not item.is_chat_folder %}
           <span class="security-label-{{ item.security_label.acronym }} security-label badge rounded-pill"
                 title="{{ item.security_label }}">{{ item.security_label.acronym }}</span>
         {% endif %}

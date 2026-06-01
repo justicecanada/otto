@@ -1,84 +1,72 @@
 # General ----------------------------------------------------------------------
-retrying==1.3.4
-python-dotenv==1.0.1
+retrying==1.4.2
+python-dotenv==1.2.2
 
 # Django -----------------------------------------------------------------------
-Django==5.2.5
-django-storages==1.14.4
-whitenoise==6.7.0
-channels==4.1.0
-daphne==4.1.2
-django-modeltranslation==0.19.16
+Django==6.0.5
+django-storages==1.14.6
+whitenoise==6.12.0
+channels==4.3.2
+channels-redis==4.3.0
+daphne==4.2.1
+django-modeltranslation==0.19.19
 django-prometheus==2.3.1
 polib==1.2.0
-django-cors-headers==4.4.0
+django-cors-headers==4.9.0
 django-htmx-autocomplete==0.8.4
 rules==3.4
 django-cleanup==9.0.0
 django-azure-auth==2.0.0
+djangorestframework==3.17.1
+drf-spectacular==0.29.0
 gevent==24.11.1
-django-data-fetcher==2.2
-django-file-form==3.9.0
+django-data-fetcher==2.2.1
+django-file-form==4.0.0
+django-allow-cidr==0.8.0
 
 # Logging ----------------------------------------------------------------------
-django-structlog[celery,commands]==9.1.1
+django-structlog[celery,commands]==10.0.0
 
 # Database ---------------------------------------------------------------------
-psycopg2-binary==2.9.9
+psycopg2-binary==2.9.11
 
 # Azure / auth -----------------------------------------------------------------
-azure-core==1.34.0
-azure-identity==1.23.0
+azure-core==1.38.0
+azure-identity==1.25.2
 azure-keyvault==4.2.0
-azure-ai-translation-document==1.0.0
+azure-ai-translation-document==1.1.0
 azure-ai-translation-text==1.0.1
 azure-ai-documentintelligence==1.0.2
-azure-storage-blob==12.24.1
-msgraph-sdk==1.5.3
+azure-storage-blob==12.28.0
+msgraph-sdk==1.55.0
 
 # LLM-related ------------------------------------------------------------------
-llama-index==0.13.5
-llama-index-llms-azure-openai==0.4.0
-llama-index-vector-stores-postgres==0.6.5
-llama-index-embeddings-azure-openai==0.4.0
+llama-index==0.14.19
+llama-index-llms-azure-openai==0.5.3
+llama-index-vector-stores-postgres==0.7.2
+llama-index-embeddings-azure-openai==0.5.2
+openai==2.31.0
 
 # Document extraction ----------------------------------------------------------
 beautifulsoup4==4.13.4
 markdownify==1.1.0
-Markdown==3.7
-bleach==6.1.0
-newspaper3k==0.2.8
+Markdown==3.8.1
+bleach==6.3.0
 filetype==1.2.0
-docxtpl==0.19.1
-html2docx==1.6.0
-mammoth==1.9.0
-python-pptx==0.6.23
-python-docx==1.1.2
 tldextract==5.3.0
 
 # NLP (non-LLM) ----------------------------------------------------------------
 langdetect==1.0.9
-lxml[html_clean]==6.0.0
+lxml[html_clean]==6.1.0
 sentence-splitter==1.4
 
 # Data science -----------------------------------------------------------------
-shapely==2.0.7
-pdf2image==1.17.0
-pillow==11.1.0
-pypdf==6.0.0
-reportlab==4.4.3
-pyreadstat==1.2.8
-openpyxl==3.1.5
-RapidFuzz==3.12.1
+pillow==12.2.0
+pypdf==6.10.2
 
 # Redis/Celery -----------------------------------------------------------------
-celery==5.5.3
-redis==5.0.8
+celery==5.6.2
+redis==7.4.0
 django-redis==6.0.0
-django-celery-beat==2.8.1
+django-celery-beat==2.9.0
 
-# GPL-licensed
-extract_msg==0.54.1
-
-# AGPL-licensed
-pymupdf4llm==0.0.27

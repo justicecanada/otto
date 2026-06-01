@@ -1,0 +1,1861 @@
+{% load i18n %}
+
+<div class="modal-body">
+  <div class="row g-0 flex-nowrap">
+    {# Left panel: skills list #}
+    <div class="col-3 border-end p-3 scroll-col">
+      <button class="btn btn-sm btn-primary mb-3 w-100"
+              type="button"
+              hx-get="{% url 'chat_next:create_skill' chat_id=chat_id %}"
+              hx-include="#skill-modal-nav-state"
+              hx-target="#chat-next-modal-content"
+              hx-swap="innerHTML">
+        <i class="bi bi-plus-lg me-1"></i>{% trans "New skill" %}
+      </button>
+      <h6 class="text-muted small mb-2">{% trans "Active Skills" %}</h6>
+      {% include "chat_next/modals/skills/active_skills_panel.html" with current_skill_id=skill.id|default:"" current_skill_name=skill_display_title|default:"" current_skill_enabled=is_skill_enabled|default:False is_new_skill=is_new_skill|default:False %}
+    </div>
+
+    {# Editor column with language-specific content plus a right-hand metadata column #}
+    <div class="col-9 p-3 scroll-col skill-editor-panel">
+      <div class="d-flex justify-content-between align-items-center mb-3 gap-3">
+        <div class="d-flex align-items-center gap-2 me-auto min-w-0 flex-wrap">
+          <span id="featured-badge"
+                class="text-success{% if not skill or not skill.is_featured %} d-none{% endif %}"
+                title="{% trans 'Featured' %}"><i class="bi bi-patch-check-fill"></i></span>
+          <h5 id="skill-editor-title" class="mb-0 text-truncate">
+            {% if skill %}
+              {{ skill_display_title }}
+            {% else %}
+              {% trans "New skill" %}
+            {% endif %}
+          </h5>
+          {% if skill and is_draft %}
+            <span class="badge rounded-pill text-bg-warning-subtle border border-warning-subtle text-warning-emphasis">
+              {% trans "Draft" %}
+            </span>
+          {% endif %}
+          {% if not skill and skill_creator %}
+            <div class="alert alert-light border px-2 py-1 ms-2"
+                 style="margin-bottom: -5px;
+                        margin-top: -5px">
+              <i class="bi bi-magic text-warning"></i>
+              <em>{% trans "Need help?" %}</em>
+              {% trans "Ask the AI to" %}
+              <a href="#"
+                 class="fw-semibold"
+                 onclick="submitSkillCreatorPrompt(event, '{% trans "Help me create a skill" %}', '{{ skill_creator.id }}', '{{ skill_creator.display_name|escapejs }}')">{% trans "create a skill" %}</a>
+              {% trans "or" %}
+              <a href="#"
+                 class="fw-semibold"
+                 onclick="submitSkillCreatorPrompt(event, '{% trans "I want to migrate a preset from the old AI Assistant" %}', '{{ skill_creator.id }}', '{{ skill_creator.display_name|escapejs }}')">{% trans "migrate a preset" %}</a>.
+            </div>
+          {% endif %}
+          {% if not skill and import_form %}
+            <div class="alert alert-light border px-2 py-1 ms-2"
+                 style="margin-bottom: -5px;
+                        margin-top: -5px">
+              <i class="bi bi-box-arrow-in-down text-primary"></i>
+              <em>{% trans "Already have a skill file?" %}</em>
+              <a href="#" class="fw-semibold" onclick="triggerSkillImport(event)">{% trans "Import SKILL.md or .zip" %}</a>
+            </div>
+          {% endif %}
+        </div>
+        <div class="d-flex align-items-center gap-1 flex-nowrap">
+          {% if skill and not is_draft %}
+            <span class="small text-muted" style="white-space:nowrap">{% trans "Enabled" %}</span>
+            <div id="current-skill-toggle" class="form-check form-switch mb-0">
+              <input class="form-check-input"
+                     type="checkbox"
+                     role="switch"
+                     id="current-skill-enabled-toggle"
+                     data-skill-id="{{ skill.id }}"
+                     {% if is_skill_enabled %}checked{% endif %}
+                     hx-post="{% url 'chat_next:toggle_skill' chat_id=chat_id skill_id=skill.id %}"
+                     hx-swap="none"
+                     title="{% if is_skill_enabled %}{% trans 'Disable skill' %}{% else %}{% trans 'Enable skill' %}{% endif %}">
+            </div>
+          {% endif %}
+          {% if skill and can_copy %}
+            <button type="button"
+                    class="btn btn-sm btn-outline-secondary"
+                    hx-post="{% url 'chat_next:copy_skill' chat_id=chat_id skill_id=skill.id %}"
+                    hx-include="#skill-modal-nav-state"
+                    hx-target="#chat-next-modal-content"
+                    hx-swap="innerHTML"
+                    title="{% trans 'Make a copy' %}"
+                    style="white-space:nowrap">
+              <i class="bi bi-copy"></i> {% trans "Make a copy" %}
+            </button>
+          {% endif %}
+          {% if skill and not is_draft %}
+            <button type="button"
+                    class="btn btn-sm btn-outline-secondary"
+                    onclick="if(window.addContextHintAndClose){window.addContextHintAndClose({type:'skill',id:'{{ skill.id }}',name:'{{ skill_display_title|escapejs }}'},'chat-next-modal')}"
+                    title="{% trans 'Add this skill as a context hint and close' %}"
+                    style="white-space:nowrap">
+              <i class="bi bi-play-fill"></i> {% trans "Try it" %}
+            </button>
+          {% endif %}
+          {% if skill and is_admin %}
+            <div class="dropdown" style="margin-top:-3px;">
+              <button class="btn btn-sm btn-none py-0 px-1"
+                      type="button"
+                      data-bs-toggle="dropdown"
+                      aria-expanded="false"
+                      title="{% trans 'More options' %}">
+                <i class="bi bi-three-dots-vertical"></i>
+              </button>
+              <div class="dropdown-menu dropdown-menu-end p-2"
+                   style="min-width:200px"
+                   onclick="event.stopPropagation()">
+                <div class="form-check form-switch mb-0 px-2">
+                  <input class="form-check-input ms-0 me-2"
+                         type="checkbox"
+                         role="switch"
+                         id="current-skill-featured-toggle"
+                         {% if skill.is_featured %}checked{% endif %}
+                         hx-post="{% url 'chat_next:toggle_featured' chat_id=chat_id skill_id=skill.id %}"
+                         hx-swap="none">
+                  <label class="form-check-label small" for="current-skill-featured-toggle">
+                    <i class="bi bi-patch-check-fill text-success me-1"></i>{% trans "Featured" %}
+                  </label>
+                </div>
+              </div>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+      {% if skill and is_draft %}
+        <div class="alert alert-warning py-2 px-3 small">
+          <i class="bi bi-pencil-square me-1"></i>
+          {% trans "This draft stays disabled until you complete Display name, Description, and Prompt in either English or French." %}
+        </div>
+      {% endif %}
+
+      {% if import_notice_items %}
+        <div class="alert alert-info py-2 px-3 small">
+          <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
+            <div>
+              <div class="fw-semibold mb-1">
+                <i class="bi bi-box-arrow-in-down me-1"></i>{% trans "Imported skill" %}
+              </div>
+              <ul class="mb-0 ps-3">
+                {% for item in import_notice_items %}<li>{{ item }}</li>{% endfor %}
+              </ul>
+            </div>
+            {% if skill and skill_creator and import_refine_prompt %}
+              <button type="button"
+                      class="btn btn-sm btn-outline-primary"
+                      onclick="submitSkillCreatorPrompt(event, '{{ import_refine_prompt|escapejs }}', '{{ skill_creator.id }}', '{{ skill_creator.display_name|escapejs }}', [{type:'skill',id:'{{ skill.id }}',name:'{{ skill_display_title|escapejs }}'}])">
+                <i class="bi bi-magic me-1"></i>{% trans "Refine with Skill Creator" %}
+              </button>
+            {% endif %}
+          </div>
+        </div>
+      {% elif skill and skill_creator and import_refine_prompt %}
+        <div class="d-flex justify-content-end mb-3">
+          <button type="button"
+                  class="btn btn-sm btn-outline-primary"
+                  onclick="submitSkillCreatorPrompt(event, '{{ import_refine_prompt|escapejs }}', '{{ skill_creator.id }}', '{{ skill_creator.display_name|escapejs }}', [{type:'skill',id:'{{ skill.id }}',name:'{{ skill_display_title|escapejs }}'}])">
+            <i class="bi bi-magic me-1"></i>{% trans "Refine with Skill Creator" %}
+          </button>
+        </div>
+      {% endif %}
+
+      {% if bundle_import_status %}
+        {% include "chat_next/modals/skills/import_status.html" %}
+      {% endif %}
+
+      {% if not skill and import_form %}
+        <form id="skill-import-form"
+              class="d-none"
+              method="post"
+              enctype="multipart/form-data"
+              hx-encoding="multipart/form-data"
+              hx-post="{% url 'chat_next:import_skill' chat_id=chat_id %}"
+              hx-target="#chat-next-modal-content"
+              hx-swap="innerHTML">
+          {% csrf_token %}
+          <input type="hidden"
+                 name="modal_back_url"
+                 value="{{ modal_back_url|default:'' }}">
+          {{ import_form.skill_file }}
+        </form>
+        {% if import_form.skill_file.errors or import_form.non_field_errors %}
+          <div class="alert alert-danger py-2 px-3 small">
+            {% for error in import_form.skill_file.errors %}<div>{{ error }}</div>{% endfor %}
+            {% for error in import_form.non_field_errors %}<div>{{ error }}</div>{% endfor %}
+          </div>
+        {% endif %}
+      {% endif %}
+
+      <form id="skill-form"
+            method="post"
+            {% if skill %} hx-post="{% url 'chat_next:edit_skill' chat_id=chat_id skill_id=skill.id %}" {% else %} hx-post="{% url 'chat_next:create_skill' chat_id=chat_id %}" {% endif %}
+            hx-target="#chat-next-modal-content"
+            hx-swap="innerHTML">
+        {% csrf_token %}
+        <input type="hidden"
+               name="modal_back_url"
+               value="{{ modal_back_url|default:'' }}">
+        <fieldset {% if not can_edit %}disabled{% endif %}>
+          <div class="row g-3 align-items-start">
+            <div class="col-12 col-xl-8">
+              <div class="d-flex flex-column preset-form-container mb-3">
+                <ul class="nav nav-tabs nav-fill mx-3 mt-2" role="tablist">
+                  <li class="nav-item" role="presentation">
+                    <button class="nav-link small py-2 active"
+                            data-bs-toggle="tab"
+                            data-bs-target="#skill-tab-en"
+                            type="button"
+                            role="tab">{% trans "English" %}</button>
+                  </li>
+                  <li class="nav-item" role="presentation">
+                    <button class="nav-link small py-2"
+                            data-bs-toggle="tab"
+                            data-bs-target="#skill-tab-fr"
+                            type="button"
+                            role="tab">{% trans "French" %}</button>
+                  </li>
+                </ul>
+
+                <div class="tab-content rounded px-3 border pt-1">
+                  <div class="tab-pane fade show active language-content"
+                       id="skill-tab-en"
+                       role="tabpanel">
+                    <div class="mb-3">
+                      <label for="id_display_name_en" class="form-label mb-0">{% trans "Display name" %}</label>
+                      <small class="text-muted d-block mb-1">{% trans "A clear name helps the AI identify this skill." %}</small>
+                      {{ form.display_name_en }}
+                      {% if form.display_name_en.errors %}<div class="text-danger small">{{ form.display_name_en.errors }}</div>{% endif %}
+                    </div>
+                    <div class="mb-3">
+                      <label for="id_description_en" class="form-label mb-0">{% trans "Description" %}</label>
+                      <small class="text-muted d-block mb-1">{% trans "Describe what this skill does and when to use it. The AI reads this to decide when the skill is relevant." %}</small>
+                      {{ form.description_en }}
+                      {% if form.description_en.errors %}<div class="text-danger small">{{ form.description_en.errors }}</div>{% endif %}
+                    </div>
+                    <div class="mb-0">
+                      <label for="id_body_en" class="form-label mb-0">{% trans "Prompt" %}</label>
+                      <small class="text-muted d-block mb-1">
+                        <a href="https://commonmark.org/help/"
+                           target="_blank"
+                           class="text-muted">Markdown</a>
+                        {% trans "instructions loaded when the skill is activated." %}
+                      </small>
+                      {% if form.body_en.errors %}<div class="text-danger small">{{ form.body_en.errors }}</div>{% endif %}
+                      <textarea name="body_en"
+                                id="id_body_en"
+                                class="form-control form-control-sm skill-prompt-textarea"
+                                rows="13"
+                                {% if not can_edit %}readonly{% endif %}>{{ form.body_en.value|default:"" }}</textarea>
+                    </div>
+                  </div>
+
+                  <div class="tab-pane fade language-content"
+                       id="skill-tab-fr"
+                       role="tabpanel">
+                    <div class="mb-3">
+                      <label for="id_display_name_fr" class="form-label mb-0">{% trans "Display name" %} (FR)</label>
+                      <small class="text-muted d-block mb-1">{% trans "A clear name helps the AI identify this skill." %}</small>
+                      {{ form.display_name_fr }}
+                      {% if form.display_name_fr.errors %}<div class="text-danger small">{{ form.display_name_fr.errors }}</div>{% endif %}
+                    </div>
+                    <div class="mb-3">
+                      <label for="id_description_fr" class="form-label mb-0">{% trans "Description" %} (FR)</label>
+                      <small class="text-muted d-block mb-1">{% trans "Describe what this skill does and when to use it. The AI reads this to decide when the skill is relevant." %}</small>
+                      {{ form.description_fr }}
+                      {% if form.description_fr.errors %}<div class="text-danger small">{{ form.description_fr.errors }}</div>{% endif %}
+                    </div>
+                    <div class="mb-0">
+                      <label for="id_body_fr" class="form-label mb-0">{% trans "Prompt" %} (FR)</label>
+                      <small class="text-muted d-block mb-1">
+                        <a href="https://commonmark.org/help/"
+                           target="_blank"
+                           class="text-muted">Markdown</a>
+                        {% trans "instructions loaded when the skill is activated." %}
+                      </small>
+                      {% if form.body_fr.errors %}<div class="text-danger small">{{ form.body_fr.errors }}</div>{% endif %}
+                      <textarea name="body_fr"
+                                id="id_body_fr"
+                                class="form-control form-control-sm skill-prompt-textarea"
+                                rows="13"
+                                {% if not can_edit %}readonly{% endif %}>{{ form.body_fr.value|default:"" }}</textarea>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-12 col-xl-4">
+              <div class="card p-3 mb-3 skill-meta-card">
+                <label class="form-label fw-semibold mb-1 skill-form-section-title">{% trans "Context references" %}</label>
+                <small class="text-muted d-block mb-2">{% trans "Include documents, libraries or tools that this skill relies on." %}</small>
+                <div id="skill-context-pills-container"
+                     class="d-flex flex-wrap gap-1 mt-1 mb-2"></div>
+                {% if skill and skill_data_source_id and can_edit %}
+                  {% url 'chat_next:modal_librarian_data_source' chat_id=chat_id data_source_id=skill_data_source_id as manage_uploaded_files_base_url %}
+                  <div class="mb-2">
+                    <a href="{{ manage_uploaded_files_base_url }}?modal_back_url={{ current_url|urlencode:'' }}"
+                       hx-get="{{ manage_uploaded_files_base_url }}?modal_back_url={{ current_url|urlencode:'' }}"
+                       hx-target="#chat-next-modal-content"
+                       hx-swap="innerHTML"
+                       class="small text-muted"
+                       title="{% trans 'Open Libraries window' %}">
+                      <i class="bi bi-folder2-open me-1"></i>{% trans "Manage skill files" %}
+                    </a>
+                  </div>
+                {% endif %}
+                {% if can_edit %}
+                  {% if not skill %}
+                    <small class="text-muted d-block mb-2">{% trans "You can upload files now; Otto will create the skill using the current form details first." %}</small>
+                  {% endif %}
+                  <div class="d-flex gap-1 align-items-center flex-wrap mb-1">
+                    <button type="button"
+                            class="btn btn-sm btn-outline-secondary"
+                            id="skill-upload-button"
+                            onclick="document.querySelector('#id_skill-input_file').click();"
+                            title="{% trans 'Upload files' %}">
+                      <i class="bi bi-paperclip"></i><span class="ms-1">{% trans "Upload" %}</span>
+                    </button>
+                    <button type="button"
+                            class="btn btn-sm btn-outline-secondary skill-context-button"
+                            id="skill-context-button"
+                            title="{% trans 'Add context with @' %}">
+                      <span class="fw-semibold" aria-hidden="true">@</span><span class="ms-1">{% trans "Context" %}</span>
+                    </button>
+                  </div>
+                  <div id="skill-upload-message" class="d-none mt-2" aria-live="polite">
+                    <div id="skill-upload-progress-files"></div>
+                    <form id="skill-upload-form"
+                          class="skill-upload-form"
+                          enctype="multipart/form-data"
+                          hx-encoding="multipart/form-data"
+                          hx-post="{% if skill %}{% url 'chat_next:skill_upload' chat_id=chat_id skill_id=skill.id %}{% else %}{% url 'chat_next:create_skill' chat_id=chat_id %}{% endif %}"
+                          hx-target="#chat-next-modal-content"
+                          hx-swap="innerHTML">
+                      {% csrf_token %}
+                      <input type="hidden"
+                             name="modal_back_url"
+                             value="{{ modal_back_url|default:'' }}">
+                      {% if not skill %}<input type="hidden" name="skill_upload_flow" value="1">{% endif %}
+                      {{ upload_form }}
+                    </form>
+                  </div>
+                  <div id="skill-context-picker"
+                       class="d-none"
+                       role="dialog"
+                       aria-label="{% trans 'Add context' %}">
+                    <div class="context-picker-header d-flex align-items-center">
+                      <div class="context-picker-search flex-grow-1">
+                        <input type="text"
+                               id="skill-context-picker-search"
+                               class="form-control form-control-sm"
+                               placeholder="{% trans 'Mention tools, libraries, documents...' %}"
+                               autocomplete="off">
+                      </div>
+                      <button type="button"
+                              id="skill-context-picker-close"
+                              class="btn btn-sm btn-link text-muted px-2"
+                              aria-label="{% trans 'Close' %}"
+                              title="{% trans 'Close' %}">
+                        <i class="bi bi-x-lg"></i>
+                      </button>
+                    </div>
+                    <div id="skill-context-picker-results" class="context-picker-results">
+                      <div class="context-picker-loading text-center text-muted py-3">
+                        <span class="spinner-border spinner-border-sm"></span>
+                      </div>
+                    </div>
+                  </div>
+                {% endif %}
+                <input type="hidden"
+                       name="context_hints"
+                       id="skill-context-hints"
+                       value='{{ context_hints_json|default:"[]" }}'>
+                {{ context_hint_statuses|json_script:"skill-context-hint-statuses" }}
+                <div id="skill-context-sharing-warning" class="d-none mt-2">
+                  <div class="p-2 ps-3 bg-warning-subtle rounded border border-warning">
+                    <i class="bi bi-exclamation-triangle text-warning"></i>
+                    <em class="small" id="skill-context-sharing-warning-text"></em>
+                  </div>
+                </div>
+              </div>
+
+              <div class="card p-3 mb-3 skill-meta-card">
+                <div class="d-flex justify-content-between align-items-center gap-2 mb-1">
+                  <label class="form-label fw-semibold mb-0 skill-form-section-title">{% trans "Sharing" %}</label>
+                  {% if skill and not is_draft %}
+                    <button type="button"
+                            class="btn btn-link btn-sm p-0 text-muted text-decoration-none d-inline-flex align-items-center gap-1 chat-share"
+                            data-copy-url="{% url 'chat_next:new_chat' %}?open_skill={{ skill.id }}"
+                            onclick="return copySkillShareUrl(this);"
+                            title="{% trans 'Copy share URL' %}"
+                            aria-label="{% trans 'Copy share URL' %}">
+                      <i class="bi bi-link-45deg"></i><i class="bi bi-check-lg"></i>
+                      <span>{% trans "Copy URL" %}</span>
+                    </button>
+                  {% endif %}
+                </div>
+                {% if can_edit %}
+                  {% if can_change_sharing_option %}
+                    <div class="skill-sharing-options">
+                      {% for radio in form.sharing_option %}
+                        <div class="form-check">
+                          {{ radio.tag }}
+                          <label class="form-check-label" for="{{ radio.id_for_label }}">{{ radio.choice_label }}</label>
+                        </div>
+                      {% endfor %}
+                    </div>
+                  {% elif skill %}
+                    <input type="hidden"
+                           name="sharing_option"
+                           value="{{ sharing_option_value }}">
+                    <p class="text-muted my-0">
+                      {% trans "This skill was shared with you by another user. Only the skill owner can make it private or public." %}
+                    </p>
+                  {% endif %}
+                  <div class="mt-3{% if not show_sharing_controls %} d-none{% endif %}"
+                       id="skill-other-users">
+                    <div id="skill-share-with-users"
+                         {% if not show_share_recipients %}class="d-none"{% endif %}>
+                      <label class="form-label" for="id_accessible_to">{% trans "Share with:" %}</label>
+                      {{ form.accessible_to }}
+                    </div>
+                    <div id="skill-editor-users"
+                         class="mt-2{% if not show_editor_controls %} d-none{% endif %}">
+                      <label class="form-label" for="id_editable_by">{% trans "Allow these users to edit:" %}</label>
+                      {{ form.editable_by }}
+                    </div>
+                  </div>
+                  <div id="public-skill-warning"
+                       class="mt-3 {% if not is_public or not can_change_sharing_option %}d-none{% endif %}">
+                    <div class="p-2 ps-3 bg-warning-subtle rounded border border-warning">
+                      <i class="bi bi-exclamation-triangle text-danger"></i>
+                      <em>{% trans "Changes will be visible to all Otto users." %}</em>
+                    </div>
+                  </div>
+                {% elif skill %}
+                  <div class="skill-readonly-meta-value d-flex align-items-center gap-2 flex-wrap">
+                    {% if skill.sharing_option == "everyone" %}
+                      <span class="badge text-bg-light border"><i class="bi bi-globe me-1"></i>{% trans "Public" %}</span>
+                    {% elif skill.sharing_option == "others" %}
+                      <span class="badge text-bg-light border"><i class="bi bi-people me-1"></i>{% trans "Shared" %}</span>
+                    {% else %}
+                      <span class="badge text-bg-light border"><i class="bi bi-lock me-1"></i>{% trans "Private" %}</span>
+                    {% endif %}
+                  </div>
+                {% endif %}
+              </div>
+
+              <div class="card p-3 mb-3 skill-meta-card">
+                <label class="form-label fw-semibold mb-1 skill-form-section-title">{% trans "Tags" %}</label>
+                <small class="text-muted d-block">{% trans "Tags help organize and discover skills." %}</small>
+                {% if can_edit %}
+                  <small class="text-muted d-block mb-1">
+                    <em>{% trans "New tags you create may be visible to other users." %}</em>
+                  </small>
+                {% endif %}
+                <div class="skill-tag-autocomplete"
+                     data-lang="{{ tag_display_lang|default:'en' }}">
+                  <div class="d-flex flex-wrap gap-1 mb-2" id="skill-tag-pills"></div>
+                  {% if can_edit %}
+                    <input type="text"
+                           class="form-control form-control-sm skill-tag-input"
+                           id="skill-tag-input"
+                           placeholder="{% trans 'Type to add tags...' %}"
+                           autocomplete="off">
+                    <div class="skill-tag-dropdown d-none" id="skill-tag-dropdown"></div>
+                  {% endif %}
+                </div>
+                <input type="hidden"
+                       name="skill_tags"
+                       id="skill-tags-hidden"
+                       value='{{ skill_tags_json|default:"[]" }}'>
+                {% if can_edit %}
+                  <div class="mt-2" id="suggested-tags">
+                    <small class="text-muted">{% trans "Suggested:" %}</small>
+                    <span id="suggested-tags-pills" class="d-inline-flex flex-wrap gap-1"></span>
+                  </div>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </fieldset>
+
+        {% if form.non_field_errors %}
+          <div class="alert alert-danger mt-3">
+            {% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+          </div>
+        {% endif %}
+
+        <div id="skill-form-error-message"
+             class="alert alert-danger d-none mt-3"
+             role="alert"
+             tabindex="-1"></div>
+
+        <div class="d-flex justify-content-between mt-3">
+          <button type="button"
+                  class="btn btn-outline-secondary btn-sm"
+                  data-bs-dismiss="modal">
+            {% if can_edit %}
+              {% trans "Close" %}
+            {% else %}
+              {% trans "Close" %}
+            {% endif %}
+          </button>
+          {% if can_edit %}
+            <div class="d-flex gap-2">
+              {% if skill and can_delete %}
+                <button type="button"
+                        class="btn btn-outline-danger btn-sm"
+                        hx-post="{% url 'chat_next:delete_skill' chat_id=chat_id skill_id=skill.id %}"
+                        hx-include="#skill-modal-nav-state"
+                        hx-target="#chat-next-modal-content"
+                        hx-swap="innerHTML"
+                        {% if can_admin_edit and is_public %} hx-confirm="{% trans '⚠️ SERIOUS ACTION: You are deleting a public skill visible to all users. This cannot be undone and may impact active workflows. Type OK only if you are absolutely sure.' %}" {% else %} hx-confirm="{% trans 'Are you sure you want to delete this skill?' %}" {% endif %}>
+                  <i class="bi bi-trash me-1"></i>{% trans "Delete" %}
+                </button>
+              {% endif %}
+              <button type="submit"
+                      class="btn btn-primary btn-sm"
+                      {% if can_admin_edit and skill and is_public %}hx-confirm="{% trans 'You are editing a shared skill that is visible to all users. Continue?' %}"{% endif %}>
+                <i class="bi bi-check-lg me-1"></i>
+                {% if skill %}
+                  {% trans "Save changes" %}
+                {% else %}
+                  {% trans "Create" %}
+                {% endif %}
+              </button>
+            </div>
+          {% endif %}
+        </div>
+      </form>
+      <div id="skill-file-dropzone"
+           class="d-flex align-items-center justify-content-center"
+           aria-hidden="true">
+        <div class="rounded d-block text-center text-white" id="skill-file-area">
+          <i class="h3 bi bi-paperclip"></i>
+          <div class="mt-2 h5">{% trans "Drop files here" %}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  (function() {
+    window.copySkillShareUrl = window.copySkillShareUrl || async function(button) {
+      const relativeUrl = button?.dataset?.copyUrl;
+      if (!relativeUrl) {
+        return false;
+      }
+
+      const shareUrl = new URL(relativeUrl, window.location.origin).toString();
+      await navigator.clipboard.writeText(shareUrl);
+
+      if (typeof setCopyButtonSuccessState === 'function') {
+        setCopyButtonSuccessState(button);
+      } else {
+        button.blur();
+        button.classList.add('clicked');
+        setTimeout(() => button.classList.remove('clicked'), 2200);
+      }
+
+      return false;
+    };
+
+    window.submitSkillCreatorPrompt = window.submitSkillCreatorPrompt || function(event, promptText, skillId, skillName, extraContextHints) {
+      if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+
+      const promptInput = document.getElementById('chat-prompt');
+      const promptForm = document.getElementById('prompt-form');
+      const sendButton = document.getElementById('send-button');
+      const contextHintsField = document.getElementById('context-hints');
+
+      if (!promptInput || !promptForm || !sendButton || !contextHintsField) {
+        return false;
+      }
+
+      const normalizedSkillId = String(skillId || '').trim();
+      if (!normalizedSkillId) {
+        return false;
+      }
+
+      const seen = new Set();
+      const contextHints = [];
+      const addHint = (hint) => {
+        if (!hint || !hint.type || !hint.id) return;
+        const key = `${hint.type}:${hint.id}`;
+        if (seen.has(key)) return;
+        seen.add(key);
+        contextHints.push({
+          type: hint.type,
+          id: String(hint.id),
+          name: hint.name || '',
+        });
+      };
+
+      addHint({
+        type: 'skill',
+        id: normalizedSkillId,
+        name: skillName || '',
+      });
+
+      if (Array.isArray(extraContextHints)) {
+        extraContextHints.forEach(addHint);
+      }
+
+      contextHintsField.value = JSON.stringify(contextHints);
+
+      promptInput.value = promptText || '';
+      promptInput.dispatchEvent(new Event('input', {bubbles: true}));
+      promptInput.dispatchEvent(new Event('change', {bubbles: true}));
+
+      const modalEl = document.getElementById('chat-next-modal');
+      if (modalEl) {
+        const bsModal = bootstrap.Modal.getInstance(modalEl);
+        if (bsModal) {
+          bsModal.hide();
+        }
+      }
+
+      requestAnimationFrame(() => sendButton.click());
+      return false;
+    };
+
+    window.triggerSkillImport = window.triggerSkillImport || function(event) {
+      if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+
+      const importInput = document.querySelector('#skill-import-form input[type="file"]');
+      if (!importInput) {
+        return false;
+      }
+
+      importInput.value = '';
+      importInput.click();
+      return false;
+    };
+
+    const form = document.getElementById('skill-form');
+    const formErrorMessage = document.getElementById('skill-form-error-message');
+    const importForm = document.getElementById('skill-import-form');
+    const importInput = importForm ? importForm.querySelector('input[type="file"]') : null;
+
+    function getValue(id) {
+      return (document.getElementById(id)?.value || '').trim();
+    }
+
+    function validateBilingualSkillContent(event) {
+      if (!formErrorMessage) return true;
+
+      const enComplete = Boolean(
+        getValue('id_display_name_en') &&
+        getValue('id_description_en') &&
+        getValue('id_body_en')
+      );
+      const frComplete = Boolean(
+        getValue('id_display_name_fr') &&
+        getValue('id_description_fr') &&
+        getValue('id_body_fr')
+      );
+
+      if (enComplete || frComplete) {
+        formErrorMessage.classList.add('d-none');
+        formErrorMessage.innerText = '';
+        return true;
+      }
+
+      formErrorMessage.innerText = "{% trans 'Please complete Display name, Description, and Prompt in either English or French.' %}";
+      formErrorMessage.classList.remove('d-none');
+      formErrorMessage.focus();
+
+      if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+      return false;
+    }
+
+    if (form) {
+      form.addEventListener('submit', validateBilingualSkillContent);
+    }
+
+    if (importForm && importInput) {
+      importInput.addEventListener('change', () => {
+        if (!importInput.files || !importInput.files.length) {
+          return;
+        }
+        importForm.requestSubmit();
+      });
+    }
+  })();
+</script>
+
+{% if can_edit and can_change_sharing_option %}
+  <script>
+  (function() {
+    const form = document.getElementById('skill-form');
+    const otherUsers = document.getElementById('skill-other-users');
+    const shareWithUsers = document.getElementById('skill-share-with-users');
+    const editorUsers = document.getElementById('skill-editor-users');
+    if (!otherUsers || !form) return;
+
+    const sharingOptionInputs = form.querySelectorAll('input[name="sharing_option"]');
+
+    function toggleWarning(displayWarning) {
+      const warning = document.getElementById('public-skill-warning');
+      if (!warning) return;
+      warning.classList.toggle('d-none', !displayWarning);
+    }
+
+    function toggleOtherUsers() {
+      const selectedOption = form.querySelector('input[name="sharing_option"]:checked');
+      if (!selectedOption) {
+        otherUsers.classList.add('d-none');
+        if (shareWithUsers) shareWithUsers.classList.add('d-none');
+        if (editorUsers) editorUsers.classList.add('d-none');
+        toggleWarning(false);
+        return;
+      }
+
+      const selectedValue = selectedOption.value;
+      otherUsers.classList.toggle('d-none', selectedValue === 'private');
+      if (shareWithUsers) {
+        shareWithUsers.classList.toggle('d-none', selectedValue !== 'others');
+      }
+      if (editorUsers) {
+        editorUsers.classList.toggle('d-none', !['others', 'everyone'].includes(selectedValue));
+      }
+      toggleWarning(selectedValue === 'everyone');
+    }
+
+    sharingOptionInputs.forEach((input) => {
+      input.addEventListener('change', toggleOtherUsers);
+    });
+
+    toggleOtherUsers();
+  })();
+  </script>
+{% endif %}
+
+<script>
+  (function() {
+    const chatId = "{{ chat_id }}";
+    const btn = document.getElementById('skill-context-button');
+    const picker = document.getElementById('skill-context-picker');
+    const searchInput = document.getElementById('skill-context-picker-search');
+    const resultsContainer = document.getElementById('skill-context-picker-results');
+    const pillsContainer = document.getElementById('skill-context-pills-container');
+    const hiddenField = document.getElementById('skill-context-hints');
+    const statusScript = document.getElementById('skill-context-hint-statuses');
+
+    if (!pillsContainer || !hiddenField) return;
+
+    const canEditContext = Boolean(btn && picker && searchInput && resultsContainer);
+    let selectedItems = [];
+    let fetchCtrl = null;
+    let contextHintStatuses = {};
+
+    if (statusScript) {
+      try {
+        contextHintStatuses = JSON.parse(statusScript.textContent || '{}');
+      } catch (e) {
+        contextHintStatuses = {};
+      }
+    }
+    window.skillContextHintStatuses = contextHintStatuses;
+
+    const TYPE_ICONS = {tool:'bi-tools', library:'bi-collection', folder:'bi-folder', document:'bi-file-earmark-text', skill:'bi-lightbulb'};
+    const TYPE_LABELS = {tool: '{% trans "Tools" %}', library: '{% trans "Libraries" %}', folder: '{% trans "Folders" %}', document: '{% trans "Documents" %}', skill: '{% trans "Skills" %}'};
+
+    try {
+      const existing = JSON.parse(hiddenField.value || '[]');
+      for (const h of existing) {
+        selectedItems.push({
+          type: h.type || '',
+          id: h.id || '',
+          name: h.name || '',
+          description: h.description || '',
+          icon: h.icon || '',
+          is_public: typeof h.is_public === 'boolean' ? h.is_public : null,
+          parent_library_public: typeof h.parent_library_public === 'boolean' ? h.parent_library_public : null,
+        });
+      }
+    } catch (e) {
+      selectedItems = [];
+    }
+    selectedItems.forEach(updateHintStatusMetadata);
+    renderPills();
+
+    if (!canEditContext) return;
+
+    picker.addEventListener('mousedown', (e) => e.stopPropagation());
+    picker.addEventListener('click', (e) => e.stopPropagation());
+
+    function openPicker() {
+      picker.classList.remove('d-none');
+      requestAnimationFrame(() => {
+        searchInput.value = '';
+        searchInput.focus();
+      });
+      fetchItems('');
+      setTimeout(() => document.addEventListener('mousedown', outsideClick, true), 0);
+      document.addEventListener('keydown', escHandler, true);
+    }
+
+    function closePicker() {
+      picker.classList.add('d-none');
+      document.removeEventListener('mousedown', outsideClick, true);
+      document.removeEventListener('keydown', escHandler, true);
+    }
+
+    function outsideClick(e) {
+      if (!picker.contains(e.target) && e.target !== btn && !btn.contains(e.target)) {
+        closePicker();
+      }
+    }
+
+    function escHandler(e) {
+      if (e.key === 'Escape') {
+        closePicker();
+        e.stopPropagation();
+      }
+    }
+
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      picker.classList.contains('d-none') ? openPicker() : closePicker();
+    });
+
+    const closeBtn = document.getElementById('skill-context-picker-close');
+    if (closeBtn) {
+      closeBtn.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+      });
+      closeBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        closePicker();
+      });
+    }
+
+    async function fetchItems(q) {
+      if (fetchCtrl) fetchCtrl.abort();
+      fetchCtrl = new AbortController();
+      const url = `/chat_next/id/${chatId}/context_autocomplete/?q=${encodeURIComponent(q)}`;
+      try {
+        resultsContainer.innerHTML = '<div class="text-center text-muted py-3"><span class="spinner-border spinner-border-sm"></span></div>';
+        const resp = await fetch(url, {signal: fetchCtrl.signal});
+        const data = await resp.json();
+        renderResults(data.items || []);
+      } catch (err) {
+        if (err.name !== 'AbortError') {
+          resultsContainer.innerHTML = '<div class="text-muted text-center py-3">Error</div>';
+        }
+      }
+    }
+
+    let searchTimeout = null;
+    searchInput.addEventListener('input', (e) => {
+      e.stopPropagation();
+      clearTimeout(searchTimeout);
+      searchTimeout = setTimeout(() => fetchItems(searchInput.value.trim()), 200);
+    });
+
+    function getIcon(item) {
+      return item.icon ? `bi-${item.icon}` : (TYPE_ICONS[item.type] || 'bi-circle');
+    }
+
+    function getItemStatus(item) {
+      return contextHintStatuses[`${item.type}:${item.id}`] || null;
+    }
+
+    function updateHintStatusMetadata(item) {
+      const key = `${item.type}:${item.id}`;
+      const current = contextHintStatuses[key] || {broken: false, message: ''};
+
+      if (item.type === 'library' && typeof item.is_public === 'boolean') {
+        contextHintStatuses[key] = {...current, is_public: item.is_public};
+      } else if (item.type === 'folder' && typeof item.parent_library_public === 'boolean') {
+        contextHintStatuses[key] = {...current, is_public: item.parent_library_public};
+      } else if (!contextHintStatuses[key]) {
+        contextHintStatuses[key] = current;
+      }
+
+      window.skillContextHintStatuses = contextHintStatuses;
+    }
+
+    function renderResults(items) {
+      const keys = new Set(selectedItems.map((i) => `${i.type}:${i.id}`));
+      if (!items.length) {
+        resultsContainer.innerHTML = '<div class="text-muted text-center py-3">No items found</div>';
+        return;
+      }
+
+      const groups = {};
+      for (const item of items) {
+        if (!groups[item.type]) groups[item.type] = [];
+        groups[item.type].push(item);
+      }
+
+      let html = '';
+      for (const type of ['tool', 'library', 'folder', 'document', 'skill']) {
+        if (!groups[type]) continue;
+        html += `<div class="context-picker-group"><div class="context-picker-group-label">${TYPE_LABELS[type] || type}</div>`;
+        for (const item of groups[type]) {
+          const icon = getIcon(item);
+          const key = `${item.type}:${item.id}`;
+          const selected = keys.has(key);
+          const title = item.description ? `${item.name} — ${item.description}` : item.name;
+          const isPublicAttr = Object.prototype.hasOwnProperty.call(item, 'is_public')
+            ? ` data-is-public="${item.is_public ? '1' : '0'}"`
+            : '';
+          const parentLibraryPublicAttr = Object.prototype.hasOwnProperty.call(item, 'parent_library_public')
+            ? ` data-parent-library-public="${item.parent_library_public ? '1' : '0'}"`
+            : '';
+          html += `<button type="button" class="context-picker-item${selected ? ' selected' : ''}" data-type="${item.type}" data-id="${item.id}" data-name="${esc(item.name)}" data-description="${esc(item.description || '')}" data-icon="${esc(item.icon || '')}"${isPublicAttr}${parentLibraryPublicAttr} title="${esc(title)}">`;
+          html += `<i class="bi ${icon} me-2"></i><span class="context-picker-item-name">${escH(item.name)}</span>`;
+          if (item.description) html += `<span class="context-picker-item-desc ms-2 text-muted">${escH(item.description)}</span>`;
+          html += '</button>';
+        }
+        html += '</div>';
+      }
+
+      resultsContainer.innerHTML = html;
+      resultsContainer.querySelectorAll('.context-picker-item').forEach((itemButton) => {
+        itemButton.addEventListener('mousedown', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+        });
+        itemButton.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const data = {
+            type: itemButton.dataset.type,
+            id: itemButton.dataset.id,
+            name: itemButton.dataset.name,
+            description: itemButton.dataset.description,
+            icon: itemButton.dataset.icon || '',
+            is_public: itemButton.dataset.isPublic === '' ? null : itemButton.dataset.isPublic === '1',
+            parent_library_public: itemButton.dataset.parentLibraryPublic === '' ? null : itemButton.dataset.parentLibraryPublic === '1',
+          };
+          const key = `${data.type}:${data.id}`;
+          if (keys.has(key)) {
+            removeItem(data.type, data.id);
+            itemButton.classList.remove('selected');
+            keys.delete(key);
+          } else {
+            updateHintStatusMetadata(data);
+            addItem(data);
+            itemButton.classList.add('selected');
+            keys.add(key);
+          }
+          searchInput.focus();
+        });
+      });
+    }
+
+    function addItem(item) {
+      if (selectedItems.some((i) => `${i.type}:${i.id}` === `${item.type}:${item.id}`)) return;
+      selectedItems.push(item);
+      renderPills();
+      syncField();
+    }
+
+    function removeItem(type, id) {
+      selectedItems = selectedItems.filter((item) => !(item.type === type && String(item.id) === String(id)));
+      renderPills();
+      syncField();
+    }
+
+    function renderPills() {
+      if (!selectedItems.length) {
+        pillsContainer.innerHTML = '';
+        return;
+      }
+
+      let html = '';
+      for (const item of selectedItems) {
+        const icon = item.icon ? `bi-${item.icon}` : (TYPE_ICONS[item.type] || 'bi-circle');
+        const status = getItemStatus(item);
+        const isBroken = Boolean(status && status.broken);
+        const openUrl = !isBroken && typeof window.buildContextHintLibrarianUrl === 'function'
+          ? window.buildContextHintLibrarianUrl(chatId, item)
+          : '';
+        const pillClass = `${canEditContext ? 'context-pill' : 'context-pill context-pill-static'}${isBroken ? ' context-pill-broken' : ''}${openUrl ? ' context-pill-openable' : ''}`;
+        const title = isBroken
+          ? (status.message || 'Broken link')
+          : (item.description ? `${item.name} — ${item.description}` : item.name);
+        const openableAttrs = openUrl
+          ? ` data-open-url="${esc(openUrl)}" role="button" tabindex="0" aria-label="${esc(title)}"`
+          : '';
+        html += `<span class="${pillClass}" data-type="${item.type}" data-id="${item.id}" title="${esc(title)}"${openableAttrs}>`;
+        html += `<span class="context-pill-icon"><i class="bi ${icon}"></i></span>`;
+        if (canEditContext) {
+          html += '<button type="button" class="context-pill-remove" aria-label="Remove"><i class="bi bi-x"></i></button>';
+        }
+        html += `<span class="context-pill-label">${escH(item.name)}</span>`;
+        if (isBroken) {
+          html += '<span class="context-pill-broken-indicator" aria-hidden="true"><i class="bi bi-exclamation-circle"></i></span>';
+        }
+        html += '</span>';
+      }
+
+      pillsContainer.innerHTML = html;
+      if (!canEditContext) return;
+
+      pillsContainer.querySelectorAll('.context-pill-remove').forEach((removeButton) => {
+        removeButton.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const pill = removeButton.closest('.context-pill');
+          removeItem(pill.dataset.type, pill.dataset.id);
+          if (!picker.classList.contains('d-none')) {
+            fetchItems(searchInput.value.trim());
+          }
+        });
+      });
+    }
+
+    function syncField() {
+      hiddenField.value = selectedItems.length
+        ? JSON.stringify(selectedItems.map((item) => ({type: item.type, id: item.id, name: item.name, description: item.description || '', icon: item.icon || ''})))
+        : '[]';
+    }
+
+    function esc(s) {
+      return (s || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g , '&lt;').replace( />/g, '&gt;');
+    }
+
+    function escH(s) {
+      const div = document.createElement('div');
+      div.textContent = s || '';
+      return div.innerHTML;
+    }
+
+    searchInput.addEventListener('keydown', (e) => {
+      e.stopPropagation();
+      const items = resultsContainer.querySelectorAll('.context-picker-item');
+      if (e.key === 'ArrowDown' && items.length) {
+        e.preventDefault();
+        items[0].focus();
+      } else if (e.key === 'Enter' && items.length) {
+        e.preventDefault();
+        items[0].click();
+      }
+    });
+
+    resultsContainer.addEventListener('keydown', (e) => {
+      e.stopPropagation();
+      if (!['ArrowDown', 'ArrowUp', 'Enter'].includes(e.key)) return;
+      e.preventDefault();
+      const items = Array.from(resultsContainer.querySelectorAll('.context-picker-item'));
+      const idx = items.indexOf(document.activeElement);
+      if (e.key === 'ArrowDown' && idx < items.length - 1) items[idx + 1].focus();
+      else if (e.key === 'ArrowUp') {
+        if (idx <= 0) searchInput.focus();
+        else items[idx - 1].focus();
+      } else if (e.key === 'Enter' && idx >= 0) {
+        items[idx].click();
+      }
+    });
+  })();
+</script>
+
+<script>
+  (function() {
+    const chatId = "{{ chat_id }}";
+    const tagLang = "{{ tag_display_lang|default:'en' }}";
+    const input = document.getElementById('skill-tag-input');
+    const dropdown = document.getElementById('skill-tag-dropdown');
+    const pillsContainer = document.getElementById('skill-tag-pills');
+    const hiddenField = document.getElementById('skill-tags-hidden');
+
+    if (!pillsContainer || !hiddenField) return;
+
+    const canEditTags = Boolean(input && dropdown);
+    let tags = [];
+    let fetchCtrl = null;
+    let searchTimeout = null;
+
+    try {
+      tags = JSON.parse(hiddenField.value || '[]');
+    } catch (e) {
+      tags = [];
+    }
+
+    renderPills();
+
+    hiddenField.addEventListener('change', () => {
+      try {
+        tags = JSON.parse(hiddenField.value || '[]');
+      } catch (e) {
+        tags = [];
+      }
+      renderPills();
+    });
+
+    if (!canEditTags) return;
+
+    input.addEventListener('input', () => {
+      clearTimeout(searchTimeout);
+      searchTimeout = setTimeout(() => fetchTags(input.value.trim()), 200);
+    });
+    input.addEventListener('focus', () => fetchTags(input.value.trim()));
+    input.addEventListener('keydown', (e) => {
+      e.stopPropagation();
+      if (e.key === 'Escape') {
+        closeDropdown();
+        return;
+      }
+      const items = dropdown.querySelectorAll('.skill-tag-option');
+      if (e.key === 'ArrowDown' && items.length) {
+        e.preventDefault();
+        items[0].focus();
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        if (items.length) items[0].click();
+      }
+    });
+
+    dropdown.addEventListener('keydown', (e) => {
+      e.stopPropagation();
+      if (!['ArrowDown', 'ArrowUp', 'Enter', 'Escape'].includes(e.key)) return;
+      e.preventDefault();
+      if (e.key === 'Escape') {
+        closeDropdown();
+        input.focus();
+        return;
+      }
+      const items = Array.from(dropdown.querySelectorAll('.skill-tag-option'));
+      const idx = items.indexOf(document.activeElement);
+      if (e.key === 'ArrowDown' && idx < items.length - 1) items[idx + 1].focus();
+      else if (e.key === 'ArrowUp') {
+        if (idx <= 0) input.focus();
+        else items[idx - 1].focus();
+      } else if (e.key === 'Enter' && idx >= 0) {
+        items[idx].click();
+      }
+    });
+
+    document.addEventListener('mousedown', (e) => {
+      if (!dropdown.contains(e.target) && e.target !== input) {
+        closeDropdown();
+      }
+    });
+
+    function closeDropdown() {
+      dropdown.classList.add('d-none');
+    }
+
+    async function fetchTags(q) {
+      if (fetchCtrl) fetchCtrl.abort();
+      fetchCtrl = new AbortController();
+      const url = `/chat_next/id/${chatId}/skills/tags/autocomplete/?q=${encodeURIComponent(q)}&lang=${tagLang}`;
+      try {
+        const resp = await fetch(url, {signal: fetchCtrl.signal});
+        const data = await resp.json();
+        renderDropdown(data.tags || []);
+      } catch (err) {
+        if (err.name !== 'AbortError') {
+          closeDropdown();
+        }
+      }
+    }
+
+    function renderDropdown(items) {
+      if (!items.length) {
+        closeDropdown();
+        return;
+      }
+      const existingIds = new Set(tags.map((tag) => String(tag.id)));
+      let html = '';
+      for (const item of items) {
+        if (item.id && existingIds.has(String(item.id))) continue;
+        const label = item.is_new
+          ? `<i class="bi bi-plus-lg me-1"></i>${escH(item.display)}`
+          : `${escH(item.display)} <span class="text-muted small">(${item.count})</span>`;
+        html += `<button type="button" class="skill-tag-option dropdown-item" data-id="${item.id || ''}" data-name-en="${esc(item.name_en || '')}" data-name-fr="${esc(item.name_fr || '')}" data-display="${esc(item.display)}" data-is-new="${item.is_new ? '1' : ''}">${label}</button>`;
+      }
+      if (!html) {
+        closeDropdown();
+        return;
+      }
+      dropdown.innerHTML = html;
+      dropdown.classList.remove('d-none');
+      dropdown.querySelectorAll('.skill-tag-option').forEach((optionButton) => {
+        optionButton.addEventListener('mousedown', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+        });
+        optionButton.addEventListener('click', (e) => {
+          e.preventDefault();
+          const data = optionButton.dataset;
+          tags.push({
+            id: data.id || null,
+            name_en: data.nameEn || '',
+            name_fr: data.nameFr || '',
+            display: data.display,
+            is_new: data.isNew === '1',
+          });
+          input.value = '';
+          syncField();
+          renderPills();
+          closeDropdown();
+          input.focus();
+        });
+      });
+    }
+
+    function renderPills() {
+      if (!tags.length) {
+        pillsContainer.innerHTML = '';
+        return;
+      }
+
+      let html = '';
+      for (let i = 0; i < tags.length; i += 1) {
+        const tag = tags[i];
+        const label = tag.display || tag.name_en || tag.name_fr;
+        if (canEditTags) {
+          html += '<span class="badge bg-secondary d-inline-flex align-items-center gap-1 pe-1">';
+          html += `${escH(label)}`;
+          html += `<button type="button" class="btn-close btn-close-white ms-1" style="font-size:0.5rem" data-idx="${i}" aria-label="Remove"></button></span>`;
+        } else {
+          html += `<span class="badge text-bg-light border">${escH(label)}</span>`;
+        }
+      }
+      pillsContainer.innerHTML = html;
+
+      if (!canEditTags) return;
+
+      pillsContainer.querySelectorAll('.btn-close').forEach((removeButton) => {
+        removeButton.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          tags.splice(parseInt(removeButton.dataset.idx, 10), 1);
+          syncField();
+          renderPills();
+          hiddenField.dispatchEvent(new Event('change'));
+        });
+      });
+    }
+
+    function syncField() {
+      hiddenField.value = JSON.stringify(tags);
+    }
+
+    function esc(s) {
+      return (s || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g , '&lt;').replace( />/g, '&gt;');
+    }
+
+    function escH(s) {
+      const div = document.createElement('div');
+      div.textContent = s || '';
+      return div.innerHTML;
+    }
+  })();
+</script>
+
+{% if can_edit %}
+  <script>
+  (function() {
+    const chatId = "{{ chat_id }}";
+    const tagLang = "{{ tag_display_lang|default:'en' }}";
+    const bodyEn = document.getElementById('id_body_en');
+    const bodyFr = document.getElementById('id_body_fr');
+    const nameEn = document.getElementById('id_display_name_en');
+    const nameFr = document.getElementById('id_display_name_fr');
+    const descEn = document.getElementById('id_description_en');
+    const descFr = document.getElementById('id_description_fr');
+    const hidden = document.getElementById('skill-tags-hidden');
+    const suggestionsContainer = document.getElementById('suggested-tags-pills');
+
+    if (!bodyEn || !hidden || !suggestionsContainer) return;
+
+    let suggestCtrl = null;
+    let suggestTimeout = null;
+    let latestSuggestions = [];
+
+    function getSelectedTags() {
+      try {
+        return JSON.parse(hidden.value || '[]');
+      } catch (e) {
+        return [];
+      }
+    }
+
+    function addSuggestedTag(tag) {
+      const tags = getSelectedTags();
+      if (tags.some((existing) => String(existing.id) === String(tag.id))) return;
+      tags.push({
+        id: tag.id,
+        name_en: tag.name_en,
+        name_fr: tag.name_fr,
+        display: tagLang === 'fr' ? (tag.name_fr || tag.name_en) : tag.name_en,
+        is_new: false,
+      });
+      hidden.value = JSON.stringify(tags);
+      hidden.dispatchEvent(new Event('change'));
+      renderSuggestions(latestSuggestions);
+    }
+
+    async function fetchSuggestions() {
+      const content = [
+        nameEn ? nameEn.value : '',
+        nameFr ? nameFr.value : '',
+        descEn ? descEn.value : '',
+        descFr ? descFr.value : '',
+        bodyEn.value || '',
+        bodyFr ? bodyFr.value || '' : '',
+      ].join('\n');
+
+      if (content.trim().length < 3) {
+        latestSuggestions = [];
+        renderSuggestions([]);
+        return;
+      }
+
+      if (suggestCtrl) suggestCtrl.abort();
+      suggestCtrl = new AbortController();
+      const url = `/chat_next/id/${chatId}/skills/tags/suggest/?content=${encodeURIComponent(content.substring(0, 2000))}&lang=${tagLang}`;
+      try {
+        const resp = await fetch(url, {signal: suggestCtrl.signal});
+        const data = await resp.json();
+        latestSuggestions = data.tags || [];
+        renderSuggestions(latestSuggestions);
+      } catch (err) {
+        if (err.name !== 'AbortError') {
+          latestSuggestions = [];
+          renderSuggestions([]);
+        }
+      }
+    }
+
+    function renderSuggestions(tags) {
+      const existing = new Set(getSelectedTags().map((tag) => String(tag.id)));
+      const filtered = tags.filter((tag) => tag.id && !existing.has(String(tag.id)));
+      if (!filtered.length) {
+        suggestionsContainer.innerHTML = '<span class="text-muted small">—</span>';
+        return;
+      }
+      const escH = (value) => {
+        const div = document.createElement('div');
+        div.textContent = value || '';
+        return div.innerHTML;
+      };
+      let html = '';
+      for (const tag of filtered.slice(0, 5)) {
+        const display = tagLang === 'fr' ? (tag.name_fr || tag.name_en) : tag.name_en;
+        html += `<button type="button" class="badge border suggest-tag-btn" data-id="${tag.id}" data-name-en="${escH(tag.name_en)}" data-name-fr="${escH(tag.name_fr)}" style="cursor:pointer;font-weight:normal"><i class="bi bi-plus-lg me-1"></i>${escH(display)}</button>`;
+      }
+      suggestionsContainer.innerHTML = html;
+      suggestionsContainer.querySelectorAll('.suggest-tag-btn').forEach((button) => {
+        button.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          addSuggestedTag({
+            id: parseInt(button.dataset.id, 10),
+            name_en: button.dataset.nameEn,
+            name_fr: button.dataset.nameFr,
+          });
+        });
+      });
+    }
+
+    function scheduleSuggest() {
+      clearTimeout(suggestTimeout);
+      suggestTimeout = setTimeout(fetchSuggestions, 800);
+    }
+
+    [bodyEn, bodyFr, nameEn, nameFr, descEn, descFr].forEach((element) => {
+      if (element) element.addEventListener('blur', scheduleSuggest);
+    });
+
+    hidden.addEventListener('change', () => {
+      renderSuggestions(latestSuggestions);
+    });
+
+    const hasInitialContent = [nameEn, nameFr, descEn, descFr, bodyEn, bodyFr]
+      .some((element) => element && element.value && element.value.trim().length >= 3);
+    if (hasInitialContent) {
+      scheduleSuggest();
+    }
+  })();
+  </script>
+
+  <script>
+  (function() {
+    const skillForm = document.getElementById('skill-form');
+    const skillModal = document.getElementById('chat-next-modal');
+    const modalBody = document.getElementById('chat-next-modal-content');
+    if (!skillForm || !skillModal) return;
+
+    function hashStr(str) {
+      let hash = 0;
+      for (let i = 0; i < str.length; i += 1) {
+        hash = ((hash << 5) - hash + str.charCodeAt(i)) | 0;
+      }
+      return hash;
+    }
+
+    function snapshotForm() {
+      const parts = [];
+
+      function addMultiValueHiddenField(name) {
+        const values = Array.from(
+          skillForm.querySelectorAll(`input[type="hidden"][name="${name}"]`)
+        )
+          .map((field) => field.value || '')
+          .filter((value) => value !== '')
+          .sort();
+        parts.push(`${name}=[${values.join(',')}]`);
+      }
+
+      skillForm.querySelectorAll('input[type="text"], input[type="email"], textarea').forEach((field) => {
+        if (field.id) parts.push(`${field.id}=${field.value}`);
+      });
+      skillForm.querySelectorAll('input[type="radio"], input[type="checkbox"]').forEach((field) => {
+        if (field.id) parts.push(`${field.id}=${field.checked}`);
+      });
+      ['skill-tags-hidden', 'skill-context-hints'].forEach((id) => {
+        const element = document.getElementById(id);
+        if (element) parts.push(`${id}=${element.value}`);
+      });
+      skillForm.querySelectorAll('input[type="hidden"][name="sharing_option"], select').forEach((field) => {
+        if (field.name) parts.push(`${field.name}=${field.value || ''}`);
+      });
+      addMultiValueHiddenField('accessible_to');
+      addMultiValueHiddenField('editable_by');
+      return hashStr(parts.join('\n'));
+    }
+
+    const originalHash = snapshotForm();
+
+    function isDirty() {
+      if (!document.contains(skillForm)) return false;
+      return snapshotForm() !== originalHash;
+    }
+
+    if (skillModal._skillDirtyHandler) {
+      skillModal.removeEventListener('hide.bs.modal', skillModal._skillDirtyHandler);
+    }
+
+    let bypassNextHideConfirm = false;
+
+    function onModalHide(e) {
+      if (bypassNextHideConfirm) {
+        bypassNextHideConfirm = false;
+        return;
+      }
+      if (isDirty()) {
+        if (!confirm('You have unsaved changes to this skill. Are you sure you want to close without saving?')) {
+          e.preventDefault();
+        }
+      }
+    }
+
+    skillModal._skillDirtyHandler = onModalHide;
+    skillModal.addEventListener('hide.bs.modal', onModalHide);
+
+    if (skillModal._skillDirtyNavHandler) {
+      skillModal.removeEventListener('click', skillModal._skillDirtyNavHandler, true);
+    }
+
+    function onNavClickCapture(e) {
+      if (!modalBody || !document.contains(skillForm)) return;
+      const trigger = e.target.closest('[hx-get]');
+      if (!trigger || !modalBody.contains(trigger)) return;
+
+      const targetSelector = trigger.getAttribute('hx-target') || '';
+      if (targetSelector !== '#chat-next-modal-content') return;
+
+      if (isDirty()) {
+        if (!confirm('You have unsaved changes to this skill. Are you sure you want to close without saving?')) {
+          e.preventDefault();
+          e.stopImmediatePropagation();
+          return;
+        }
+      }
+
+      bypassNextHideConfirm = true;
+    }
+
+    skillModal._skillDirtyNavHandler = onNavClickCapture;
+    skillModal.addEventListener('click', onNavClickCapture, true);
+
+    const skillFormPostUrl = skillForm.getAttribute('hx-post') || '';
+
+    skillForm.addEventListener('htmx:beforeRequest', (event) => {
+      const requestPath = event?.detail?.requestConfig?.path || '';
+      if (requestPath !== skillFormPostUrl) return;
+
+      skillModal.removeEventListener('hide.bs.modal', onModalHide);
+      skillModal._skillDirtyHandler = null;
+      if (skillModal._skillDirtyNavHandler) {
+        skillModal.removeEventListener('click', skillModal._skillDirtyNavHandler, true);
+        skillModal._skillDirtyNavHandler = null;
+      }
+    });
+  })();
+  </script>
+{% endif %}
+
+{% if skill %}
+  <script>
+  (function() {
+    var topToggle = document.getElementById('current-skill-enabled-toggle');
+    if (!topToggle) return;
+    var skillId = topToggle.getAttribute('data-skill-id');
+    if (!skillId) return;
+
+    // When the right-pane toggle changes, sync the matching left-pane toggle
+    topToggle.addEventListener('change', function() {
+      var left = document.querySelector('#active-skills-panel input[data-skill-id="' + skillId + '"]');
+      if (left) left.checked = topToggle.checked;
+    });
+
+    // When a left-pane toggle changes, sync the right-pane toggle if it matches
+    var panel = document.getElementById('active-skills-panel');
+    if (panel) {
+      panel.addEventListener('change', function(e) {
+        var input = e.target;
+        if (input.getAttribute('data-skill-id') === skillId) {
+          topToggle.checked = input.checked;
+        }
+      });
+    }
+  })();
+  </script>
+{% endif %}
+
+{% if is_admin and skill %}
+  <script>
+  (function() {
+    var featuredToggle = document.getElementById('current-skill-featured-toggle');
+    if (!featuredToggle) return;
+    featuredToggle.addEventListener('change', function() {
+      var badge = document.getElementById('featured-badge');
+      if (badge) badge.classList.toggle('d-none', !featuredToggle.checked);
+    });
+  })();
+  </script>
+{% endif %}
+
+{% if can_edit %}
+  <script>
+  (function() {
+    const skillForm = document.getElementById('skill-form');
+    const uploadForm = document.getElementById('skill-upload-form');
+    const uploadMessage = document.getElementById('skill-upload-message');
+    const uploadProgressFiles = document.getElementById('skill-upload-progress-files');
+    const fileInput = document.getElementById('id_skill-input_file');
+    const isNewSkill = {% if skill %}false{% else %}true{% endif %};
+
+    if (!uploadForm || !fileInput || !uploadProgressFiles) return;
+
+    const metadata = {};
+
+    function addMirroredInput(name, value) {
+      const input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = name;
+      input.value = value || '';
+      input.className = 'skill-upload-mirror';
+      uploadForm.appendChild(input);
+    }
+
+    function syncCreateFormIntoUploadForm() {
+      if (!isNewSkill || !skillForm) return;
+
+      uploadForm.querySelectorAll('.skill-upload-mirror').forEach((element) => element.remove());
+
+      [
+        'display_name_en',
+        'display_name_fr',
+        'description_en',
+        'description_fr',
+        'body_en',
+        'body_fr',
+        'context_hints',
+        'skill_tags',
+      ].forEach((name) => {
+        const source = skillForm.querySelector(`[name="${name}"]`);
+        if (source) addMirroredInput(name, source.value);
+      });
+
+      const sharingOption = skillForm.querySelector('input[name="sharing_option"]:checked');
+      if (sharingOption) addMirroredInput('sharing_option', sharingOption.value);
+
+      ['accessible_to', 'editable_by'].forEach((name) => {
+        skillForm.querySelectorAll(`[name="${name}"]`).forEach((source) => {
+          if (source.disabled || source.type === 'file') return;
+          addMirroredInput(name, source.value);
+        });
+      });
+    }
+
+    function submitUploadsIfComplete() {
+      const filesContainer = uploadProgressFiles;
+      if (!filesContainer) return;
+
+      const allDone = Array.from(filesContainer.querySelectorAll('.dff-file')).every(function(f) {
+        return f.classList.contains('dff-upload-success') || f.classList.contains('dff-upload-fail');
+      });
+
+      const successCount = filesContainer.querySelectorAll('.dff-file.dff-upload-success').length;
+
+      if (allDone && successCount > 0) {
+        syncCreateFormIntoUploadForm();
+        htmx.ajax('POST', uploadForm.getAttribute('hx-post'), {
+          source: uploadForm,
+          target: uploadForm.getAttribute('hx-target'),
+          swap: uploadForm.getAttribute('hx-swap')
+        });
+      } else if (allDone && successCount === 0) {
+        if (uploadMessage) uploadMessage.classList.add('d-none');
+      }
+    }
+
+    function hideIfNoFiles() {
+      if (uploadProgressFiles.querySelectorAll('.dff-file').length === 0 && uploadMessage) {
+        uploadMessage.classList.add('d-none');
+      }
+    }
+
+    if (typeof initUploadFields === 'function') {
+      initUploadFields(uploadForm, {
+        prefix: 'skill',
+        supportDropArea: true,
+        callbacks: {
+          onSuccess: function(upload) {
+            try {
+              metadata[upload.name] = {type: upload.upload.file.type};
+              var metaField = document.querySelector('#id_skill-input_file-metadata');
+              if (metaField) metaField.value = JSON.stringify(metadata);
+              submitUploadsIfComplete();
+            } catch (e) { console.error(e); }
+          },
+          onError: function() { submitUploadsIfComplete(); },
+          onDelete: function(upload) {
+            try {
+              delete metadata[upload.name];
+              var metaField = document.querySelector('#id_skill-input_file-metadata');
+              if (metaField) metaField.value = JSON.stringify(metadata);
+              submitUploadsIfComplete();
+              hideIfNoFiles();
+            } catch (e) { console.error(e); }
+          },
+          onProgress: function() {}
+        }
+      });
+    }
+
+    const moveFilesContainer = setInterval(function() {
+      const filesContainer = uploadForm.querySelector('.dff-files');
+      if (filesContainer && !uploadProgressFiles.contains(filesContainer)) {
+        clearInterval(moveFilesContainer);
+        uploadProgressFiles.appendChild(filesContainer);
+      }
+    }, 100);
+
+    setTimeout(() => clearInterval(moveFilesContainer), 5000);
+
+    fileInput.addEventListener('change', function() {
+      if (uploadMessage) uploadMessage.classList.remove('d-none');
+    });
+  })();
+  </script>
+
+  <script>
+  (function() {
+    const dropZone = document.getElementById('skill-file-dropzone');
+    const fileInput = document.getElementById('id_skill-input_file');
+
+    if (!dropZone || !fileInput) return;
+
+    if (window._skillFileDropzoneHandlers) {
+      document.removeEventListener('dragenter', window._skillFileDropzoneHandlers.onDragEnter);
+      window._skillFileDropzoneHandlers.dropZone.removeEventListener('dragover', window._skillFileDropzoneHandlers.preventDefault);
+      window._skillFileDropzoneHandlers.dropZone.removeEventListener('dragleave', window._skillFileDropzoneHandlers.onDragLeave);
+      window._skillFileDropzoneHandlers.dropZone.removeEventListener('dragexit', window._skillFileDropzoneHandlers.onDragLeave);
+      window._skillFileDropzoneHandlers.dropZone.removeEventListener('drop', window._skillFileDropzoneHandlers.onDrop);
+    }
+
+    function isSkillModalActive() {
+      return Boolean(document.querySelector('#chat-next-modal.show [data-chat-next-modal-view="skill-editor"]'));
+    }
+
+    function showDropZone() {
+      dropZone.classList.add('show');
+    }
+
+    function hideDropZone() {
+      dropZone.classList.remove('show');
+    }
+
+    function hasFiles(e) {
+      const dt = e && e.dataTransfer;
+      return Boolean(dt && Array.from(dt.types || []).includes('Files'));
+    }
+
+    function preventDefault(e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+
+    function onDragEnter(e) {
+      if (!isSkillModalActive() || !hasFiles(e)) return;
+      showDropZone();
+      e.stopPropagation();
+    }
+
+    function onDrop(e) {
+      if (!isSkillModalActive()) return;
+      preventDefault(e);
+      fileInput.value = null;
+      fileInput.files = e.dataTransfer.files;
+      fileInput.dispatchEvent(new Event('change'));
+      hideDropZone();
+    }
+
+    function onDragLeave(e) {
+      if (!e.relatedTarget || !dropZone.contains(e.relatedTarget)) {
+        hideDropZone();
+      }
+    }
+
+    document.addEventListener('dragenter', onDragEnter);
+    dropZone.addEventListener('dragover', preventDefault);
+    dropZone.addEventListener('dragleave', onDragLeave);
+    dropZone.addEventListener('dragexit', onDragLeave);
+    dropZone.addEventListener('drop', onDrop);
+
+    window._skillFileDropzoneHandlers = {
+      dropZone,
+      preventDefault,
+      onDragEnter,
+      onDragLeave,
+      onDrop,
+    };
+  })();
+  </script>
+{% endif %}
+
+{% if can_edit %}
+  <script>
+  (function() {
+    // Check for non-public folder/library context hints and show a warning
+    // when the skill is shared (everyone or others)
+    const skillForm = document.getElementById('skill-form');
+    const hiddenField = document.getElementById('skill-context-hints');
+    const statusScript = document.getElementById('skill-context-hint-statuses');
+    const warningDiv = document.getElementById('skill-context-sharing-warning');
+    const warningText = document.getElementById('skill-context-sharing-warning-text');
+    const sharingInputs = skillForm
+      ? skillForm.querySelectorAll('input[name="sharing_option"]')
+      : [];
+    const skillDataSourceId = "{{ skill_data_source_id|default:'' }}";
+
+    if (!hiddenField || !warningDiv || !warningText) return;
+
+    const nonPublicWarningMsg = "{% trans 'This skill references non-public folders or libraries. Sharing this skill may expose more information than intended.' %}";
+    let contextHintStatuses = window.skillContextHintStatuses || {};
+
+    if (!Object.keys(contextHintStatuses).length && statusScript) {
+      try {
+        contextHintStatuses = JSON.parse(statusScript.textContent || '{}');
+      } catch (e) {
+        contextHintStatuses = {};
+      }
+      window.skillContextHintStatuses = contextHintStatuses;
+    }
+
+    function getHintStatus(hint) {
+      return window.skillContextHintStatuses?.[`${hint.type}:${hint.id}`]
+        || contextHintStatuses[`${hint.type}:${hint.id}`]
+        || null;
+    }
+
+    function isBrokenHint(hint) {
+      const status = getHintStatus(hint);
+      return Boolean(status && status.broken);
+    }
+
+    function getSharingOptionValue() {
+      if (!skillForm) return null;
+      const selectedOption = skillForm.querySelector('input[name="sharing_option"]:checked');
+      if (selectedOption) return selectedOption.value;
+      const hiddenOption = skillForm.querySelector('input[type="hidden"][name="sharing_option"]');
+      return hiddenOption ? hiddenOption.value : null;
+    }
+
+    function checkContextSharingWarning() {
+      const sharingOption = getSharingOptionValue();
+      if (!sharingOption || sharingOption === 'private') {
+        warningDiv.classList.add('d-none');
+        return;
+      }
+
+      let hints = [];
+      try {
+        hints = JSON.parse(hiddenField.value || '[]');
+      } catch (e) {
+        hints = [];
+      }
+
+      // Check if any folder or library hints are NOT the skill's own data source
+      const nonOwnFolderOrLib = hints.filter((h) => {
+        const status = getHintStatus(h);
+        if (isBrokenHint(h)) return false;
+        if (h.type === 'library') return !(status && status.is_public);
+        if (h.type === 'folder' && String(h.id) !== String(skillDataSourceId)) {
+          return !(status && status.is_public);
+        }
+        return false;
+      });
+
+      if (nonOwnFolderOrLib.length > 0) {
+        warningText.textContent = nonPublicWarningMsg;
+        warningDiv.classList.remove('d-none');
+      } else {
+        warningDiv.classList.add('d-none');
+      }
+    }
+
+    // Listen for changes to sharing option
+    sharingInputs.forEach((input) => {
+      input.addEventListener('change', checkContextSharingWarning);
+    });
+
+    // Listen for changes to context hints (when pills are added/removed)
+    const observer = new MutationObserver(checkContextSharingWarning);
+    observer.observe(hiddenField, { attributes: true, attributeFilter: ['value'] });
+    // Also listen for programmatic value changes
+    const origSet = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set;
+    Object.defineProperty(hiddenField, 'value', {
+      set(v) {
+        origSet.call(this, v);
+        checkContextSharingWarning();
+      },
+      get() {
+        return Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').get.call(this);
+      }
+    });
+
+    // Initial check
+    checkContextSharingWarning();
+  })();
+  </script>
+{% endif %}

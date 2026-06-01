@@ -2,7 +2,9 @@
 {% load chat_extras %}
 
 <li class="chat-list-item{% if chat.id|stringformat:"s" == current_chat_id|stringformat:"s" %} current{% endif %}"
-    id="chat-list-item-{{ chat.id }}">
+    id="chat-list-item-{{ chat.id }}"
+    data-title-pending="{% if chat.is_title_pending %}true{% else %}false{% endif %}"
+    {% if swap_oob %}hx-swap-oob="outerHTML"{% endif %}>
   <div class="row border-bottom py-2 flex-nowrap">
     <div class="col pe-2 overflow-x-hidden">
       <a href="{% url 'chat:chat' chat_id=chat.id %}{% if search %}?search={{ search|urlencode }}{% endif %}{% if chat.matched_message_id %}#message_{{ chat.matched_message_id }}{% endif %}"

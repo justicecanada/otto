@@ -1,0 +1,17 @@
+{% load i18n %}
+{% get_current_language as LANGUAGE_CODE %}
+data-external-approval-warning-label="{% trans 'Warning' %}"
+data-external-approval-warning-text="{% trans 'Sending a request to a database outside the Government of Canada where the request may be viewed. Outgoing data must not be Protected, Classified or privileged information according to Justice’s Handling and Safeguarding Sensitive Information.' %}"
+data-external-approval-warning-text-prefix="{% trans 'Sending a request to a database outside the Government of Canada where the request may be viewed. Outgoing data must not be Protected, Classified or privileged information according to Justice’s' %}"
+data-external-approval-policy-link-text="{% trans 'Handling and Safeguarding Sensitive Information' %}"
+data-external-approval-policy-link-url="
+{% if LANGUAGE_CODE|slice:':2' == 'fr' %}
+  https://collaboration.justice.gc.ca/co/ssms-sssgu/Documents/Guidelines%20and%20Policies/Handling-Safeguarding-sensitive-information2025-fr.pdf
+{% else %}
+  https://collaboration.justice.gc.ca/co/ssms-sssgu/Documents/Guidelines%20and%20Policies/Handling-Safeguarding-sensitive-information2025-en.pdf
+{% endif %}
+"
+data-external-approval-warning-text-suffix="."
+data-external-approval-approve-text="{% trans 'Query contains no Protected, Classified or privileged information' %}"
+data-external-approval-deny-text="{% trans 'Deny' %}"
+data-external-approval-estimated-cost-text="{% trans 'Estimated cost' %}"

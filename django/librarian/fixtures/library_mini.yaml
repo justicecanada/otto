@@ -16,17 +16,17 @@
           name_en: Collective Agreements
           name_fr: Conventions collectives
           documents:
-            - fields: 
-                url: https://www.tbs-sct.canada.ca/agreements-conventions/view-visualiser-eng.aspx?id=4
             - fields:
-                url: https://www.tbs-sct.canada.ca/agreements-conventions/view-visualiser-eng.aspx?id=29
+                url: https://www.canada.ca/en/treasury-board-secretariat/topics/pay/collective-agreements/ec.html
             - fields:
-                url: https://www.tbs-sct.canada.ca/agreements-conventions/view-visualiser-eng.aspx?id=13
+                url: https://www.canada.ca/en/treasury-board-secretariat/topics/pay/collective-agreements/ct.html
             - fields:
-                url: https://www.tbs-sct.canada.ca/agreements-conventions/view-visualiser-eng.aspx?id=15
+                url: https://www.canada.ca/en/treasury-board-secretariat/topics/pay/collective-agreements/lp.html
+            - fields:
+                url: https://www.canada.ca/en/treasury-board-secretariat/topics/pay/collective-agreements/pa.html
       - fields:
-          name_en: Wikipedia
-          name_fr: Wikipédia
+          name_en: Canada.ca
+          name_fr: Canada.ca
           documents:
             - fields:
-                url: https://en.wikipedia.org/wiki/Glyph
+                url: https://www.canada.ca/en.html

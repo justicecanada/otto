@@ -1,0 +1,93 @@
+{% load i18n %}
+{% load rules %}
+{% load autocomplete %}
+
+{% has_perm "otto.can_switch_cost_groups" request.user as can_switch %}
+
+{# Debug: Uncomment to troubleshoot #}
+{# <div class="text-white small">can_switch: {{ can_switch }} | cost_groups: {{ cost_groups|length }} | active: {{ active_cost_group }}</div> #}
+
+{% if cost_groups %}
+  <div id="cost-group-switcher-container" class="d-none px-2">
+    {% if active_cost_group %}
+      <div class="d-flex align-items-center gap-2 text-nowrap"
+           id="selected-cost-group-container">
+        <span class="badge bg-success"
+              title="{% trans 'Costs will be tracked under this cost group' %}">
+          <i class="bi bi-receipt"></i>
+          {{ active_cost_group.name }}
+        </span>
+        {% if can_switch %}
+          <button class="btn btn-sm btn-link text-muted p-0"
+                  hx-post="{% url 'clear_cost_group' %}"
+                  hx-target="#cost-group-switcher-container"
+                  hx-swap="outerHTML"
+                  title="{% trans 'Clear cost group selection' %}">
+            <i class="bi bi-x-circle"></i>
+          </button>
+        {% endif %}
+      </div>
+    {% elif can_switch %}
+      <div class="d-flex align-items-center gap-2 text-nowrap"
+           id="selected-cost-group-container">
+        <span class="badge text-muted border">{% trans "No cost group selected" %}</span>
+        <button class="btn btn-sm btn-link text-muted p-0"
+                onclick="showCostGroupSelectionForm()"
+                title="{% trans 'Select a cost group to apply costs to' %}">
+          <i class="bi bi-plus-circle"></i>
+        </button>
+      </div>
+      <form id="cost-group-selection-form"
+            class="d-none"
+            hx-post="{% url 'select_cost_group' %}"
+            hx-target="#cost-group-switcher-container"
+            hx-swap="outerHTML">
+        {{ cost_group_selection_form.user_cost_groups }}
+      </form>
+    {% endif %}
+  </div>
+
+  <script>
+    // Listen for autocomplete selection changes and submit the form
+    document.addEventListener("htmx:afterSettle", function (event) {
+      if (event.target.id === "id_user_cost_groups") {
+        const form = document.getElementById("cost-group-selection-form");
+        if (form) {
+          htmx.trigger(form, "submit");
+        }
+      }
+    });
+    function showCostGroupSelectionForm() {
+      const container = document.getElementById("selected-cost-group-container");
+      if (container) {
+        container.classList.add("d-none");
+      }
+      const form = document.getElementById("cost-group-selection-form");
+      if (form) {
+        form.classList.remove("d-none");
+        const autocomplete = form.querySelector(".phac_aspc_form_autocomplete");
+        if (autocomplete) {
+          autocomplete.click();
+        }
+      }
+    }
+    (function(){
+      const form = document.getElementById("cost-group-selection-form");
+      const container = document.getElementById("selected-cost-group-container");
+      if (form) {
+        // Use focusout which bubbles up from child elements
+        form.addEventListener("focusout", function(e) {
+          // Check if the new focus target is still within the form
+          setTimeout(function() {
+            if (!form.contains(document.activeElement)) {
+              form.classList.add("d-none");
+              if (container) {
+                container.classList.remove("d-none");
+              }
+            }
+          }, 200); // Small delay to allow autocomplete dropdown interactions
+        });
+      }
+    })();
+  </script>
+{% endif %}

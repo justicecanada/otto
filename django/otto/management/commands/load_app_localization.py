@@ -1,3 +1,4 @@
+import json
 import os
 import sys
 
@@ -8,7 +9,6 @@ from django.core.management.base import BaseCommand, CommandError
 from django_extensions.management.utils import signalcommand
 from polib import pofile
 
-from otto.management.commands import make_messages
 from otto.utils.localization import LocaleTranslator
 
 
@@ -36,6 +36,11 @@ class Command(BaseCommand):
             help="Removes all translations with no manual translations in .json file.",
             action="store_true",
         )
+        parser.add_argument(
+            "--refresh-fr-auto",
+            help="Refreshes all fr_auto values using curated French translations (fr).",
+            action="store_true",
+        )
 
     @signalcommand
     def handle(self, *args, **options):
@@ -43,8 +48,9 @@ class Command(BaseCommand):
         no_translation = options["no_translation"]
         no_mo = options["no_mo"]
         clean = options["clean"]
+        refresh_fr_auto = options["refresh_fr_auto"]
 
-        if no_mo and no_po and no_translation:
+        if no_mo and no_po and no_translation and not clean and not refresh_fr_auto:
             raise CommandError(
                 "Type '%s help %s' for usage information."
                 % (os.path.basename(sys.argv[0]), sys.argv[1])
@@ -64,7 +70,20 @@ class Command(BaseCommand):
                     self.style.SUCCESS("Translations cleaned successfully.")
                 )
             except Exception as e:
-                self.stderr.write(e)
+                raise CommandError(str(e)) from e
+                return
+
+        if refresh_fr_auto:
+            try:
+                translations_path = self.get_translation_file(base_path)
+                updated_count = self.refresh_fr_auto(translations_path)
+                self.stdout.write(
+                    self.style.SUCCESS(
+                        f"fr_auto refreshed successfully for {updated_count} entries."
+                    )
+                )
+            except Exception as e:
+                raise CommandError(str(e)) from e
                 return
 
         if not no_translation:
@@ -76,16 +95,16 @@ class Command(BaseCommand):
                 return
 
             translator_client = LocaleTranslator(
-                settings.AZURE_COGNITIVE_SERVICE_KEY,
-                settings.AZURE_COGNITIVE_SERVICE_REGION,
-                settings.AZURE_COGNITIVE_SERVICE_ENDPOINT,
+                settings.AZURE_AI_SERVICES_KEY,
+                settings.AZURE_AI_SERVICES_REGION,
+                settings.AZURE_AI_SERVICES_ENDPOINT,
             )
             try:
                 translator_client.update_translations(
                     os.path.join(settings.BASE_DIR, "locale"),
                 )
             except Exception as e:
-                self.stderr.write(e)
+                raise CommandError(str(e)) from e
 
             self.stdout.write(self.style.SUCCESS("Files translated successfully."))
 
@@ -129,8 +148,6 @@ class Command(BaseCommand):
         return translations_path
 
     def clean_translations(self, file_path):
-        import json
-
         # Read the JSON file
         with open(file_path, "r", encoding="utf-8") as file:
             translations = json.load(file)
@@ -143,3 +160,34 @@ class Command(BaseCommand):
         # Write the cleaned JSON back to the file
         with open(file_path, "w", encoding="utf-8") as file:
             json.dump(cleaned_translations, file, ensure_ascii=False, indent=4)
+
+    def refresh_fr_auto(self, file_path):
+        with open(file_path, "r", encoding="utf-8") as file:
+            translations = json.load(file)
+
+        for value in translations.values():
+            fr_value = value.get("fr", "")
+            value["fr_auto"] = self.normalize_french_text(fr_value)
+
+        with open(file_path, "w", encoding="utf-8") as file:
+            json.dump(translations, file, ensure_ascii=False, indent=4)
+
+        return len(translations)
+
+    def normalize_french_text(self, text):
+        replacements = {
+            "Acceuil": "Accueil",
+            "rétrocation": "rétroaction",
+            "conversationel": "conversationnel",
+            "addresse": "adresse",
+            "fiechiers": "fichiers",
+            "sesison": "session",
+            "sauvetillé": "sauvegardé",
+            "sauveté": "sauvegardé",
+        }
+
+        normalized = text
+        for source, target in replacements.items():
+            normalized = normalized.replace(source, target)
+
+        return normalized

@@ -270,7 +270,6 @@ class AccessControlLog(models.Model):
 
 
 class SecureManager(models.Manager):
-
     def _apply_row_level_security(self, access_key: AccessKey, query: Q):
         if not access_key.bypass:
             query &= Q(
@@ -297,7 +296,6 @@ class SecureManager(models.Manager):
 
     def create(self, access_key: AccessKey, **kwargs):
         if not access_key.bypass:
-
             permission = Permission.objects.get(
                 content_type=ContentType.objects.get_for_model(self.model),
                 codename=f"add_{self.model._meta.model_name}",
@@ -324,7 +322,7 @@ class SecureModel(models.Model):
     # Primary key needs to be UUID for secure model to minimize the risk of ID guessing
     id = models.UUIDField(primary_key=True, editable=False)
     objects = SecureManager()
-    access_controls = models.ManyToManyField(AccessControl)
+    access_controls = models.ManyToManyField(AccessControl, related_name="+")
 
     class Meta:
         abstract = True
@@ -504,11 +502,9 @@ class SecureRelatedManager(models.Manager):
         )
 
     def create(self, access_key: AccessKey, **kwargs):
-
         instance = self.model(**kwargs)
 
         if not access_key.bypass:
-
             # Check if the user's access key has permission to the parent objects
             for parent in instance.get_permission_parents():
                 if not AccessControl.check_permissions(

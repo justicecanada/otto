@@ -1,6 +1,6 @@
 {% load i18n %}
 <div id="left-sidebar"
-     class="chat-sidebar bg-light hidden"
+     class="chat-sidebar bg-light"
      aria-label='{% trans "Chat history" %}'>
   <div class="border-end h-100 overflow-hidden d-flex flex-column">
     <div id="new-chat-button-outer">
@@ -62,6 +62,7 @@
               hx-target="#chat-history-list"
               hx-post="{% url 'chat:delete_all_chats' %}"
               hx-indicator="#delete-spinner"
+              hx-disabled-elt="this"
               hx-confirm='{% trans "Are you sure you want to delete all chats? This action is irreversible." %}'>
         <span class="d-flex justify-content-center align-items-center">
           <i class="bi bi-trash me-2"></i>

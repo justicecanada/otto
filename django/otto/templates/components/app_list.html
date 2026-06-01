@@ -1,9 +1,16 @@
 {% load i18n %}
+{% load rules %}
+{% has_perm "otto.can_access_chat_next" request.user as can_access_chat_next %}
 <div id="app-list" class="cols-2">
   <!-- AI Assistant grouped card -->
   <div class="card app-card mb-3 ai-assistant-group-card">
     <div class="card-body p-0">
-      <h3 class="app-card-title mb-2 px-3 pt-3" style="margin-left: 3px;">{% trans "AI Assistant" %}</h3>
+      <h3 class="app-card-title mb-2 px-3 pt-3" style="margin-left: 3px;">
+        {% trans "AI Assistant" %}
+        {% if can_access_chat_next %}
+          <em>({% trans "classic" %})</em>
+        {% endif %}
+      </h3>
 
       <!-- Chat Mode -->
       <a href="{% url 'chat:chat_with_ai' %}"
@@ -49,6 +56,21 @@
       </a>
     </div>
   </div>
+
+  {% if can_access_chat_next %}
+    <!-- AI Assistant: Next -->
+    <a href="{% url 'chat_next:new_chat' %}"
+       class="text-decoration-none text-body">
+      <div class="card app-card mb-3 app-card-beta">
+        <div class="card-body pt-0 mt-3">
+          <h3 class="app-card-title">
+            {% trans "AI Assistant" %} <em>({% trans "new" %})</em>
+          </h3>
+          <p class="card-text">{% trans "Simplified AI chat experience with Q&A, analysis and research tools." %}</p>
+        </div>
+      </div>
+    </a>
+  {% endif %}
 
   <!-- Legislation Search -->
   <a href="{% url 'laws:index' %}" class="text-decoration-none text-body">

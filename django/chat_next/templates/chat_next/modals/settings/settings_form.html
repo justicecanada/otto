@@ -1,0 +1,291 @@
+{% load i18n %}
+
+<div class="modal-body">
+  <form id="settings-form"
+        method="post"
+        hx-post="{% url 'chat_next:settings_modal' chat_id=chat_id %}"
+        hx-trigger="change from:select, change from:input[type='checkbox'], input changed delay:1200ms from:input[type='text'], input changed delay:1200ms from:input[type='number'], input changed delay:1200ms from:textarea"
+        hx-sync="this:replace"
+        hx-target="#chat-next-modal-content"
+        hx-swap="innerHTML"
+        data-model-controls-root="true">
+    {% csrf_token %}
+    <input type="hidden"
+           name="active_tab"
+           id="settings-active-tab"
+           value="{{ active_tab|default:'settings-tab-personalization' }}">
+
+    <div class="row g-0 flex-nowrap">
+      <div class="col-3 border-end p-3 scroll-col">
+        <div class="nav nav-pills flex-column gap-1 settings-section-nav"
+             role="tablist"
+             aria-label="{% trans 'Settings sections' %}">
+          <button class="nav-link{% if active_tab|default:'settings-tab-personalization' == 'settings-tab-personalization' %} active{% endif %}"
+                  data-bs-toggle="pill"
+                  data-bs-target="#settings-tab-personalization"
+                  type="button"
+                  role="tab">{% trans "Personalization" %}</button>
+          <button class="nav-link{% if active_tab == 'settings-tab-model' %} active{% endif %}"
+                  data-bs-toggle="pill"
+                  data-bs-target="#settings-tab-model"
+                  type="button"
+                  role="tab">{% trans "Default model" %}</button>
+          <button class="nav-link{% if active_tab == 'settings-tab-tools' %} active{% endif %}"
+                  data-bs-toggle="pill"
+                  data-bs-target="#settings-tab-tools"
+                  type="button"
+                  role="tab">{% trans "Advanced" %}</button>
+        </div>
+      </div>
+
+      <div class="col-9 p-3 scroll-col">
+        <div class="tab-content">
+          {# ── Personalization tab ── #}
+          <div class="tab-pane fade{% if active_tab|default:'settings-tab-personalization' == 'settings-tab-personalization' %} show active{% endif %}"
+               id="settings-tab-personalization"
+               role="tabpanel">
+            <h6 class="mb-3">{% trans "Personalization" %}</h6>
+            <div class="mb-3">
+              <label for="id_user_display_name" class="form-label">{% trans "Your name" %}</label>
+              {{ settings_form.user_display_name }}
+              <small class="text-muted">{% trans "Auto-populated from your account. Used when sending your name to the model." %}</small>
+            </div>
+            <div class="mb-3 form-check">
+              {{ settings_form.send_name_to_model }}
+              <label for="id_send_name_to_model" class="form-check-label">{% trans "Send my name to the model" %}</label>
+            </div>
+            <div class="mb-3">
+              <label for="id_job_description" class="form-label">{% trans "Job description" %}</label>
+              <small class="text-muted">{% trans "(optional)" %}</small>
+              {{ settings_form.job_description }}
+              <small class="text-muted">{% trans "Helps the AI understand your role and tailor responses." %}</small>
+            </div>
+            <div class="mb-3">
+              <label for="id_global_instructions" class="form-label">{% trans "Global instructions" %}</label>
+              <small class="text-muted">{% trans "(optional)" %}</small>
+              {{ settings_form.global_instructions }}
+              <small class="text-muted">{% trans "Custom instructions included in every chat." %}</small>
+            </div>
+          </div>
+
+          {# ── Tools tab ── #}
+          <div class="tab-pane fade{% if active_tab == 'settings-tab-tools' %} show active{% endif %}"
+               id="settings-tab-tools"
+               role="tabpanel">
+
+            <h6 class="mb-3">
+              {% trans "Advanced" %} <small class="text-danger fw-normal"><em>{% trans "Modifying these settings can cause unexpected behaviour." %}</em></small>
+            </h6>
+            <div class="mb-3">
+              <label class="form-label">{% trans "Enabled tools" %}</label>
+              <div class="d-flex flex-column gap-2">
+                {% for checkbox in settings_form.chat_enabled_tools %}<div class="form-check">{{ checkbox }}</div>{% endfor %}
+              </div>
+              <small class="text-muted mt-2 d-block">
+                {% trans "Tools required by a Skill are automatically enabled when the skill is used." %}
+              </small>
+            </div>
+            <div class="mb-3">
+              <label for="id_chat_max_iterations" class="form-label">{% trans "Maximum tool iterations" %}</label>
+              {{ settings_form.chat_max_iterations }}
+              <small class="text-muted mt-1 d-block">
+                {% trans "Otto will pause for approval after this many chained tool-call rounds. Increase this only when you expect longer tool workflows." %}
+              </small>
+            </div>
+            <hr class="my-3">
+            <div class="mb-0">
+              <label for="id_chat_context_management" class="form-label">{% trans "Context window management" %}</label>
+              {{ settings_form.chat_context_management }}
+              <small class="text-muted mt-1 d-block">
+                {% trans "What should happen when a conversation approaches the model's context window limit?" %}
+              </small>
+              <ul class="text-muted small mt-2 mb-0">
+                <li>
+                  <strong>{% trans "Compact" %}</strong> — {% trans "Automatically replaces older messages with compact summaries so the conversation can continue. This is the recommended default." %}
+                </li>
+                <li>
+                  <strong>{% trans "Truncate" %}</strong> — {% trans "Silently drops lower-priority chat history items, such as reasoning steps and tool outputs. Older messages are removed as a last resort." %}
+                </li>
+                <li>
+                  <strong>{% trans "Show error" %}</strong> — {% trans "Stops and shows an error. You can then manually start a new chat." %}
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          {# ── Model tab ── #}
+          <div class="tab-pane fade{% if active_tab == 'settings-tab-model' %} show active{% endif %}"
+               id="settings-tab-model"
+               role="tabpanel">
+            <h6 class="mb-2">{% trans "Default model" %}</h6>
+            <div class="mb-3">
+              <label for="id_chat_model" class="form-label">{% trans "Model" %}</label>
+              {{ settings_form.chat_model }}
+            </div>
+            <div class="mb-3"
+                 id="reasoning-effort-container"
+                 data-model-control="reasoning">
+              <label for="id_chat_reasoning_effort" class="form-label">{% trans "Reasoning effort" %}</label>
+              {{ settings_form.chat_reasoning_effort }}
+            </div>
+            <div class="mb-3" id="verbosity-container" data-model-control="verbosity">
+              <label for="id_chat_verbosity" class="form-label">{% trans "Verbosity" %}</label>
+              {{ settings_form.chat_verbosity }}
+            </div>
+            <div class="mb-3" id="temperature-container">
+              <label for="id_chat_temperature" class="form-label">{% trans "Style (temperature)" %}</label>
+              {{ settings_form.chat_temperature }}
+            </div>
+          </div>
+
+          {% if settings_form.non_field_errors %}
+            <div class="alert alert-danger">
+              {% for error in settings_form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+            </div>
+          {% endif %}
+
+        </div>
+      </div>
+    </div>
+  </form>
+</div>
+
+<script>
+  window.settingsSaveStatusTimeout = window.settingsSaveStatusTimeout || null;
+  window.settingsSaveStatusCleanupTimeout = window.settingsSaveStatusCleanupTimeout || null;
+
+  function clearSettingsSaveStatusTimer() {
+    if (window.settingsSaveStatusTimeout) {
+      clearTimeout(window.settingsSaveStatusTimeout);
+      window.settingsSaveStatusTimeout = null;
+    }
+
+    if (window.settingsSaveStatusCleanupTimeout) {
+      clearTimeout(window.settingsSaveStatusCleanupTimeout);
+      window.settingsSaveStatusCleanupTimeout = null;
+    }
+  }
+
+  function updateSettingsSaveStatus(message, statusType = 'muted') {
+    const statusElement = document.getElementById('settings-save-status');
+    if (!statusElement) return;
+
+    clearSettingsSaveStatusTimer();
+    statusElement.classList.remove('is-success', 'is-error', 'is-visible');
+    statusElement.textContent = message;
+
+    if (statusType === 'success') {
+      statusElement.classList.add('is-success');
+    } else if (statusType === 'error') {
+      statusElement.classList.add('is-error');
+    }
+
+    requestAnimationFrame(() => {
+      statusElement.classList.add('is-visible');
+    });
+  }
+
+  function clearSettingsSaveStatus(delay = 0) {
+    const statusElement = document.getElementById('settings-save-status');
+    if (!statusElement) return;
+
+    clearSettingsSaveStatusTimer();
+
+    if (delay > 0) {
+      window.settingsSaveStatusTimeout = window.setTimeout(() => {
+        statusElement.classList.remove('is-visible');
+        window.settingsSaveStatusCleanupTimeout = window.setTimeout(() => {
+          statusElement.textContent = '';
+          statusElement.classList.remove('is-success', 'is-error');
+          window.settingsSaveStatusCleanupTimeout = null;
+        }, 250);
+        window.settingsSaveStatusTimeout = null;
+      }, delay);
+      return;
+    }
+
+    statusElement.textContent = '';
+    statusElement.classList.remove('is-success', 'is-error', 'is-visible');
+  }
+
+  function initializeSettingsModal() {
+    const settingsForm = document.getElementById('settings-form');
+    const activeTabInput = document.getElementById('settings-active-tab');
+    const tabButtons = document.querySelectorAll('#settings-form [data-bs-toggle="pill"]');
+
+    if (settingsForm && typeof window.initializeChatNextModelControls === 'function') {
+      window.initializeChatNextModelControls(settingsForm);
+    }
+
+    if (settingsForm && activeTabInput) {
+      tabButtons.forEach((button) => {
+        button.addEventListener('shown.bs.tab', function(event) {
+          const tabTarget = event.target.getAttribute('data-bs-target');
+          if (tabTarget) {
+            activeTabInput.value = tabTarget.replace('#', '');
+          }
+        });
+      });
+
+      const activeButton = settingsForm.querySelector('[data-bs-toggle="pill"].active');
+      if (activeButton) {
+        const activeTarget = activeButton.getAttribute('data-bs-target');
+        if (activeTarget) {
+          activeTabInput.value = activeTarget.replace('#', '');
+        }
+      }
+    }
+
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeSettingsModal);
+  } else {
+    initializeSettingsModal();
+  }
+
+  if (!window.settingsModalEventsBound) {
+    document.addEventListener('htmx:afterSettle', function(evt) {
+      if (evt.detail.target && evt.detail.target.id === 'chat-next-modal-content') {
+        initializeSettingsModal();
+      }
+    });
+
+    document.addEventListener('htmx:beforeRequest', function(evt) {
+      const settingsForm = document.getElementById('settings-form');
+      const activeTabInput = document.getElementById('settings-active-tab');
+      const activeButton = settingsForm?.querySelector('[data-bs-toggle="pill"].active');
+
+      if (
+        settingsForm
+        && activeTabInput
+        && evt.target === settingsForm
+      ) {
+        if (activeButton) {
+          const activeTarget = activeButton.getAttribute('data-bs-target');
+          if (activeTarget) {
+            activeTabInput.value = activeTarget.replace('#', '');
+          }
+        }
+
+        updateSettingsSaveStatus('{% trans "Saving…" %}');
+      }
+    });
+
+    document.addEventListener('settings-saved', function() {
+      updateSettingsSaveStatus('{% trans "Saved" %}', 'success');
+      clearSettingsSaveStatus(1500);
+    });
+
+    document.addEventListener('settings-save-error', function() {
+      updateSettingsSaveStatus('{% trans "Could not save" %}', 'error');
+    });
+
+    const settingsModal = document.getElementById('chat-next-modal');
+    settingsModal?.addEventListener('hidden.bs.modal', function() {
+      clearSettingsSaveStatus();
+    });
+
+    window.settingsModalEventsBound = true;
+  }
+</script>

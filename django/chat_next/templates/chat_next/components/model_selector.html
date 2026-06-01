@@ -1,0 +1,46 @@
+{% load i18n %}
+
+<div id="chat-model-selector"
+     class="dropdown chat-model-selector"
+     data-bs-auto-close="false"
+     data-model-controls-root="true"
+     data-standard-reasoning-label="{% trans 'Standard' %}">
+  <button class="btn btn-sm btn-none chat-model-selector-toggle p-1"
+          type="button"
+          data-bs-toggle="dropdown"
+          aria-expanded="false"
+          aria-label="{% trans 'Select AI model settings' %}">
+    <span class="chat-model-selector-summary">
+      <span class="chat-model-selector-model" data-model-summary-name>{{ model_selector_summary.model_name }}</span>
+      <span class="chat-model-selector-reasoning" data-model-summary-reasoning>({{ model_selector_summary.reasoning_effort }})</span>
+    </span>
+    <i class="bi bi-chevron-down chat-model-selector-caret"
+       aria-hidden="true"></i>
+  </button>
+
+  <div class="dropdown-menu dropdown-menu-end chat-model-selector-menu p-0">
+    <div class="chat-model-selector-form">
+      <div class="chat-model-selector-panel">
+        <div class="chat-model-selector-row">
+          <label for="{{ model_selector_form.chat_model.id_for_label }}"
+                 class="form-label small mb-1">{% trans "Model" %}</label>
+          {{ model_selector_form.chat_model }}
+        </div>
+        <div class="chat-model-selector-row"
+             data-model-control="reasoning"
+             id="chat-model-selector-reasoning-container">
+          <label for="{{ model_selector_form.chat_reasoning_effort.id_for_label }}"
+                 class="form-label small mb-1">{% trans "Reasoning effort" %}</label>
+          {{ model_selector_form.chat_reasoning_effort }}
+        </div>
+        <div class="chat-model-selector-row"
+             data-model-control="verbosity"
+             id="chat-model-selector-verbosity-container">
+          <label for="{{ model_selector_form.chat_verbosity.id_for_label }}"
+                 class="form-label small mb-1">{% trans "Verbosity" %}</label>
+          {{ model_selector_form.chat_verbosity }}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

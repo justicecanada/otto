@@ -1,13 +1,16 @@
 from django.urls import path
 
 from librarian.views import (
+    data_source_embed_large,
     data_source_start,
     data_source_stop,
     direct_upload,
     document_start,
+    document_start_embedding,
     document_stop,
     document_text,
     download_document,
+    download_original_document,
     email_library_admins,
     modal_create_data_source,
     modal_create_document,
@@ -21,6 +24,7 @@ from librarian.views import (
     modal_view_document,
     modal_view_library,
     poll_status,
+    refresh_hnsw_status,
     search_docs,
     sort_docs,
     upload,
@@ -44,6 +48,11 @@ urlpatterns = [
         "modal/library/<int:library_id>/users/",
         modal_manage_library_users,
         name="modal_manage_library_users",
+    ),
+    path(
+        "modal/library/<int:library_id>/refresh_hnsw_status/",
+        refresh_hnsw_status,
+        name="refresh_hnsw_status",
     ),
     path(
         "modal/library/<int:library_id>/data_source/create/",
@@ -98,6 +107,11 @@ urlpatterns = [
         document_start,
         name="document_start",
     ),
+    path(
+        "document/<int:document_id>/start_embedding/",
+        document_start_embedding,
+        name="document_start_embedding",
+    ),
     path("document/<int:document_id>/stop/", document_stop, name="document_stop"),
     # Batch document stop / processing (per data source)
     path(
@@ -111,9 +125,19 @@ urlpatterns = [
         name="data_source_start",
     ),
     path(
+        "data_source/<int:data_source_id>/embed_large/",
+        data_source_embed_large,
+        name="data_source_embed_large",
+    ),
+    path(
         "document/<int:document_id>/download/",
         download_document,
         name="download_document",
+    ),
+    path(
+        "document/<int:document_id>/download/original/",
+        download_original_document,
+        name="download_original_document",
     ),
     path(
         "document/<int:document_id>/text/",

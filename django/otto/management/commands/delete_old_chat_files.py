@@ -68,7 +68,7 @@ class Command(BaseCommand):
                     space_freed += file_field.size / 1024
                     file_field.delete()
                     files_deleted += 1
-                except:
+                except Exception:
                     # File must have already been deleted? Just mark as none
                     pass
                 chat_file.saved_file.delete()

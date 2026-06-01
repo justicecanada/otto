@@ -1,0 +1,72 @@
+{% load i18n %}
+<script>
+  function focusChatPromptAfterTour() {
+    const chatPrompt = document.getElementById('chat-prompt');
+    if (!chatPrompt) return;
+    setTimeout(() => {
+      try {
+        chatPrompt.focus({preventScroll: true});
+      } catch (err) {
+        chatPrompt.focus();
+      }
+    }, 0);
+  }
+
+  let driver = window.driver.js.driver;
+  let driverObj = driver({
+    showProgress: true,
+    allowClose: "{% if tour_skippable %}true{% endif %}" === "true",
+    popoverClass: "bs-popover-auto",
+    disableActiveInteraction: true,
+    prevBtnText: "← {% trans 'Previous' %}",
+    nextBtnText: "{% trans 'Next' %} →",
+    doneBtnText: "{% trans 'Done' %}",
+    showButtons: ["previous", "next", "close"],
+    allowKeyboardControl: false,
+    progressText: "{% verbatim %}{{current}}{% endverbatim %} {% trans 'of' %} {% verbatim %}{{total}}{% endverbatim %}",
+    steps: tourSteps,
+    onDestroyed: () => {
+      focusChatPromptAfterTour();
+    },
+    onPopoverRender: () => {
+      const helpMenuEl = document.querySelector("#help-menu");
+      if (helpMenuEl && typeof bootstrap !== 'undefined' && bootstrap.Dropdown) {
+        const helpMenu = new bootstrap.Dropdown(helpMenuEl);
+        helpMenu.hide();
+      }
+      setTimeout(() => {
+        const nextBtn = document.querySelector('button.driver-popover-next-btn');
+        if (nextBtn) nextBtn.focus();
+      }, 10);
+    }
+  });
+
+  {% if start_tour %}
+  setTimeout(() => {
+    startTour();
+  }, 300);
+  {% elif force_tour %}
+    (function showTourModalWhenReady(retryCount = 0) {
+      const modalEl = document.getElementById('tour-modal');
+      if (!modalEl) return;
+
+      if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+        const modal = new bootstrap.Modal(modalEl);
+        modal.show();
+        return;
+      }
+
+      if (retryCount < 20) {
+        setTimeout(() => showTourModalWhenReady(retryCount + 1), 100);
+        return;
+      }
+
+      // Fallback if Bootstrap JS never loads.
+      modalEl.classList.add('show');
+      modalEl.style.display = 'block';
+      modalEl.removeAttribute('aria-hidden');
+      modalEl.setAttribute('aria-modal', 'true');
+      document.body.classList.add('modal-open');
+    })();
+  {% endif %}
+</script>

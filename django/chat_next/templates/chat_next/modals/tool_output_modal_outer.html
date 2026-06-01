@@ -1,0 +1,39 @@
+{% load i18n %}
+<div class="modal fade"
+     id="tool-output-modal"
+     tabindex="-1"
+     aria-label='{% trans "Tool output" %}'
+     aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="tool-output-modal-title"></h5>
+        <div id="tool-output-modal-spinner"
+             class="spinner text-primary"
+             style="display:none;
+                    margin-bottom:-7px;
+                    margin-top:-4px">
+          <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+          <span class="visually-hidden" role="status">{% trans "Loading" %}</span>
+        </div>
+        <button type="button"
+                class="btn-close ms-2"
+                data-bs-dismiss="modal"
+                aria-label="{% trans 'Close' %}"></button>
+      </div>
+      <div class="modal-body p-0" id="tool-output-modal-inner"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  const modalEl = document.getElementById('tool-output-modal');
+
+  // Clear inner content when modal is closed
+  modalEl.addEventListener('hidden.bs.modal', function () {
+    document.getElementById('tool-output-modal-inner').innerHTML = '';
+    document.getElementById('tool-output-modal-title').textContent = '';
+  });
+})();
+</script>

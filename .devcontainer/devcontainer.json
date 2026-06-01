@@ -3,7 +3,6 @@
     "dockerComposeFile": "docker-compose.yml",
     "service": "app",
     "workspaceFolder": "/workspace",
-    "features": {},
     "mounts": [],
     "forwardPorts": [
         8000,
@@ -13,13 +12,13 @@
     "customizations": {
         "vscode": {
             "extensions": [
-                "ms-python.black-formatter",
-                "ms-python.isort",
+                "charliermarsh.ruff",
                 "ms-python.python",
                 "streetsidesoftware.code-spell-checker",
                 "monosans.djlint",
-                "GitHub.copilot",
-                "hongquan.dragon-jinja"
+                "hongquan.dragon-jinja",
+                "mkhl.shfmt",
+                "timonwong.shellcheck"
             ]
         }
     }

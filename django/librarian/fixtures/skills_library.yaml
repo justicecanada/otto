@@ -1,0 +1,32 @@
+- model: librarian.library
+  fields:
+    name_en: Skill files (Otto defaults)
+    name_fr: Fichiers de compétences (par défaut Otto)
+    description_en: "Files used by Otto's default skills, e.g. translation and help files."
+    description_fr: "Fichiers utilisés par les processus de compétences par défaut d'Otto, par exemple la traduction et l'aide."
+    is_public: false
+    data_sources:
+      - fields:
+          name_en: Translation
+          name_fr: Traduction
+          security_label_acronym: UC
+          key: translation
+          documents:
+            - fields:
+                filename: JUS_translation_glossary.txt
+                local_file: chat_next/fixtures/JUS_translation_glossary.txt
+                key: translation-glossary
+      - fields:
+          name_en: Otto Help
+          name_fr: Aide Otto
+          security_label_acronym: UC
+          key: otto-help
+          documents:
+            - fields:
+                filename: Otto_terms_of_use_en.txt
+                local_file: chat_next/fixtures/Otto_terms_of_use_en.txt
+                key: otto-terms-of-use-en
+            - fields:
+                filename: Otto_conditions_d_utilisation_fr.txt
+                local_file: chat_next/fixtures/Otto_conditions_d_utilisation_fr.txt
+                key: otto-terms-of-use-fr

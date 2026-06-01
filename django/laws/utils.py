@@ -11,8 +11,9 @@ import tiktoken
 from asgiref.sync import sync_to_async
 from structlog import get_logger
 
-from chat.utils import wrap_llm_response
 from otto.utils.common import display_cad_cost
+
+from chat.utils import wrap_llm_response
 
 from .search_history.models import LawSearch
 
@@ -47,14 +48,20 @@ def get_source_node(node_id):
 def get_other_lang_node(node_id):
     # Replace "eng" with "fra" and vice versa
     lang = "eng" if "eng" in node_id else "fra"
+    replacement_dict_eng = {"S": "_ANNEXE", "F": "_FORMULE"}
+    replacement_dict_fra = {"A": "_SCHEDULE", "F": "_FORM"}
     other_lang_node_id = (
-        node_id.replace("eng", "fra")
-        .replace("_SCHEDULE ", "_ANNEXE ")
-        .replace("_FORM ", "_FORMULE ")
+        re.sub(
+            r"\_SCHEDULE(?=\b|\_)|\_FORM(?=\b|\_)",
+            lambda m: replacement_dict_eng[m[0][1]],
+            node_id.replace("eng", "fra"),
+        )
         if lang == "eng"
-        else node_id.replace("fra", "eng")
-        .replace("_ANNEXE ", "_SCHEDULE ")
-        .replace("_FORMULE ", "_FORM ")
+        else re.sub(
+            r"\_ANNEXE(?=\b|\_)|\_FORMULE(?=\b|\_)",
+            lambda m: replacement_dict_fra[m[0][1]],
+            node_id.replace("fra", "eng"),
+        )
     )
     return get_source_node(other_lang_node_id)
 
@@ -99,6 +106,8 @@ def format_llm_string(llm_string, wrap_sse=True):
 
 
 async def htmx_sse_response(response_gen, llm, query_uuid):
+    from otto.utils.common import generate_ai_error_summary
+
     full_message = ""
     try:
         for text in response_gen:
@@ -109,11 +118,10 @@ async def htmx_sse_response(response_gen, llm, query_uuid):
     except Exception as e:
         error_id = str(uuid.uuid4())[:7]
         full_message = format_llm_string(
-            _("An error occurred while processing the request. ")
-            + f" _({_('Error ID:')} {error_id})_"
+            await sync_to_async(generate_ai_error_summary)(e, error_id)
         )
         logger.exception(
-            f"Error in generating response",
+            "Error in generating response",
             query_uuid=query_uuid,
             error_id=error_id,
             error=e,
@@ -137,6 +145,10 @@ async def htmx_sse_response(response_gen, llm, query_uuid):
     yield (
         f"data: <div hx-swap-oob='true' id='answer-sse'>{markdown_div}</div><div id='answer-cost' hx-swap-oob='true'>{cost_div}</div>\n\n"
     )
+
+    # Send "done" event to signal client to close the SSE connection.
+    # The client uses sse-close="done" attribute to listen for this event.
+    yield "event: done\ndata: complete\n\n"
 
 
 async def htmx_sse_error(e="", query_uuid=None):

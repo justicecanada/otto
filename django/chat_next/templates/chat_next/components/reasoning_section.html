@@ -1,0 +1,32 @@
+{% load i18n %}
+{% get_current_language as LANGUAGE_CODE %}
+
+<div id="reasoning-section-{{ message.id }}">
+  {# Reasoning summary widget - shown separately from main message #}
+  {% if reasoning_steps or message.details.reasoning_steps or reasoning_steps_json or message.reasoning_steps_json %}
+    {% with fr_translation=message.details.processing_steps_translations.fr last_step=message.details.processing_steps|last %}
+      {% if reasoning_steps_json or message.reasoning_steps_json %}
+        {# For final SSE swap and saved messages, store data in script tag #}
+        <script id="reasoning-data-{{ message.id }}" type="application/json">{{ reasoning_steps_json|default:message.reasoning_steps_json|safe }}</script>
+      {% endif %}
+      <div class="reasoning-summary"
+           id="reasoning-{{ message.id }}"
+           {% if reasoning_steps %}data-reasoning="{{ reasoning_steps|safe }}"{% endif %}
+           data-is-reasoning="false"
+           data-thinking-text="{% trans 'Thinking' %}"
+           data-show-reasoning-text="{% trans 'Show processing steps' %}"
+           data-generating-text="{% trans 'Generating final response' %}"
+           data-reasoning-steps-text="{% trans 'Processing steps' %}"
+           data-empty-reasoning-text="{% trans 'Processing steps will appear here shortly.' %}"
+           data-action-required-title="{% trans '⚠️ Action Required' %}"
+           {% include "chat_next/components/external_approval_data_attributes.html" %}
+           data-can-translate-reasoning-steps="{% if LANGUAGE_CODE|slice:':2' == 'fr' and message.has_reasoning_processing_steps and message.text and fr_translation.status != 'complete' and last_step.status != 'waiting_approval' %}true{% else %}false{% endif %}"
+           data-translate-processing-steps-url="{% if LANGUAGE_CODE|slice:':2' == 'fr' and message.has_reasoning_processing_steps and message.text and fr_translation.status != 'complete' and last_step.status != 'waiting_approval' %}{% url 'chat_next:translate_processing_steps' message.id %}{% endif %}"
+           data-translate-processing-steps-text="{% trans 'Translate reasoning steps to French' %}"
+           data-translating-processing-steps-text="{% trans 'Translating reasoning steps to French...' %}"
+           data-translate-processing-steps-title="{% trans 'Translate reasoning steps to French' %}"
+           data-translation-error="{% if fr_translation.status == 'error' and fr_translation.error %}{{ fr_translation.error }}{% endif %}">
+      </div>
+    {% endwith %}
+  {% endif %}
+</div>

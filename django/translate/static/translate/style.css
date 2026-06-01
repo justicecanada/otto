@@ -1,0 +1,62 @@
+@import url('/static/css/variables.css');
+
+body {
+  min-height: 100vh;
+  background: var(--app-primary-bg);
+}
+
+[data-bs-theme="dark"] .text-secondary {
+  color: var(--text-secondary) !important;
+}
+
+#translate-warning-chevron {
+  transition: transform 0.3s ease;
+}
+
+#translate-warning-chevron.collapsed {
+  transform: rotate(-90deg);
+}
+
+.translation-result-text {
+  white-space: pre-wrap;
+}
+
+/* Copy button text toggle */
+.copy-message-button {
+  text-decoration: none;
+}
+
+.copy-message-button .copy-icon-clicked,
+.copy-message-button .copy-label-clicked {
+  display: none !important;
+}
+
+.copy-message-button.clicked .copy-icon-default,
+.copy-message-button.clicked .copy-label-default {
+  display: none !important;
+}
+
+.copy-message-button.clicked .copy-icon-clicked,
+.copy-message-button.clicked .copy-label-clicked {
+  display: inline-block !important;
+}
+
+#file-dropzone {
+  height: 100%;
+  width: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: 100;
+  position: fixed;
+  top: 0;
+  left: 0;
+}
+
+#file-dropzone:not(.show) {
+  display: none !important;
+}
+
+#translate-file-area {
+  background: none;
+  border: var(--bs-border-color) 3px dashed;
+  padding: 5rem;
+}

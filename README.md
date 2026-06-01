@@ -1,5 +1,8 @@
 # Otto
 
+> [!NOTE]
+> The public copy of this repository does not include infrastructure code.
+
 Otto is a platform designed to host a wide range of AI tools, data visualizations, and interactive solutions that address various efficiency needs across Justice Canada. Developed by data specialists, Otto streamlines processes, makes delivering valuable solutions easier, and enhances overall productivity for legal professionals.
 
 Born out of the need to tackle data challenges that didn't fit neatly into existing corporate systems, Otto serves as a flexible hosting environment for:
@@ -32,6 +35,12 @@ As a platform for AI and data services, Otto helps legal professionals improve t
   - [Generate Translations](#generate-translations)
   - [Load Legislation](#load-legislation)
 - [Contributing](#contributing)
+  - [Pre-commit and Pre-push Hooks](#pre-commit-and-pre-push-hooks)
+    - [Installing Pre-commit Hooks](#installing-pre-commit-hooks)
+    - [What Runs on Pre-commit](#what-runs-on-pre-commit)
+    - [What Runs on Pre-push](#what-runs-on-pre-push)
+    - [Skipping Hooks (Not Recommended)](#skipping-hooks-not-recommended)
+    - [Manual Hook Execution](#manual-hook-execution)
   - [Translations](#translations)
     - [1. Model Level Translations](#1-model-level-translations)
     - [2. Python Code Level](#2-python-code-level)
@@ -46,31 +55,72 @@ As a platform for AI and data services, Otto helps legal professionals improve t
 
 ## Development setup
 
+### With Docker or Rancher Desktop
+
 **Requirements:**
 * Visual Studio Code (VScode) with Dev Containers extension
-* Docker (with Hyper-V and WSL2 enabled)
-* Git
-* VPN (some Azure resources will not work if not connected)
+* WSL
+* Docker or Rancher Desktop (with Hyper-V and WSL2 enabled)
+* Git for Windows
 
 > [!NOTE]  
 > Note that the installation may take 5-10 minutes (longer if you are connected to VPN).
 
-1. Clone this repository.
-2. Start Docker.
+1. Using Git for Windows, clone this repository somewhere in your C:\ drive.
+2. Start Docker / Rancher Desktop.
 3. In VScode, "Dev Containers: Open Folder in Container..." and select the directory you cloned this repo to.
-4. In the Git sidebar, click "Manage unsafe folders" and mark the repository as safe.
-5. From the terminal, run `bash dev_setup.sh` and follow the instructions.
+4. Wait for the containers to build. The first time the containers build, this might take a while.
+5. Open a terminal in your VScode devcontainer. Run `bash dev_setup.sh` and follow the instructions.
 6. You can now run the server from the "Run and debug" sidebar in VScode or just run (from ./django) `python manage.py runserver` in the VScode terminal.
-7. You will also have to start Celery to process tasks such as file translation or document loading. Run (from ./django) `celery -A otto worker -l INFO --pool=gevent --concurrency=256` or run the `Django: Run Server & Celery Worker` debug configuration in VSCode. *Note that Celery requires a manual restart when files have changed.*
+7. You will also have to start Celery to process tasks such as file translation or document loading. Run (from ./django) `celery -A otto worker -l INFO --pool=gevent --concurrency=16 -Q light,embed,heavy` or run the `Django: Server + Celery` debug configuration in VSCode. *Note that Celery requires a manual restart when files have changed.*
 8. Go to http://localhost:8000 and login to Otto using your Justice account.
-9. From the terminal, run `python manage.py set_admin_user <firstname.lastname@justice.gc.ca>`.
-10. You will now have full permissions when you refresh Otto. You can add other users using the "Manage users > Upload CSV" option. (CSV of pilot users is found in our shared drive).
+
+#### After initial setup
 
 After the initial setup, you will rarely have to build the dev containers again. You can just:
 
-1. Start Docker Desktop
-2. Open VScode, and if the container is not already opened, run "Dev Containers: Open Folder in Container..."
-3. Start the Django server.
+1. Start Docker Desktop.
+2. Open VScode, and if the devcontainer is not already opened, run "Dev Containers: Open Folder in Container..."
+3. Start the Django server & Celery worker.
+
+### With WSL Ubuntu
+
+**Requirements:**
+* Visual Studio Code (VScode) with Dev Containers extension
+* WSL
+
+_This assumes some knowledge of Linux / ability to troubleshoot. Not every step is explained in full detail._
+
+1. Create or edit the file in your Windows user directory `.wslconfig`. The first two lines are essential when using Justice laptops. The other lines should be modified based on your system specifications.
+```
+[wsl2]
+networkingMode=VirtioProxy
+localhostForwarding=false
+memory=8GB
+processors=4
+swap=10GB
+```
+Shutdown WSL to ensure it picks up the changes: `wsl --shutdown`
+2. Install WSL Ubuntu. e.g. for Ubuntu 24.04 LTS, in PowerShell, run `wsl --install Ubuntu-24.04` then set as your default with `wsl -s Ubuntu-24.04`.
+3. Open a Ubuntu terminal. Create a default user with sudo permissions. Follow the steps in the GitHub documentation to [add a SSH key](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent).
+4. Configure your shell (.zshrc or .bashrc) to auto-start ssh-agent:
+```
+   # Start SSH agent if not running
+if [ -z "$SSH_AUTH_SOCK" ]; then
+    eval "$(ssh-agent -s)"
+    ssh-add ~/.ssh/id_ed25519  # or your key
+fi
+```
+5. Start a new shell and, somewhere in your home directory, git clone the repo using SSH: `git clone git@github.com:justice-bac/otto.git`
+6. In VScode, run command "WSL: Open Folder in WSL". Select the repo folder in your WSL filesystem. You may need to install the devcontainers extension in WSL VSCode.
+7. You should be prompted to reopen the folder in a container. Do so, then continue from step 4 in the "With Docker or Rancher Desktop" instructions.
+
+#### After initial setup
+
+After the initial setup, you will rarely have to build the dev containers again. You can just:
+
+1. Open VScode. If the devcontainer is not already opened, open the WSL folder, then "Reopen in container".
+2. Start the Django server & Celery worker.
 
 ### Loading app data
 
@@ -108,26 +158,24 @@ You should generate translations before making a PR if your branch has modified 
 
 [^1]: To run the command you will need to have the [gettext binaries](https://mlocati.github.io/articles/gettext-iconv-windows.html) installed.
 
+### Vendored browser assets
+
+Otto now uses a small npm workspace to pin and vendor selected browser-side third-party assets (for example `docx-preview` and `jszip`) into Django's static asset tree.
+
+From the repo root:
+
+```bash
+npm install
+npm run vendor:sync
+```
+
+This updates the checked-in files under `django/otto/static/thirdparty/` using the versions pinned in `package-lock.json`.
+
 ### Load Legislation
 
 For the legislation search app to function, we must load the XML files into the database.
 
-You can use the management GUI from the user dropdown if you are an Otto admin. Alternately...
-
-To download the [laws-lois-xml](https://github.com/justicecanada/laws-lois-xml) repo, and load an absolute minimum of laws (1 act, 1 regulation) into Django and the vector database, run the following:
-
-```bash
-python django/manage.py load_laws_xml --reset --small --start
-```
-
-To load around 50 laws into Django and the vector database, run the following. It should take around half an hour and cost $2:
-
-```bash
-python django/manage.py load_laws_xml --reset --start
-```
-
-* To load all laws (slow and quite expensive - around $20; 8 hours), add the `--full` flag.
-* If you leave off `--reset` it should only add laws which aren't already loaded, so you can incrementally add more.
+You can use the management GUI from the user dropdown if you are an Otto admin.
 
   
 ### Celery scheduler
@@ -137,36 +185,20 @@ To enable the celery scheduler for local testing run the following command (from
 celery -A otto beat --loglevel=info --scheduler django_celery_beat.schedulers:DatabaseScheduler
 ```
 
-### Load testing
-
-If you installed k6 as part of the `dev_setup.sh` script, you can run load tests. The tests themselves are in `django/otto/views.py`.
-
-First, as an Otto admin, go to the homepage and click your name, then "Enable load test for 1 hour". A red shield symbol should appear.
-
-Edit `load_testing/k6_script.js` to specify the test.
-
-Then, from the repo root, run `k6 run load_testing/k6_script.js`.
-
-#### Testing pgbouncer locally
-
-PgBouncer (connection pooling) can be enabled locally by editing your `.env` (see `.env.example`). Run the following command from repo root to start pgbouncer:
-```bash
-pgbouncer -R django/postgres_wrapper/pgbouncer_config/pgbouncer.ini
-```
-Restart Django and Celery to pick up the changes to the .env.
-
 ## Contributing
 
 * Don't push commits directly to `main`.
 * Always branch off `main` to create a feature branch, e.g. `git checkout -b chatbot-error-messages`
 * Before opening a pull request (PR), make sure your branch is up to date with the source branch by running `git merge origin/main`; resolve any conflicts.
+* Link your PR to an issue. If no issue exists, create one first to discuss the proposed changes.
 * Run integration tests before opening a PR (see the instructions below). If the tests don't pass on your machine, they won't pass in the PR checks either.
 * Write more tests if you have added new functionality (or are addressing a bug that wasn't previously caught by the tests).
-* Give your PR a descriptive title using [conventional commits](https://kapeli.com/cheat_sheets/Conventional_Commits.docset/Contents/Resources/Documents/index), e.g.:
+* Use [conventional commits](https://kapeli.com/cheat_sheets/Conventional_Commits.docset/Contents/Resources/Documents/index) for commit messages and PR titles, e.g.:
   * `fix: chatbot not displaying errors` for a bug fix
   * `feat: upload document preview` for a new feature
   * `chore: upgrade llama-index version`
-  * `refactor: extract logic from models into utils`
+  * `refactor(librarian): extract document sync logic into utils`
+  * `fix(chat_next): preserve tool-call streaming state`
 * To indicate that the PR *isn't* ready to merge, create a `Draft PR`
 * Get someone else to review your PR before merging it.
 
@@ -174,6 +206,48 @@ After your PR is merged:
   * On your workstation, `git checkout main` and `git pull`
   * Delete the branch that was just merged, e.g. `git branch -D chatbot-error-messages`
   * Create a new feature branch, if you are ready to do so.
+
+### Pre-commit Hooks
+
+Otto uses [pre-commit](https://pre-commit.com/) to automatically enforce code quality standards and maintain consistency across the codebase.
+
+#### Installing Pre-commit Hooks
+
+The pre-commit hooks are automatically installed when you run `bash dev_setup.sh`. If you need to install them manually:
+
+```bash
+pre-commit install
+```
+
+#### What Runs on Pre-commit
+
+The following checks run automatically before each commit:
+
+- **Black**: Python code formatter that ensures consistent code style
+- **isort**: Organizes Python imports alphabetically and by section
+- **djLint**: Formats and lints Django/Jinja templates for consistency
+- **Terraform fmt**: Formats Terraform configuration files
+
+If any of these checks fail, your commit will be blocked until you fix the issues. In most cases (Black, isort, and djLint), the tools will automatically fix the issues for you - just stage the changes and commit again.
+
+#### Skipping Hooks (Not Recommended)
+
+> [!WARNING] 
+> Only skip hooks if you have a good reason and understand the implications.
+In rare cases where you need to bypass these checks, you can use:
+
+```bash
+git commit --no-verify  # Skip pre-commit hooks
+```
+
+#### Manual Hook Execution
+
+You can manually run the hooks at any time:
+
+```bash
+pre-commit run --all-files              # Run all pre-commit hooks on all files
+pre-commit run black --all-files        # Run only Black on all files
+```
 
 ### Translations
 
@@ -313,47 +387,6 @@ logger.debug("")
 ```
 
 [^2]: To see debug messages, make sure to set **LOG_LEVEL** to *DEBUG* and/or **CELERY_DEBUG_LEVEL** to *DEBUG*
-
-## Deploy to Azure
-
-### Prerequisites
-
-Before you begin, ensure you have met the following requirements:
-
-- **PowerShell:** Installed and accessible on your system.
-- **Git:** Installed and accessible from the command line.
-- **Docker:** Installed and running on your machine.
-- **Azure CLI (az):** Installed and accessible from the command line.
-- **Azure Container Registry (ACR) Access:** Appropriate permissions to push images.
-- **Dockerfile:** Located in the `./django` directory.
-- **Git Repository Context:** Executed from within a Git repository or initialized directory.
-- **Execution Permissions:** PowerShell script execution policy set to allow running scripts (`Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope Process`).
-- **VPN Connection:** Required to connect to Azure and other resources.
-
-### Build and push the Docker image
-
-Run the following script and follow the prompts:
-
-The script will prompt you to enter two pieces of information:
-- **Subscription ID:** Enter the Azure subscription in which the Azure Container Registry (ACR) exists.
-- **Registry Name:** Enter the name of your ACR instance.
-
-The script will:
-- Create a version.yaml file with the provided information.
-- Copy the version.yaml file into the Docker build context.
-- Log in to your Azure Container Registry.
-- Build the Docker image with a specific tag based on the git hash.
-- Tag the Docker image as latest.
-- Push both the versioned and latest tags to Azure Container Registry.
-- Clean up the temporary version.yaml file.
-
-```powershell
-.\build_and_push_image.ps1
-```
-
-2. Setup and deploy to Azure Kubernetes Service
-
-See the [otto-infrastructure repo](https://github.com/justicecanada/otto-infrastructure) to follow the `README.md`. These steps will ensure the infrastructure is setup and that the AKS cluster is configured correctly. The final step is to deploy the run the `initial_setup.sh` on the coordinator node.
 
 ## If all else fails
 

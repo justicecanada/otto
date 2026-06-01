@@ -132,7 +132,7 @@ let tourSteps = [
     disableActiveInteraction: true,
     popover: {
       title: "{% trans 'Upload your own files' %}",
-      description: "{% trans 'You can upload many types of files for Q&A, summarization or translation. These files are stored in the chat and will be deleted after 30 days inactivity. You can also drag and drop files into the chat. Uploading a file will switch the Q&A library to \"Chat uploads\".' %}",
+      description: "{% trans 'You can upload many types of files for Q&A, summarization or translation. These files are stored in the chat and are deleted when that chat is deleted. Unless pinned, chats are deleted after 90 days of inactivity (opening the chat resets the clock). You can also drag and drop files into the chat. Uploading a file will switch the Q&A library to \"Chat uploads\".' %}",
       onNextClick: () => {
         document.querySelector("button.driver-popover-next-btn").disabled = true;
         openSidebar("right-sidebar");
@@ -140,7 +140,7 @@ let tourSteps = [
       }
     }
   },
-  // Edit libraries button: You can also create your own persistent and shareable document libraries. These will be deleted after 30 days inactivity. (don't show modal - out of scope)
+  // Edit libraries button: You can also create your own persistent and shareable document libraries. These will be deleted after 90 days inactivity. (don't show modal - out of scope)
   {
     element: "#editLibrariesButton",
     disableActiveInteraction: true,
@@ -179,7 +179,7 @@ let tourSteps = [
     disableActiveInteraction: false,
     popover: {
       title: "{% trans 'Select AI model' %}",
-      description: "{% trans 'When accuracy is paramount, select the more expensive GPT-4.1 model. (This setting is available in all modes.)' %}"
+      description: "{% trans 'Try different GPT models to save costs or get a different response style. (This setting is available in all modes.)' %}"
     }
   },
   // Advanced settings
@@ -344,12 +344,12 @@ let tourSteps = [
       }
     }
   },
-  // Existing chats: See your previous chats. You can rename and delete a chat. Chats are deleted after 30 days inactivity.
+  // Existing chats: See your previous chats. You can rename and delete a chat. Chats are deleted after 90 days inactivity.
   {
     element: "#chat-history-list",
     popover: {
       title: "{% trans 'Chat history' %}",
-      description: "{% trans 'Your chats remain accessible in the left sidebar, but are deleted after 30 days of inactivity. The current chat is bolded.' %}",
+      description: "{% trans 'Your chats remain accessible in the left sidebar. Unless pinned, chats are deleted after 90 days of inactivity (opening the chat resets the clock). The current chat is bolded.' %}",
       onNextClick: () => {
         document.querySelector("button.driver-popover-next-btn").disabled = true;
         showChatContextMenu();

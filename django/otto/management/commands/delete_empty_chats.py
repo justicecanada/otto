@@ -1,8 +1,6 @@
 import datetime
-import os
 
 # settings
-from django.conf import settings
 from django.core.management.base import BaseCommand
 
 from django_extensions.management.utils import signalcommand
@@ -26,10 +24,11 @@ class Command(BaseCommand):
         delete_from = datetime.datetime.now() - datetime.timedelta(days=1)
 
         if options["all"]:
-            chats = Chat.objects.filter(messages__isnull=True)
+            chats = Chat.objects.filter(messages__isnull=True).exclude(pinned=True)
         else:
-            chats = Chat.objects.filter(
-                accessed_at__lt=delete_from, messages__isnull=True
+            chats = (
+                Chat.objects.filter(accessed_at__lt=delete_from, messages__isnull=True)
+                .exclude(pinned=True)
             )
 
         num_chats = chats.count()

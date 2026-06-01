@@ -1,0 +1,12 @@
+{
+  "name": "frontend-vendor",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "sync": "node ./scripts/sync-assets.mjs"
+  },
+  "dependencies": {
+    "docx-preview": "0.3.7",
+    "jszip": "3.10.1"
+  }
+}

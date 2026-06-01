@@ -1,0 +1,60 @@
+# Canonical content-ingestion domain allowlist (apex domains only).
+# Consumers:
+# - Django app URL allow-checks (django/otto/settings.py)
+# - Terraform firewall content-ingestion rule (infrastructure/terraform/core/firewall/main.tf)
+#
+# Centralization rationale:
+# - Keep app-side URL validation and infra firewall allowlist in sync.
+# - Avoid policy drift where app blocks domains that infra allows (or vice versa).
+#
+# Change process:
+# - Any new domain requires a CCoE request/approval before being added here.
+# - CCoE approval must explicitly cover both the apex domain and wildcard form
+#   (e.g., example.ca and *.example.ca).
+# - The request must include both source subnets (mgmt + AKS) for each target
+#   environment where access is needed.
+# - The request must also include protocol and port (for this rule: HTTPS/443).
+# - After approval, add only the apex domain in this file (no wildcard).
+# - Terraform derives the wildcard (*.domain) automatically.
+#
+# Wildcards (e.g., *.domain.tld) are derived programmatically by infrastructure code.
+# Note: gc.ca is intentionally kept as an allowlist suffix anchor for *.gc.ca,
+# and is excluded from default TLS smoke probing because the apex may not resolve.
+
+canada.ca
+gc.ca
+canlii.org
+wikipedia.org
+scc-csc.ca
+parl.ca
+github.com
+a2aj.ca
+ourcommons.ca
+sencanada.ca
+noscommunes.ca
+fca-caf.ca
+fct-cf.ca
+tcc-cci.ca
+cmac-cacm.ca
+albertacourts.ca
+bccourts.ca
+provincialcourt.bc.ca
+manitobacourts.mb.ca
+courtsnb-coursnb.ca
+court.nl.ca
+courts.ns.ca
+nwtcourts.ca
+nunavutcourts.ca
+ontariocourts.ca
+courts.pe.ca
+courdappelduquebec.ca
+courduquebec.ca
+tribunaux.qc.ca
+sasklawcourts.ca
+yukoncourts.ca
+
+# Examples already covered by gc.ca + derived *.gc.ca (documentation only):
+# parl.gc.ca
+# fca-caf.gc.ca
+# fct-cf.gc.ca
+# tcc-cci.gc.ca

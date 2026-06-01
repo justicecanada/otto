@@ -1,0 +1,112 @@
+{% load i18n %}
+
+<li>
+  <a class="dropdown-item d-flex align-items-center gap-2 small"
+     href="#"
+     hx-get="{% url 'librarian:sort_docs' selected_data_source.id 'date' %}"
+     hx-select="#librarian-document-list"
+     hx-include="#librarian-search-form"
+     hx-target="#librarian-document-list"
+     hx-swap="outerHTML">
+    <span class="text-dark"
+          aria-hidden="true"
+          style="width:1rem;
+                 text-align:center;
+                 {% if current_sort == 'date_desc' or current_sort == 'date_asc' %}{% else %}visibility:hidden{% endif %}">
+      {% if current_sort == 'date_desc' %}
+        <i class="bi bi-arrow-up"></i>
+      {% elif current_sort == 'date_asc' %}
+        <i class="bi bi-arrow-down"></i>
+      {% endif %}
+    </span>
+    <span>{% trans "Date added" %}</span>
+  </a>
+</li>
+<li>
+  <a class="dropdown-item d-flex align-items-center gap-2 small"
+     href="#"
+     hx-get="{% url 'librarian:sort_docs' selected_data_source.id 'filename' %}"
+     hx-select="#librarian-document-list"
+     hx-include="#librarian-search-form"
+     hx-target="#librarian-document-list"
+     hx-swap="outerHTML">
+    <span class="text-dark"
+          aria-hidden="true"
+          style="width:1rem;
+                 text-align:center;
+                 {% if current_sort == 'filename_asc' or current_sort == 'filename_desc' %}{% else %}visibility:hidden{% endif %}">
+      {% if current_sort == 'filename_asc' %}
+        <i class="bi bi-arrow-down"></i>
+      {% elif current_sort == 'filename_desc' %}
+        <i class="bi bi-arrow-up"></i>
+      {% endif %}
+    </span>
+    <span>{% trans "Filename" %}</span>
+  </a>
+</li>
+<li>
+  <a class="dropdown-item d-flex align-items-center gap-2 small"
+     href="#"
+     hx-get="{% url 'librarian:sort_docs' selected_data_source.id 'filetype' %}"
+     hx-select="#librarian-document-list"
+     hx-include="#librarian-search-form"
+     hx-target="#librarian-document-list"
+     hx-swap="outerHTML">
+    <span class="text-dark"
+          aria-hidden="true"
+          style="width:1rem;
+                 text-align:center;
+                 {% if current_sort == 'filetype_asc' or current_sort == 'filetype_desc' %}{% else %}visibility:hidden{% endif %}">
+      {% if current_sort == 'filetype_asc' %}
+        <i class="bi bi-arrow-up"></i>
+      {% elif current_sort == 'filetype_desc' %}
+        <i class="bi bi-arrow-down"></i>
+      {% endif %}
+    </span>
+    <span>{% trans "File type" %}</span>
+  </a>
+</li>
+<li>
+  <a class="dropdown-item d-flex align-items-center gap-2 small"
+     href="#"
+     hx-get="{% url 'librarian:sort_docs' selected_data_source.id 'chunks' %}"
+     hx-select="#librarian-document-list"
+     hx-include="#librarian-search-form"
+     hx-target="#librarian-document-list"
+     hx-swap="outerHTML">
+    <span class="text-dark"
+          aria-hidden="true"
+          style="width:1rem;
+                 text-align:center;
+                 {% if current_sort == 'chunks_desc' or current_sort == 'chunks_asc' %}{% else %}visibility:hidden{% endif %}">
+      {% if current_sort == 'chunks_desc' %}
+        <i class="bi bi-arrow-down"></i>
+      {% elif current_sort == 'chunks_asc' %}
+        <i class="bi bi-arrow-up"></i>
+      {% endif %}
+    </span>
+    <span>{% trans "Size (number of chunks)" %}</span>
+  </a>
+</li>
+<li>
+  <a class="dropdown-item d-flex align-items-center gap-2 small"
+     href="#"
+     hx-get="{% url 'librarian:sort_docs' selected_data_source.id 'status' %}"
+     hx-select="#librarian-document-list"
+     hx-include="#librarian-search-form"
+     hx-target="#librarian-document-list"
+     hx-swap="outerHTML">
+    <span class="text-dark"
+          aria-hidden="true"
+          style="width:1rem;
+                 text-align:center;
+                 {% if current_sort == 'status_asc' or current_sort == 'status_desc' %}{% else %}visibility:hidden{% endif %}">
+      {% if current_sort == 'status_asc' %}
+        <i class="bi bi-arrow-up"></i>
+      {% elif current_sort == 'status_desc' %}
+        <i class="bi bi-arrow-down"></i>
+      {% endif %}
+    </span>
+    <span>{% trans "Processing status" %}</span>
+  </a>
+</li>

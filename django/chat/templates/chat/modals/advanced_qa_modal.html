@@ -11,14 +11,17 @@
         <h5 class="modal-title" id="advanced-qa-modal-title">
           <span>{% trans "Advanced Q&A settings" %}</span>
         </h5>
-        <button type="button"
-                class="btn-close"
-                data-bs-dismiss="modal"
-                aria-label='{% trans "Close" %} '></button>
+        <div>
+          <small class="text-secondary"><em>{% trans "Changes are automatically saved." %}</em></small>
+          <button type="button"
+                  class="btn-close"
+                  data-bs-dismiss="modal"
+                  aria-label='{% trans "Close" %} '></button>
+        </div>
       </div>
       <div class="modal-body">
         <div class="row qa_rag_option">
-          <div class="col-md-3 mb-2">
+          <div class="col-md-2 mb-2">
             <label for="qa_vector_ratio-modal"
                    class="col-form-label col-form-label-sm"
                    id="vector-ratio-label">{% trans "Keyword ↔ Vector" %}</label>
@@ -83,57 +86,33 @@
               <option value="False">{% trans "Single answers" %}</option>
               <option value="True">{% trans "Granular answers ($)" %}</option>
             </select>
-
-            <div class="row"
-                 id="qa_granularity_slider"
-                 style="{% if chat.options.qa_granular_toggle == 'combined' %} display: none;
-                        {% endif %}">
-              <div class="col pe-0 text-center">
-                <label for="qa_granularity-modal"
-                       class="col-form-label col-form-label-sm mb-0"
-                       id="granularity-label">{% trans "Granularity" %}</label>
-                <button class="p-0 border-0 bg-transparent"
-                        type="button"
-                        data-bs-toggle="tooltip"
-                        data-bs-title='{% trans '"Coarse" means a small number of groups, each containing a large number of excerpts.' %}'>
-                  <i class="bi-info-circle-fill small text-secondary"></i>
-                </button>
-                <input type="range"
-                       class="form-range my-1"
-                       id="qa_granularity-modal"
-                       data-inputname="qa_granularity"
-                       min="768"
-                       max="16000"
-                       step="100"
-                       value="768"
-                       onchange="updateQaHiddenField(this);">
-                <div class="d-flex justify-content-between mt-0 align-items-end">
-                  <span class="col-form-label-sm small">{% trans "Fine" %}</span>
-                  <span class="col-form-label-sm small">{% trans "Coarse" %}</span>
-                </div>
-              </div>
-            </div>
           </div>
-          <div class="col-md-2 mb-2 pt-3 qa_granular">
-            <div class="form-check form-switch col ms-2"
-                 id="qa_pruning"
-                 style="{% if chat.options.qa_granular_toggle == 'combined' %} display: none;
-                        {% endif %}">
-              <input class="form-check-input small"
-                     type="checkbox"
-                     id="qa_prune-modal"
-                     data-inputname="qa_prune"
-                     value="true"
-                     checked
-                     onchange="this.value = this.checked ? 'true' : 'false'; updateQaHiddenField(this);">
-              <label class="form-check-label small" for="qa_prune-modal">{% trans "Remove irrelevant sources" %}</label>
+          <div class="col-md-3 mb-2 qa_granular"
+               id="qa_granularity_slider"
+               style="{% if not chat.options.qa_granular_toggle %} display: none;
+                      {% endif %}">
+            <label for="qa_granularity-modal" class="col-form-label col-form-label-sm">
+              {% trans "Granularity (tokens / group)" %}
+            </label>
+            <button class="p-0 border-0 bg-transparent"
+                    type="button"
+                    data-bs-toggle="tooltip"
+                    data-bs-title='{% trans '"Coarse" means a smaller number of groups, each containing a larger number of excerpts.' %}'>
+              <i class="bi-info-circle-fill small text-secondary"></i>
+            </button>
+            <input type="range"
+                   class="form-range my-1"
+                   id="qa_granularity-modal"
+                   data-inputname="qa_granularity"
+                   min="768"
+                   max="16000"
+                   step="100"
+                   value="768"
+                   onchange="updateQaHiddenField(this);">
+            <div class="d-flex justify-content-between mt-0 align-items-end">
+              <span class="col-form-label-sm small">{% trans "Fine (768)" %}</span>
+              <span class="col-form-label-sm small">{% trans "Coarse (16000)" %}</span>
             </div>
-            {% comment %}
-            <div class="form-check form-switch col-auto ms-2">
-              <input class="form-check-input small" type="checkbox" role="switch" id="qa_rewrite-modal" disabled>
-              <label class="form-check-label small" for="qa_rewrite-modal">{% trans "Rewrite queries for search" %}</label>
-            </div>
-            {% endcomment %}
           </div>
         </div>
 
@@ -152,7 +131,7 @@
                       spellcheck="false"
                       id="qa_system_prompt-modal"
                       data-inputname="qa_system_prompt"
-                      onkeyup="updateQaHiddenField(this);"
+                      onchange="updateQaHiddenField(this);"
                       rows="20"></textarea>
           </div>
           <div class="col-lg-4 mb-2">
@@ -167,7 +146,7 @@
                       spellcheck="false"
                       id="qa_pre_instructions-modal"
                       data-inputname="qa_pre_instructions"
-                      onkeyup="updateQaHiddenField(this);"
+                      onchange="updateQaHiddenField(this);"
                       rows="20"></textarea>
           </div>
           <div class="col-lg-4 mb-2">
@@ -182,7 +161,7 @@
                       spellcheck="false"
                       id="qa_post_instructions-modal"
                       data-inputname="qa_post_instructions"
-                      onkeyup="updateQaHiddenField(this);"
+                      onchange="updateQaHiddenField(this);"
                       rows="20"></textarea>
           </div>
         </div>

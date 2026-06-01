@@ -12,7 +12,7 @@ class Migration(migrations.Migration):
     def migrate_chatoptions_data(apps, schema_editor):
         ChatOptions = apps.get_model("chat", "ChatOptions")
         # Use .all() to iterate over all ChatOptions objects
-        for obj in ChatOptions.objects.all():
+        for obj in ChatOptions.objects.only("id"):
             # --- Migrate qa_granular_toggle from old qa_answer_mode ---
             # Default to False if not present
             qa_answer_mode = getattr(obj, "qa_answer_mode", None)

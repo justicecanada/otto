@@ -1,0 +1,66 @@
+## Conditions d'utilisation d'Otto
+
+Ce fichier de référence reprend le contenu principal de la page des conditions d'utilisation qu'Aide d'Otto doit consulter lorsqu'elle répond à des questions sur l'utilisation permise, la protection des renseignements, la conservation des données, les limites de recherche juridique et les sujets de politique connexes.
+
+Pour la page officielle dans Otto, consultez `/terms_of_use/`.
+
+### Utilisations inappropriées et limites d’Otto
+
+Vous devez lire et respecter les conditions d'utilisation énumérées ici et se trouvant dans les outils Otto.
+
+Il ne faut pas faire confiance au mode Clavardage de l’assistant IA pour fournir des informations factuelles, car il est plus sujet aux hallucinations et aux biais dans la sortie. Utilisez plutôt les modes Questions-réponses et Résumé pour fonder les réponses de l’IA sur des sources fiables telles que des documents que vous téléversez ou une bibliothèque de documents partagée.
+
+Otto ne doit pas servir à automatiser la prise de décision (telles les décisions administratives affectant les droits, privilèges ou intérêts des individus). De nombreuses activités de ressources humaines, de décisions à propos de programmes ou de financement en sont des exemples. Otto ne doit ni être utilisé comme un outil pour les décideurs, ni pour automatiser les étapes nécessaires à la prise de décisions. L'utilisation de l'IA pour des activités liées à la prise de décision ou ayant un impact sur celle-ci soulève plusieurs questions juridiques et politiques qui ne sont pas détaillées ici ou dans d'autres documents d'Otto.
+
+Otto ne remplace pas un conseil juridique professionnel. Les professionnels du droit doivent analyser et comprendre les complexités uniques des affaires des clients, exercer un jugement professionnel et fournir des conseils stratégiques personnalisés.
+
+Pour des exemples de cas d'utilisation appropriés, veuillez consulter le guide d'utilisation d'Otto :
+https://collaboration.justice.gc.ca/ts/lps-spj/asb-dgas/bac-caa/Otto/Guide%20de%20l'utilisateur%20d'Otto.docx
+
+### Sécurité et confidentialité
+
+Otto est approuvé pour les renseignements jusqu'à et incluant Protégé B. Cela comprend normalement les renseignements protégés par le secret professionnel de l'avocat. Des lois et des règlements particuliers peuvent imposer des exigences supplémentaires à l'égard de certaines catégories de renseignements sensibles qui sont considérés comme Protégé B. Dans de tels cas, l'utilisation d'Otto doit être envisagée au cas par cas.
+
+Vous ne devez pas entrer d’informations au-dessus de Protégé B, que ce soit par téléversement ou saisie directe de texte. Vous ne devez pas entrer les renseignements des contribuables, les numéros d’assurance sociale (NAS) ni les confidences du Cabinet.
+
+Appliquez des étiquettes de classification de sécurité aux dossiers de questions-réponses lorsqu’ils contiennent des informations protégées et/ou personnelles.
+
+Évitez de téléverser des renseignements personnels, sauf si cela est nécessaire pour des tâches spécifiques. Partagez les bibliothèques de documents et les clavardages uniquement avec les personnes qui ont besoin d’y accéder.
+
+Si des renseignements vous sont partagés par l’intermédiaire d’Otto auxquels vous ne devriez pas avoir accès, utilisez les liens fournis pour envoyer un courriel aux auteurs ou aux administrateurs de la bibliothèque. Pour signaler d’autres problèmes de confidentialité ou de sécurité, envoyez un courriel à l’équipe d’Otto à l’adresse suivante : otto@justice.gc.ca.
+
+Pour plus d’informations, veuillez consulter les documents suivants :
+- Traitement et protection des renseignements sensibles
+  https://collaboration.justice.gc.ca/co/ssms-sssgu/Documents/Guidelines%20and%20Policies/Handling-Safeguarding-sensitive-information2025-fr.pdf
+- Protocole de confidentialité à des fins non administratives - JUSnet
+  https://jusnet.justice.gc.ca/fra/apropos-about/pdwl-pdsg/aiprp-atip/proto/proto.html
+
+### Gestion de l’information
+
+Otto est à titre d’information transitoire seulement. Il ne s’agit pas d’un dépôt d’information à valeur opérationnelle.
+
+Téléversez uniquement sur Otto les documents dont vous avez besoin pour effectuer vos tâches.
+
+Supprimez activement les renseignements protégés ou personnels lorsqu’ils ne sont plus nécessaires. À moins d’être épinglés, les clavardages seront supprimés après 90 jours d’inactivité (ouvrir un clavardage réinitialise l’horloge), ainsi que tous les fichiers téléversés dans le clavardage. Sauf pour les bibliothèques visibles de tous les utilisateurs de JUS, les bibliothèques seront supprimées après 90 jours d’inactivité (modifier la bibliothèque ou l’utiliser pour des questions-réponses réinitialise l’horloge).
+
+Pour plus d’informations, veuillez consulter les documents suivants :
+- Information à valeur opérationnelle par rapport à l’information transitoire - Lignes directrices sur la gestion de l’information (GI)
+  https://collaboration.justice.gc.ca/ts/isb-DSI/is-si/isp/Policy/IM%20Infographic%20-%20Business%20Value%20vs%20Transitory%20Information%20-%20fr.pdf
+
+### Utilisation responsable et éthique de l’IA
+
+Le gouvernement du Canada vise à être un utilisateur modèle du droit d’auteur. Le téléversement de matériel protégé par le droit d’auteur sur Otto en quantités limitées à des fins telles que la recherche, l’étude, l’éducation, la critique ou la recension peut être considéré comme une utilisation équitable et donc ne pas enfreindre le droit d’auteur. Les utilisateurs doivent respecter toutes les restrictions contractuelles applicables au partage de documents avec des outils fondés sur l’IA. Les documents obtenus de la Bibliothèque de justice peuvent être assujettis à de telles restrictions.
+
+Les extrants d’Otto peuvent contenir la propriété intellectuelle d’autrui, y compris des extraits de matériel protégé par le droit d’auteur et des marques de commerce de tiers. Les utilisateurs qui ont l’intention d’inclure des extrants d’Otto dans des publications ou des communications externes doivent examiner attentivement les extrants. Les directives du Conseil du Trésor mentionnées ci-dessous contiennent des recommandations utiles à cet égard. Évitez d’utiliser du contenu généré par Otto dans des publications gouvernementales lorsqu’il est particulièrement important que la Couronne détienne les droits d’auteur.
+
+Pour suivre les politiques et les meilleures pratiques pour une utilisation responsable de l’IA, consultez et suivez les directives des documents de politiques suivants :
+- Guide sur l’utilisation de l’intelligence artificielle générative - Canada.ca
+  https://www.canada.ca/fr/gouvernement/systeme/gouvernement-numerique/innovations-gouvernementales-numeriques/utilisation-responsable-ai/guide-utilisation-intelligence-artificielle-generative.html
+- L’IA générative dans votre travail quotidien - Canada.ca
+  https://www.canada.ca/fr/gouvernement/systeme/gouvernement-numerique/innovations-gouvernementales-numeriques/utilisation-responsable-ai/guide-utilisation-intelligence-artificielle-generative.html
+
+Les professionnels du droit doivent consulter les directives et les avis des cours et des tribunaux concernant l’utilisation de l’intelligence artificielle, ainsi que les directives des ordres professionnels de juristes. Vous devez vous efforcer d’informer les clients lorsque des outils d’IA sont utilisés.
+
+Sachez toujours que l’IA peut faire des erreurs, même lorsque vous lui avez fourni des documents.
+
+Pour s’y fier, tous les extrants d’Otto doivent faire l’objet d’une vérification humaine par l’utilisateur ou une personne possédant les connaissances et l’expertise appropriées pour évaluer les extrants. Les citations fournies dans les résultats d’Otto peuvent aider à cette vérification.

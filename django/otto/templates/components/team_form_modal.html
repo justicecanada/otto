@@ -1,0 +1,41 @@
+{% load i18n %}
+
+<form action="{% if team %}{% url 'manage_teams_form_edit' team.pk %}{% else %}{% url 'manage_teams_form' %}{% endif %}"
+      method="post"
+      hx-post="{% if team %}{% url 'manage_teams_form_edit' team.pk %}{% else %}{% url 'manage_teams_form' %}{% endif %}"
+      hx-target="#team-form"
+      hx-swap="innerHTML"
+      hx-indicator="#modal-spinner"
+      onsubmit="this.querySelectorAll('[disabled]').forEach(e => e.disabled = false);">
+  {% csrf_token %}
+  <div class="modal-body">
+    <div class="mb-3">
+      <label class="form-label" for="id_name">{% trans "Team name" %}</label>
+      {{ form.name }}
+      {% if form.name.errors %}<div class="text-danger small">{{ form.name.errors }}</div>{% endif %}
+      {% if form.name.help_text %}<div class="form-text">{{ form.name.help_text }}</div>{% endif %}
+    </div>
+    <div hx-disinherit="*">
+      <div class="mb-3">
+        <label class="form-label">{% trans "Administrators (can edit team)" %}</label>
+        {{ form.admins.errors }}
+        {{ form.admins }}
+        <div class="form-text">{% trans "Each team must always have at least one administrator." %}</div>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">{% trans "Members" %}</label>
+        {{ form.members.errors }}
+        {{ form.members }}
+      </div>
+    </div>
+    {% if form.non_field_errors %}
+      <div class="alert alert-danger">
+        {% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+      </div>
+    {% endif %}
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Close" %}</button>
+    <button type="submit" class="btn btn-primary">{% trans "Save" %}</button>
+  </div>
+</form>

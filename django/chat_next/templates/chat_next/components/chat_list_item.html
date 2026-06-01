@@ -1,0 +1,24 @@
+{% load i18n %}
+{% load chat_next_extras %}
+
+<li class="chat-list-item{% if chat.id|stringformat:"s" == current_chat_id|stringformat:"s" %} current{% endif %}"
+    id="chat-list-item-{{ chat.id }}"
+    data-title-pending="{% if chat.is_title_pending %}true{% else %}false{% endif %}"
+    {% if swap_oob %}hx-swap-oob="outerHTML"{% endif %}>
+  <div class="row px-2 py-2 flex-nowrap">
+    <div class="col ps-0 pe-1 overflow-x-hidden">
+      <a href="{% url 'chat_next:chat' chat_id=chat.id %}{% if search %}?search={{ search|urlencode }}{% endif %}{% if chat.matched_message_id %}#message_{{ chat.matched_message_id }}{% endif %}"
+         class="text-decoration-none">
+        {% if chat.id|stringformat:"s" == current_chat_id|stringformat:"s" %}
+          <span class="chat-title fw-semibold"
+                id="current-chat-title"
+                data-pagetitle='{% with chat=chat %}{% include "chat_next/components/chat_title.html" %}{% endwith %}'>{{ chat.title }}</span>
+        {% else %}
+          <span class="chat-title">{{ chat.title }}</span>
+        {% endif %}
+        {% if chat.snippet %}<div class="text-muted small text-truncate">{{ chat.snippet|highlight:search }}</div>{% endif %}
+      </a>
+    </div>
+  </div>
+  {% include 'chat_next/components/chat_list_item_menu.html' %}
+</li>

@@ -1,0 +1,15 @@
+{% load i18n %}
+
+<div id='cost-warning-buttons-{{ message_id }}'
+     class='cost-warning-buttons pt-2'>
+  {% if continue_button %}
+    <button hx-get="{% url 'chat_next:handle_approval' message_id=message_id %}?approved=true"
+            class="btn btn-warning continue-button me-1 mb-1"
+            hx-target="#message_{{ message_id }} .message-text">
+      {% trans "Continue at estimated cost " %}${{ estimate_cost }}
+    </button>
+  {% endif %}
+  <button class="btn btn-secondary mb-1"
+          hx-get="{% url 'chat_next:handle_approval' message_id=message_id %}?approved=false&cost_cancelled=true"
+          hx-target="#message_{{ message_id }} .message-text">{% trans "Cancel" %}</button>
+</div>

@@ -1,0 +1,85 @@
+{% load i18n %}
+
+<div class="chat-next-modal-view"
+     data-chat-next-modal-view="librarian"
+     data-modal-current-url="{{ current_url }}">
+  <div class="modal-header">
+    <div class="d-flex align-items-center flex-grow-1 min-w-0">
+      {% if modal_back_url %}
+        <button type="button"
+                class="btn btn-sm btn-none chat-next-modal-back-button me-1"
+                hx-get="{{ modal_back_url }}"
+                hx-target="#chat-next-modal-content"
+                hx-swap="innerHTML"
+                aria-label="{% trans 'Back' %}"
+                title="{% trans 'Back' %}">
+          <i class="bi bi-arrow-left"></i>
+        </button>
+      {% endif %}
+      <h5 class="modal-title mb-0 text-truncate">{{ title }}</h5>
+    </div>
+    <div id="librarian-modal-spinner"
+         class="spinner text-primary me-2"
+         style="margin-bottom: -7px;
+                margin-top: -4px">
+      <span class="spinner-border" aria-hidden="true"></span>
+      <span class="visually-hidden" role="status">{% trans "Loading" %}</span>
+    </div>
+    <div id="librarian-upload-message" class="d-none"></div>
+    <button type="button"
+            class="btn-close"
+            data-bs-dismiss="modal"
+            aria-label="{% trans 'Close' %}"></button>
+  </div>
+  <div id="editLibrariesInner"
+       data-close-modal-id="chat-next-modal"
+       hx-get="{{ loader_url }}"
+       hx-target="this"
+       hx-swap="innerHTML"
+       hx-trigger="load"
+       hx-indicator="#librarian-modal-spinner">
+    <div class="text-center py-5">
+      <span class="spinner-border spinner-border-sm"></span>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  function updateRefreshUrl() {
+    var inner = document.querySelector('#editLibrariesInner');
+    if (!inner) return;
+    var modalBody = inner.querySelector('.modal-body');
+    var refreshUrl = modalBody ? modalBody.getAttribute('data-current-url') : null;
+    if (refreshUrl) {
+      inner.setAttribute('data-refresh-url', refreshUrl);
+    }
+  }
+
+  document.addEventListener('htmx:afterSwap', function(evt) {
+    if (evt.detail.target && evt.detail.target.id === 'editLibrariesInner') {
+      updateRefreshUrl();
+    }
+  });
+
+  document.addEventListener('htmx:afterSettle', function(evt) {
+    if (evt.detail.target && evt.detail.target.id === 'editLibrariesInner') {
+      updateRefreshUrl();
+    }
+  });
+
+  document.addEventListener('refresh', function(evt) {
+    var inner = document.querySelector('#editLibrariesInner');
+    if (inner && (evt.target === inner || inner.contains(evt.target) || evt.target === document)) {
+      var refreshUrl = inner.getAttribute('data-refresh-url');
+      if (refreshUrl) {
+        var searchInput = document.querySelector('#librarian-search-input');
+        var url = new URL(refreshUrl, window.location.origin);
+        url.searchParams.set('search', searchInput ? searchInput.value : '');
+        refreshUrl = url.pathname + url.search;
+        htmx.ajax('GET', refreshUrl, {target: '#editLibrariesInner', swap: 'innerHTML'});
+      }
+    }
+  });
+})();
+</script>

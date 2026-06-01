@@ -1,12 +1,14 @@
 from io import BytesIO
-from unittest.mock import MagicMock, patch
+from unittest import mock
 
-from django.core.files.base import ContentFile
-
-import pytest
-
-from text_extractor.models import OutputFile
-from text_extractor.utils import *
+from text_extractor.utils import (
+    _gpt_extract_page,
+    _process_pages_parallel,
+    create_toc_pdf,
+    dist,
+    format_merged_file_name,
+    resize_image_to_a4,
+)
 
 
 def test_format_merged_file_name():
@@ -68,38 +70,80 @@ def test_dist():
     assert dist(p1, p2) == 5  # One point negative, the other positive
 
 
-def test_get_page_count_pdf(mock_pdf_file):
-    page_count = get_page_count(mock_pdf_file)
-    assert page_count == 3, "The page count should be 3"
+def test_create_toc_pdf():
+    # Test creating a TOC with file names and page numbers
+    file_names_and_pages = [
+        ("file1.pdf", 2),
+        ("file2.pdf", 5),
+        ("file3.pdf", 10),
+    ]
+
+    toc_pdf = create_toc_pdf(file_names_and_pages)
+
+    # Verify it returns a BytesIO object
+    assert isinstance(toc_pdf, BytesIO)
+
+    # Verify it contains PDF content
+    toc_pdf.seek(0)
+    content = toc_pdf.read()
+    assert content.startswith(b"%PDF"), "Should be a valid PDF"
+    assert len(content) > 0, "PDF should have content"
 
 
-def test_get_page_count_image(mock_image_file):
-    page_count = get_page_count(mock_image_file)
-    assert page_count == 1
+def test_gpt_extract_page_returns_page_num_and_text():
+    """_gpt_extract_page returns (page_num, text) from sync LLM call."""
+    from PIL import Image
+
+    fake_response = mock.MagicMock()
+    fake_response.message.content = "Hello world"
+
+    fake_llm = mock.MagicMock()
+    fake_llm.llm.chat.return_value = fake_response
+
+    img = Image.new("RGB", (100, 100), "white")
+    page_num, text = _gpt_extract_page(fake_llm, img, 0)
+
+    assert page_num == 0
+    assert text == "Hello world"
+    fake_llm.llm.chat.assert_called_once()
 
 
-def test_get_page_count_unsupported(mock_unsupported_file):
-    with pytest.raises(ValueError):
-        get_page_count(mock_unsupported_file)
+def test_process_pages_parallel_collects_results():
+    """_process_pages_parallel returns sorted results from thread pool."""
+    from PIL import Image
+
+    fake_response = mock.MagicMock()
+    fake_response.message.content = "page text"
+
+    fake_llm = mock.MagicMock()
+    fake_llm.llm.chat.return_value = fake_response
+
+    images = [(0, Image.new("RGB", (50, 50))), (1, Image.new("RGB", (50, 50)))]
+    results, failed = _process_pages_parallel(fake_llm, images, max_concurrency=2)
+
+    assert len(results) == 2
+    assert failed == []
+    assert fake_llm.llm.chat.call_count == 2
 
 
-def test_calculate_start_pages_empty():
-    assert calculate_start_pages([]) == {}, "Should return an empty dict for no files"
+def test_process_pages_parallel_handles_failures():
+    """_process_pages_parallel records failures without crashing."""
+    from PIL import Image
+
+    fake_llm = mock.MagicMock()
+    fake_llm.llm.chat.side_effect = RuntimeError("API error")
+
+    images = [(0, Image.new("RGB", (50, 50)))]
+    results, failed = _process_pages_parallel(fake_llm, images, max_concurrency=1)
+
+    assert len(results) == 1
+    assert results[0] == (0, "[Error extracting this page]")
+    assert failed == [1]  # 1-based page number
 
 
-def test_calculate_start_pages_single_file(mock_pdf_file):
-    files = [mock_pdf_file]
-    expected = {"temp_file1.pdf": 2}
-    assert (
-        calculate_start_pages(files) == expected
-    ), "Incorrect start page for a single file"
+def test_process_pages_parallel_handles_empty_input():
+    fake_llm = mock.MagicMock()
+    results, failed = _process_pages_parallel(fake_llm, [], max_concurrency=2)
 
-
-def test_calculate_start_pages_multiple_files(
-    mock_pdf_file, mock_pdf_file2, mock_image_file
-):
-    expected = {"temp_file1.pdf": 2, "temp_file2.pdf": 5, "temp_image.jpg": 15}
-    with mock_pdf_file, mock_pdf_file2, mock_image_file:
-        files = [mock_pdf_file, mock_pdf_file2, mock_image_file]
-        result = calculate_start_pages(files)
-        assert result == expected, f"Expected {expected}, got {result}"
+    assert results == []
+    assert failed == []

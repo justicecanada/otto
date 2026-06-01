@@ -1,0 +1,10 @@
+{% load i18n %}
+{% if user.entra_status == "active" %}
+  <span class="badge bg-success-subtle text-success-emphasis border border-success-subtle">{% trans "Active" %}</span>
+{% elif user.entra_status == "disabled" %}
+  <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle">{% trans "Disabled" %}</span>
+{% elif user.entra_status == "deleted" %}
+  <span class="badge bg-danger-subtle text-danger-emphasis border border-danger-subtle">{% trans "Deleted" %}</span>
+{% else %}
+  <span class="badge bg-secondary-subtle text-secondary-emphasis border border-secondary-subtle">{% trans "Unknown" %}</span>
+{% endif %}

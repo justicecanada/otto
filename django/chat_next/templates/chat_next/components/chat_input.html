@@ -1,0 +1,82 @@
+{% load i18n %}
+{% load static %}
+{# Upload form is separate - auto-submits when uploads complete #}
+{% include 'chat_next/components/prompt_upload_area.html' %}
+
+<div id="prompt-form-container" class="chat">
+  <div class="container px-5">
+    <form id="prompt-form"
+          hx-post="{% url 'chat_next:chat_message' chat_id=chat.id %}"
+          hx-swap="beforeend"
+          hx-target="#messages-container"
+          hx-encoding="multipart/form-data"
+          hx-indicator="#send-button"
+          class="position-relative">
+      <button id="prompt-form-resize-handle"
+              class="btn btn-none"
+              type="button"
+              tabindex="-1">
+        <i class="bi bi-grip-horizontal"></i>
+        <span class="visually-hidden">{% trans "Drag to resize." %}</span>
+      </button>
+      <input type="hidden" name="context-hints" id="context-hints" value="">
+      <div class="form-group mb-3" id="chat-inputs">
+        <div id="chat-input-container">
+          <div id="stop-button" class="d-none"></div>
+          <div id="chat-input-gradient"></div>
+          <div class="input-group">
+            <textarea class="form-control col"
+                      name="user-message"
+                      id="chat-prompt"
+                      autocomplete="off"
+                      aria-label='{% trans "Message" %}'
+                      placeholder='{% trans "Enter a message to chat with the AI" %}'></textarea>
+          </div>
+          <div id="chat-toolbar">
+            <div class="row align-items-center">
+              <div class="col-auto py-1 ps-3 pe-0">
+                <button class="btn btn-sm btn-outline-secondary col-auto text-center"
+                        type="button"
+                        id="upload-button"
+                        aria-label='{% trans "Upload" %}'
+                        title='{% trans "Upload" %}'
+                        onclick="document.querySelector('#id_chat-input_file').value=null; document.querySelector('#id_chat-input_file').click();">
+                  <i class="bi bi-paperclip"></i><span class="ms-1 hideable">{% trans "Upload" %}</span>
+                </button>
+              </div>
+              <div class="col-auto py-1 ps-0 pe-0 position-relative">
+                <button class="btn btn-sm btn-outline-secondary col-auto text-center"
+                        type="button"
+                        id="context-button"
+                        aria-label='{% trans "Add context" %}'
+                        title='{% trans "Add context with @" %}'>
+                  <span class="fw-semibold" aria-hidden="true">@</span><span class="ms-1 hideable">{% trans "Context" %}</span>
+                </button>
+                {% include 'chat_next/components/context_picker.html' %}
+              </div>
+              <div id="context-pills-container" class="col py-1"></div>
+              <div class="col-auto p-1">{% include 'chat_next/components/model_selector.html' %}</div>
+              <div class="col-auto py-1 ps-0 pe-3">
+                <button type="submit"
+                        id="send-button"
+                        class="btn btn-sm btn-outline-secondary col-auto"
+                        aria-label='{% trans "Send" %}'>
+                  <span class="indicator-label"><i class="bi bi-send"></i></span>
+                  <span class="indicator-progress d-none"><span class="spinner-border spinner-border-sm"
+      role="status"
+      aria-hidden="true"></span></span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% block page_script %}
+  <script src="{% static 'chat_next/js/chatInput.js' %}"></script>
+  <script src="{% static 'chat_next/js/contextPicker.js' %}"></script>
+  <script src="{% static 'chat_next/js/modelSelector.js' %}"></script>
+{% endblock %}

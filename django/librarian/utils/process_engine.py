@@ -1,3 +1,4 @@
+import codecs
 import csv
 import hashlib
 import io
@@ -5,33 +6,84 @@ import re
 import subprocess
 import tempfile
 import uuid
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlparse
 
 from django.conf import settings
 from django.utils import timezone
 from django.utils.translation import gettext as _
 
 import filetype
-import openpyxl  # Add this import for handling Excel files
-import pymupdf
-import pymupdf4llm
 import requests
 import tiktoken
 from bs4 import BeautifulSoup
 from markdownify import markdownify
 from structlog import get_logger
 
+from otto.models import Cost
+from otto.utils.common import get_temp_dir, normalize_content_ingestion_url
+
 from librarian.utils.extract_emails import extract_eml, extract_msg
 from librarian.utils.extract_zip import process_zip_file
 from librarian.utils.markdown_splitter import MarkdownSplitter
-from otto.models import Cost
+from librarian.utils.office import (
+    LEGACY_WORD_MIME_TYPES,
+    WORDPROCESSINGML_DOCUMENT_MIME,
+    convert_legacy_word_to_docx,
+)
 
 logger = get_logger(__name__)
 
+# Maximum length for content_type to prevent DB overflow errors
+# SavedFile.content_type is max_length=255, but we use a conservative limit
+MAX_CONTENT_TYPE_LENGTH = 250
+
 # Threshold for when to force OCR on PDFs, in characters
 # If the text extracted from a PDF using non-OCR method is less than this threshold,
-# we fallback to the Azure Document Intelligence API to perform OCR.
+# we fallback to Azure Document Intelligence to perform OCR.
 FORCE_OCR_THRESHOLD = 1000
+
+# Ordered fallback encodings for plain-text extraction.
+# Keep cp1252 last so UTF-16 with BOM is decoded correctly first.
+DEFAULT_TEXT_ENCODINGS = ["utf-8-sig", "utf-16", "cp1252"]
+
+
+def sanitize_content_type(content_type: str) -> str:
+    """
+    Sanitize a content type string to prevent DB overflow and parsing errors.
+
+    - Strips parameters (e.g., "; charset=utf-8")
+    - Validates format (must contain "/")
+    - Truncates to MAX_CONTENT_TYPE_LENGTH
+    - Returns empty string for invalid input
+    """
+    if not content_type or not isinstance(content_type, str):
+        return ""
+
+    # Strip any parameters after the main type/subtype (e.g., "text/html; charset=utf-8")
+    # Only keep the part before the first semicolon
+    sanitized = content_type.split(";")[0].strip().lower()
+
+    # Additional validation: content type should be in format "type/subtype"
+    # Remove any garbage that might cause issues
+    if "/" not in sanitized:
+        return ""
+
+    # Truncate if too long (defensive measure)
+    # Do this after validation to ensure the truncated result is still valid
+    if len(sanitized) > MAX_CONTENT_TYPE_LENGTH:
+        logger.warning(
+            "Content type truncated",
+            original_length=len(sanitized),
+            content_type_preview=sanitized[:50],
+        )
+        # Ensure truncation doesn't break the type/subtype format
+        truncated = sanitized[:MAX_CONTENT_TYPE_LENGTH]
+        # If truncation removes the slash, the content type is invalid
+        if "/" not in truncated:
+            return ""
+        sanitized = truncated
+
+    return sanitized
 
 
 def is_mostly_empty(md):
@@ -55,8 +107,20 @@ def markdownify_wrapper(text):
 
 def fetch_from_url(url):
     try:
-        r = requests.get(url, allow_redirects=True)
-        content_type = guess_content_type(r.content, r.headers.get("content-type"), url)
+        normalized_url = normalize_content_ingestion_url(url)
+        if normalized_url != url:
+            logger.info(
+                "Fetching content using canonical content-ingestion URL",
+                requested_url=url,
+                fetched_url=normalized_url,
+            )
+
+        r = requests.get(normalized_url, allow_redirects=True)
+        r.raise_for_status()
+        content_type = guess_content_type(
+            r.content, r.headers.get("content-type"), normalized_url
+        )
+
         return r.content, content_type
 
     except Exception as e:
@@ -91,7 +155,9 @@ def extract_html_metadata(content):
     title = title_element.get_text(strip=True) if title_element else None
     time_element = soup.find("time", {"property": "dateModified"})
     modified_at = (
-        timezone.datetime.strptime(time_element.get_text(strip=True), "%Y-%m-%d")
+        timezone.datetime.strptime(
+            time_element.get_text(strip=True).strip("\ufeff"), "%Y-%m-%d"
+        )
         if time_element
         else None
     )
@@ -99,6 +165,64 @@ def extract_html_metadata(content):
         "extracted_title": title,
         "extracted_modified_at": modified_at,
     }
+
+
+def _compute_page_boundaries(text: str) -> list[tuple[int, int, int]]:
+    """
+    Parse <page_N> tags and return sorted list of (tag_start, tag_end_of_closing, page_num).
+    Used to determine which page a given character offset falls on.
+    Returns empty list if no page tags found.
+    """
+    boundaries = []
+    for match in re.finditer(r"<page_(\d+)>", text):
+        page_num = int(match.group(1))
+        boundaries.append((match.start(), page_num))
+    return sorted(boundaries, key=lambda x: x[0])
+
+
+def _get_page_for_offset(page_boundaries, char_offset):
+    """Given sorted page_boundaries list, find which page contains char_offset."""
+    page = None
+    for tag_start, page_num in page_boundaries:
+        if tag_start > char_offset:
+            break
+        page = page_num
+    return page
+
+
+def _compute_chunk_positions(chunks, extracted_text):
+    """
+    Compute (start_char, end_char, start_page) for each chunk by finding it
+    in the extracted text. Returns list of dicts with position info.
+    Chunks are sequential substrings with possible overlap.
+    """
+    if not extracted_text:
+        return [{"start_char": None, "end_char": None, "start_page": None}] * len(
+            chunks
+        )
+
+    page_boundaries = _compute_page_boundaries(extracted_text)
+    positions = []
+    search_start = 0
+
+    for chunk_text in chunks:
+        pos = extracted_text.find(chunk_text, search_start)
+        if pos < 0:
+            # Fallback: search from beginning (shouldn't happen with sequential chunks)
+            pos = extracted_text.find(chunk_text)
+        if pos >= 0:
+            end_pos = pos + len(chunk_text)
+            page = (
+                _get_page_for_offset(page_boundaries, pos) if page_boundaries else None
+            )
+            positions.append(
+                {"start_char": pos, "end_char": end_pos, "start_page": page}
+            )
+            search_start = pos + 1  # Advance past start to handle overlapping chunks
+        else:
+            positions.append({"start_char": None, "end_char": None, "start_page": None})
+
+    return positions
 
 
 def create_nodes(chunks, document):
@@ -109,6 +233,7 @@ def create_nodes(chunks, document):
 
     # Create a document (parent) node
     metadata = {"node_type": "document", "data_source_uuid": data_source_uuid}
+    metadata["doc_id"] = document.id
     if document.title:
         metadata["title"] = document.title
     source = document.file_path or document.url or document.filename
@@ -119,22 +244,34 @@ def create_nodes(chunks, document):
         node_id=document_node.node_id
     )
 
+    # Compute character positions and page numbers for each chunk
+    chunk_positions = _compute_chunk_positions(chunks, document.extracted_text)
+
     # Create chunk (child) nodes
     metadata["node_type"] = "chunk"
     child_nodes = create_child_nodes(
         chunks,
         source_node_id=document_node.node_id,
         metadata=metadata,
+        chunk_positions=chunk_positions,
     )
 
     # Update node properties
     new_nodes = [document_node] + child_nodes
-    exclude_keys = ["page_range", "node_type", "data_source_uuid", "chunk_number"]
+    exclude_keys = [
+        "page_range",
+        "node_type",
+        "data_source_uuid",
+        "chunk_number",
+        "doc_id",
+        "start_char",
+        "end_char",
+        "start_page",
+    ]
     for node in new_nodes:
         node.excluded_llm_metadata_keys = exclude_keys
         node.excluded_embed_metadata_keys = exclude_keys
-        # The misspelling of "seperator" corresponds with the LlamaIndex codebase
-        node.metadata_seperator = "\n"
+        node.metadata_separator = "\n"
         node.metadata_template = "{key}: {value}"
         node.text_template = "# {metadata_str}\ncontent:\n{content}\n\n"
 
@@ -144,6 +281,23 @@ def create_nodes(chunks, document):
 def guess_content_type(
     content: str | bytes, content_type: str = "", path: str = ""
 ) -> str:
+    """
+    Guess the content type of the given content.
+
+    Args:
+        content: The file content (bytes or string)
+        content_type: Optional hint for content type (e.g., from HTTP headers)
+        path: Optional file path to help guess based on extension
+
+    Returns:
+        A sanitized content type string (e.g., "text/html", not "text/html; charset=utf-8")
+    """
+    # Sanitize the input content_type first (strip parameters like charset)
+    content_type = sanitize_content_type(content_type)
+
+    # Normalize the path to lowercase for consistent extension checking
+    path = path.lower() if path else ""
+
     # We consider these content types to be reliable and do not need further guessing
     trusted_content_types = [
         "application/pdf",
@@ -156,6 +310,7 @@ def guess_content_type(
         "text/markdown",
         "text/csv",
         "application/csv",
+        "application/msword",
         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         "officedocument.spreadsheetml.sheet",
         "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
@@ -187,7 +342,10 @@ def guess_content_type(
             return "application/zip"
 
         if path.endswith(".docx"):
-            return "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+            return WORDPROCESSINGML_DOCUMENT_MIME
+
+        if path.endswith(".doc") or path.endswith(".dot"):
+            return "application/msword"
 
         if path.endswith(".eml"):
             return "application/eml"
@@ -200,7 +358,7 @@ def guess_content_type(
         try:
             content = content.decode("utf-8", errors="ignore")
         except UnicodeDecodeError:
-            return content_type  # Unable to decode binary content
+            return content_type or "application/octet-stream"
 
     if isinstance(content, str):
         if "text" in content_type and path.endswith(".md"):
@@ -221,6 +379,8 @@ def guess_content_type(
 def get_process_engine_from_type(type):
     if "image" in type:
         return "IMAGE"
+    elif type in LEGACY_WORD_MIME_TYPES:
+        return "WORD_LEGACY"
     elif "officedocument.wordprocessingml.document" in type:
         return "WORD"
     elif "officedocument.presentationml.presentation" in type:
@@ -241,13 +401,56 @@ def get_process_engine_from_type(type):
         return "CSV"
     elif "spreadsheet" in type:
         return "EXCEL"
+    elif _is_unsupported_binary_type(type):
+        return "UNSUPPORTED"
     else:
         return "TEXT"
 
 
+def _is_unsupported_binary_type(content_type: str) -> bool:
+    """
+    Check if the content type is a known unsupported binary format.
+    These are file types we cannot extract text from.
+    """
+    unsupported_prefixes = [
+        "audio/",
+        "video/",
+        "application/octet-stream",
+        "application/x-executable",
+        "application/x-sharedlib",
+        "application/x-msdownload",
+        "application/x-dosexec",
+    ]
+    for prefix in unsupported_prefixes:
+        if content_type.startswith(prefix):
+            return True
+    return False
+
+
+class UnsupportedFileTypeError(Exception):
+    """Raised when a file type is not supported for text extraction."""
+
+    def __init__(self, content_type: str, filename: str = None):
+        self.content_type = content_type
+        self.filename = filename
+        if filename:
+            message = _(
+                "The file '{filename}' has an unsupported format ({content_type}). "
+                "Supported formats include: PDF, Word (DOC and DOCX), PowerPoint, Excel, images, HTML, "
+                "plain text, Markdown, CSV, ZIP archives, and email files (MSG, EML)."
+            ).format(filename=filename, content_type=content_type)
+        else:
+            message = _(
+                "This file has an unsupported format ({content_type}). "
+                "Supported formats include: PDF, Word (DOC and DOCX), PowerPoint, Excel, images, HTML, "
+                "plain text, Markdown, CSV, ZIP archives, and email files (MSG, EML)."
+            ).format(content_type=content_type)
+        super().__init__(message)
+
+
 def decode_content(
     content: bytes,
-    encodings: list[str] = ["utf-8", "cp1252"],
+    encodings: list[str] = DEFAULT_TEXT_ENCODINGS,
 ) -> str:
     """
     Decode content with multiple encodings with fallback.
@@ -260,7 +463,14 @@ def decode_content(
     """
     for encoding in encodings:
         try:
+            if encoding == "utf-16" and not _has_utf16_bom(content):
+                continue
             decoded_content = content.decode(encoding)
+            if encoding == "cp1252" and _has_disallowed_control_characters(
+                decoded_content
+            ):
+                logger.debug("Rejected cp1252 decode due to control characters")
+                continue
             return decoded_content
         except UnicodeDecodeError as e:
             logger.debug(e)
@@ -268,14 +478,81 @@ def decode_content(
     raise Exception(f"Failed to decode content with encodings: {encodings}")
 
 
+def _has_disallowed_control_characters(text: str) -> bool:
+    """Return True when decoded text contains non-whitespace control characters."""
+    return bool(re.search(r"[\x00-\x08\x0B\x0C\x0E-\x1F\x7F-\x9F]", text))
+
+
+def _has_utf16_bom(content: bytes) -> bool:
+    """Return True when content starts with a UTF-16 byte order mark."""
+    return content.startswith((codecs.BOM_UTF16_LE, codecs.BOM_UTF16_BE))
+
+
 class ExtractionResult:
-    def __init__(self, markdown: str, chunks: list[str], pdf_method: str = "default"):
+    def __init__(
+        self,
+        markdown: str = "",
+        chunks: list[str] = [],
+        pdf_method: str = "default",
+        needs_azure: bool = False,
+        azure_model: str = None,
+    ):
         self.markdown = markdown
         self.chunks = chunks
         self.pdf_method = pdf_method
+        self.needs_azure = needs_azure  # Whether Document Intelligence is needed
+        self.azure_model = azure_model
 
     def __repr__(self):
-        return f"ExtractionResult(markdown={self.markdown[:30]}, chunks={len(self.chunks)}, pdf_method={self.pdf_method})"
+        return f"ExtractionResult(markdown={self.markdown[:30]}, chunks={len(self.chunks)}, pdf_method={self.pdf_method}, needs_azure={self.needs_azure})"
+
+
+def should_enable_markdown_chunking(
+    process_engine: str, pdf_method: str | None = None
+) -> bool:
+    """Return whether Markdown-aware chunking should be used for extracted text."""
+    if process_engine == "PDF":
+        return pdf_method in {"layout", "azure_read", "azure_layout"}
+
+    return process_engine in {
+        "WORD",
+        "WORD_LEGACY",
+        "POWERPOINT",
+        "HTML",
+        "MARKDOWN",
+        "CSV",
+        "EXCEL",
+    }
+
+
+def split_markdown_into_chunks(
+    markdown: str,
+    process_engine: str,
+    pdf_method: str | None = None,
+    chunk_size: int = 768,
+):
+    """Split extracted document text into chunks using the same logic as ingestion."""
+    if not chunk_size:
+        return []
+
+    try:
+        md_splitter = MarkdownSplitter(
+            chunk_size=chunk_size,
+            chunk_overlap=100,
+            enable_markdown=should_enable_markdown_chunking(
+                process_engine, pdf_method=pdf_method
+            ),
+        )
+        return md_splitter.split_markdown(markdown)
+    except Exception as e:
+        logger.debug("Error splitting markdown using MarkdownSplitter:")
+        logger.error(e)
+        from llama_index.core.node_parser import SentenceSplitter
+
+        sentence_splitter = SentenceSplitter(
+            chunk_size=chunk_size, chunk_overlap=min(chunk_size // 4, 100)
+        )
+        return sentence_splitter.split_text(markdown)
 
 
 def extract_markdown(
@@ -286,28 +563,49 @@ def extract_markdown(
     chunk_size: int = 768,
     selector: str = None,
     root_document_id: int = None,
+    task_id: str = None,
+    document_id: int = None,
+    content_type: str = None,
 ) -> ExtractionResult:
     try:
-        enable_markdown = True
         if process_engine == "IMAGE":
             content = resize_to_azure_requirements(content)
-            enable_markdown = False
-            md = pdf_to_text_azure_read(content)
+            return ExtractionResult(
+                pdf_method="azure_read", needs_azure=True, azure_model="prebuilt-read"
+            )
         elif process_engine == "PDF":
             if pdf_method == "default":
-                enable_markdown = False
                 md = pdf_to_text_pymupdf(content)
                 if is_mostly_empty(md):
                     pdf_method = "azure_read"
-            if pdf_method == "layout":
+                    return ExtractionResult(
+                        pdf_method="azure_read",
+                        needs_azure=True,
+                        azure_model="prebuilt-read",
+                    )
+            elif pdf_method == "layout":
                 md = pdf_to_markdown_pymupdf4llm(content)
                 if is_mostly_empty(md):
                     pdf_method = "azure_read"
-            if pdf_method == "azure_read":
-                enable_markdown = False
-                md = pdf_to_text_azure_read(content)
-            if pdf_method == "azure_layout":
-                md = pdf_to_markdown_via_html_azure_layout(content)
+                    return ExtractionResult(
+                        pdf_method="azure_read",
+                        needs_azure=True,
+                        azure_model="prebuilt-read",
+                    )
+            elif pdf_method == "azure_read":
+                return ExtractionResult(
+                    pdf_method="azure_read",
+                    needs_azure=True,
+                    azure_model="prebuilt-read",
+                )
+            elif pdf_method == "azure_layout":
+                return ExtractionResult(
+                    pdf_method="azure_layout",
+                    needs_azure=True,
+                    azure_model="prebuilt-layout",
+                )
+        elif process_engine == "WORD_LEGACY":
+            md = docx_to_markdown(legacy_word_to_docx(content))
         elif process_engine == "WORD":
             md = docx_to_markdown(content)
         elif process_engine == "POWERPOINT":
@@ -317,51 +615,37 @@ def extract_markdown(
         elif process_engine == "MARKDOWN":
             md = decode_content(content)
         elif process_engine == "OUTLOOK_MSG":
-            enable_markdown = False
             md = extract_msg(content, root_document_id)
         elif process_engine == "ZIP":
-            enable_markdown = False
-            md = process_zip_file(content, root_document_id)
+            md = process_zip_file(content, root_document_id, task_id, document_id)
         elif process_engine == "EML":
-            enable_markdown = False
             md = extract_eml(content, root_document_id)
         elif process_engine == "CSV":
             md = csv_to_markdown(content)
         elif process_engine == "EXCEL":
             md = excel_to_markdown(content)
+        elif process_engine == "UNSUPPORTED":
+            # Explicitly unsupported binary format (audio, video, etc.)
+            raise UnsupportedFileTypeError(content_type=content_type or "unknown")
         else:
-            enable_markdown = False
+            # TEXT fallback - try to decode as text
             try:
                 md = decode_content(content)
-            except Exception as e:
-                raise e
+            except Exception:
+                # If decoding fails, it's likely a binary file we can't process
+                raise UnsupportedFileTypeError(content_type=content_type or "unknown")
 
         md = remove_nul_characters(md)
 
         # Strip leading/trailing whitespace; replace all >2 line breaks with 2 line breaks
         md = re.sub(r"\n{3,}", "\n\n", md.strip())
 
-        # Divide the markdown into chunks
-        if chunk_size:
-            try:
-                md_splitter = MarkdownSplitter(
-                    chunk_size=chunk_size,
-                    chunk_overlap=100,
-                    enable_markdown=enable_markdown,
-                )
-                md_chunks = md_splitter.split_markdown(md)
-            except Exception as e:
-                logger.debug("Error splitting markdown using MarkdownSplitter:")
-                logger.error(e)
-                # Fallback to simpler method
-                from llama_index.core.node_parser import SentenceSplitter
-
-                sentence_splitter = SentenceSplitter(
-                    chunk_size=chunk_size, chunk_overlap=min(chunk_size // 4, 100)
-                )
-                md_chunks = sentence_splitter.split_text(md)
-        else:
-            md_chunks = []
+        md_chunks = split_markdown_into_chunks(
+            md,
+            process_engine=process_engine,
+            pdf_method=pdf_method,
+            chunk_size=chunk_size,
+        )
         return ExtractionResult(md, md_chunks, pdf_method)
 
     except Exception as e:
@@ -370,13 +654,15 @@ def extract_markdown(
 
 
 def pdf_to_text_pymupdf(content):
+    import pymupdf
+
     doc = pymupdf.open(stream=content)
     md = ""
     for i, page in enumerate(doc):
-        md += f"<page_{i+1}>\n"
+        md += f"<page_{i + 1}>\n"
         text = page.get_text().strip()
         md += text
-        md += f"\n</page_{i+1}>\n"
+        md += f"\n</page_{i + 1}>\n"
     doc.close()
     return md
 
@@ -413,18 +699,15 @@ def _replace_pymupdf4llm_page_separators(md: str) -> str:
 
 
 def pdf_to_markdown_pymupdf4llm(content):
+    import pymupdf
+    import pymupdf4llm
+
     doc = pymupdf.Document(stream=content)
 
     md = pymupdf4llm.to_markdown(doc, page_separators=True)
     md = _replace_pymupdf4llm_page_separators(md)
 
     doc.close()
-    return md
-
-
-def pdf_to_markdown_via_html_azure_layout(content):
-    html = _pdf_to_html_azure_layout(content)
-    md = _convert_html_to_markdown(html)
     return md
 
 
@@ -438,7 +721,8 @@ def remove_nul_characters(text):
 
 
 def msg_to_markdown(content):
-    with tempfile.NamedTemporaryFile(suffix=".msg") as temp_file:
+    temp_dir = get_temp_dir()
+    with tempfile.NamedTemporaryFile(suffix=".msg", dir=temp_dir) as temp_file:
         temp_file.write(content)
         temp_file_path = temp_file.name
         try:
@@ -470,6 +754,14 @@ def docx_to_markdown(content):
     return md
 
 
+def legacy_word_to_docx(content):
+    try:
+        return convert_legacy_word_to_docx(content)
+    except Exception as e:
+        logger.error(f"Failed to convert .doc file to .docx via LibreOffice: {e}")
+        raise Exception(_("Could not convert legacy Word (.doc) file.")) from e
+
+
 def pptx_to_markdown(content):
     import pptx
 
@@ -493,28 +785,36 @@ def pptx_to_markdown(content):
                     html += run.text
                 html += "</p>"
         if len(slide.notes_slide.notes_text_frame.paragraphs) > 0:
-            html += f"<h6>Presenter notes:</h6>"
+            html += "<h6>Presenter notes:</h6>"
             for note in slide.notes_slide.notes_text_frame.paragraphs:
                 html += "<p>"
                 for run in note.runs:
                     html += run.text
                 html += "</p>"
         if html:
-            all_html += f"<page_{i+1}>\n{html}\n</page_{i+1}>\n"
+            all_html += f"<page_{i + 1}>\n{html}\n</page_{i + 1}>\n"
 
     md = _convert_html_to_markdown(all_html)
     return md
 
 
-def create_child_nodes(chunks, source_node_id, metadata=None):
+def create_child_nodes(chunks, source_node_id, metadata=None, chunk_positions=None):
     from llama_index.core.schema import NodeRelationship, RelatedNodeInfo, TextNode
 
     nodes = []
     for i, text in enumerate(chunks):
-
         node = TextNode(text=text, id_=str(uuid.uuid4()))
 
-        node.metadata = dict(metadata, chunk_number=i)
+        node_meta = dict(metadata, chunk_number=i)
+        # Add position metadata if available
+        if chunk_positions and i < len(chunk_positions):
+            pos = chunk_positions[i]
+            if pos.get("start_char") is not None:
+                node_meta["start_char"] = pos["start_char"]
+                node_meta["end_char"] = pos["end_char"]
+            if pos.get("start_page") is not None:
+                node_meta["start_page"] = pos["start_page"]
+        node.metadata = node_meta
         node.relationships[NodeRelationship.SOURCE] = RelatedNodeInfo(
             node_id=source_node_id
         )
@@ -589,7 +889,9 @@ def _convert_html_to_markdown(
         soup = soup.find("body")
 
     if selector:
-        selected_html = soup.select_one(selector)
+        selected_html = BeautifulSoup(
+            "".join([str(tag) for tag in soup.select(selector)]), "html.parser"
+        )
         if selected_html:
             soup = selected_html
         else:
@@ -615,103 +917,336 @@ def _convert_html_to_markdown(
     return markdown
 
 
-def _pdf_to_html_azure_layout(content):
-    from azure.ai.documentintelligence import DocumentIntelligenceClient
-    from azure.core.credentials import AzureKeyCredential
-    from shapely.geometry import Polygon
+def csv_to_markdown(content):
+    """Convert CSV content to markdown table."""
+    try:
+        decoded = decode_content(content)
+        with io.StringIO(decoded) as csv_file:
+            reader = csv.reader(csv_file)
+            rows = list(reader)
+    except Exception as e:
+        logger.error(f"Failed to extract text from CSV file: {e}")
+        raise Exception(_("Corrupt CSV file."))
 
-    # Note: This method handles scanned PDFs, images, and handwritten text but is $$$
+    if not rows:
+        return ""
+
+    header = [_csv_cell_to_markdown(cell) for cell in rows[0]]
+    table = [
+        "| " + " | ".join(header) + " |",
+        "| " + " | ".join(["---"] * len(header)) + " |",
+    ]
+    for row in rows[1:]:
+        row_text = [_csv_cell_to_markdown(cell) for cell in row]
+        table.append("| " + " | ".join(row_text) + " |")
+
+    md = "\n".join(table)
+    return md
+
+
+def _split_hyperlink_args(args: str) -> list[str]:
+    """Split HYPERLINK(...) args on commas/semicolons outside of quoted strings."""
+    parts = []
+    current = []
+    in_quotes = False
+    i = 0
+
+    while i < len(args):
+        char = args[i]
+
+        if char == '"':
+            # Handle escaped quote in CSV/Excel formulas: ""
+            if in_quotes and i + 1 < len(args) and args[i + 1] == '"':
+                current.append('""')
+                i += 2
+                continue
+            in_quotes = not in_quotes
+            current.append(char)
+        elif not in_quotes and char in [",", ";"]:
+            parts.append("".join(current).strip())
+            current = []
+        else:
+            current.append(char)
+
+        i += 1
+
+    parts.append("".join(current).strip())
+    return parts
+
+
+def _unquote_formula_string(value: str) -> str:
+    """Unquote and unescape a formula string argument if wrapped in double quotes."""
+    value = value.strip()
+    if len(value) >= 2 and value.startswith('"') and value.endswith('"'):
+        return value[1:-1].replace('""', '"')
+    return value
+
+
+def _csv_cell_to_markdown(cell_value: str) -> str:
+    """Convert a CSV cell to markdown text, preserving Excel-style HYPERLINK formulas."""
+    value = str(cell_value) if cell_value is not None else ""
+    formula_match = re.match(r"^\s*=\s*HYPERLINK\s*\((.*)\)\s*$", value, re.IGNORECASE)
+    if not formula_match:
+        return value.replace("|", "\\|")
+
+    args = _split_hyperlink_args(formula_match.group(1))
+    if not args:
+        return value.replace("|", "\\|")
+
+    url = _unquote_formula_string(args[0])
+    label = _unquote_formula_string(args[1]) if len(args) > 1 else url
+
+    if not url:
+        return value.replace("|", "\\|")
+
+    escaped_label = label.replace("|", "\\|")
+    return f"[{escaped_label}]({url})"
+
+
+def _excel_cell_to_markdown(cell) -> str:
+    """Convert an Excel cell to markdown text, preserving hyperlinks."""
+    value = str(cell.value) if cell.value is not None else ""
+    if cell.hyperlink and cell.hyperlink.target:
+        escaped_value = value.replace("|", "\\|")
+        return f"[{escaped_value}]({cell.hyperlink.target})"
+    return value.replace("|", "\\|")
+
+
+def excel_to_markdown(content):
+    """Convert Excel content to markdown tables."""
+    import openpyxl
+
+    try:
+        workbook = openpyxl.load_workbook(io.BytesIO(content))
+    except Exception as e:
+        logger.error(f"Failed to extract text from Excel file: {e}")
+        raise Exception(_("Corrupt Excel file."))
+
+    markdown = ""
+    for sheet in workbook.sheetnames:
+        markdown += f"# {sheet}\n\n"
+        sheet_obj = workbook[sheet]
+        rows = list(sheet_obj.iter_rows())
+        if not rows:
+            continue
+        header = [_excel_cell_to_markdown(cell) for cell in rows[0]]
+        table = [
+            "| " + " | ".join(header) + " |",
+            "| " + " | ".join(["---"] * len(header)) + " |",
+        ]
+        for row in rows[1:]:
+            row_text = [_excel_cell_to_markdown(cell) for cell in row]
+            table.append("| " + " | ".join(row_text) + " |")
+        markdown += "\n".join(table) + "\n\n"
+    return markdown
+
+
+def submit_azure_document_ai(
+    content: bytes,
+    model: str,
+    request_searchable_pdf: bool = False,
+) -> str:
+    """
+    Submit content to Azure Document Intelligence and return operation_location URL.
+    Does not wait for completion.
+
+    Args:
+        content: Binary content to analyze
+        model: Either "prebuilt-layout" or "prebuilt-read"
+
+    Returns:
+        operation_location URL string
+    """
+    from azure.ai.documentintelligence import DocumentIntelligenceClient
+    from azure.ai.documentintelligence.models import (
+        AnalyzeOutputOption,
+        DocumentContentFormat,
+    )
+    from azure.core.credentials import AzureKeyCredential
 
     document_analysis_client = DocumentIntelligenceClient(
-        endpoint=settings.AZURE_COGNITIVE_SERVICE_ENDPOINT,
-        credential=AzureKeyCredential(settings.AZURE_COGNITIVE_SERVICE_KEY),
+        endpoint=settings.AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT,
+        credential=AzureKeyCredential(settings.AZURE_DOCUMENT_INTELLIGENCE_KEY),
     )
 
-    poller = document_analysis_client.begin_analyze_document("prebuilt-layout", content)
-    result = poller.result()
+    analyze_kwargs = {}
+    if request_searchable_pdf and model == "prebuilt-read":
+        analyze_kwargs["output"] = [AnalyzeOutputOption.PDF]
+        analyze_kwargs["output_content_format"] = DocumentContentFormat.MARKDOWN
 
-    num_pages = len(result.pages)
-    cost = Cost.objects.new(cost_type="doc-ai-prebuilt", count=num_pages)
+    poller = document_analysis_client.begin_analyze_document(
+        model,
+        content,
+        **analyze_kwargs,
+    )
+    # Return the operation location without waiting for result
+    return poller._polling_method._initial_response.http_response.headers.get(
+        "operation-location"
+    )
 
-    # Extract table bounding regions
+
+def get_azure_document_ai_result_pdf(operation_location: str, model: str) -> bytes:
+    """Fetch searchable PDF bytes for an Azure Document Intelligence result."""
+    from azure.ai.documentintelligence import DocumentIntelligenceClient
+    from azure.core.credentials import AzureKeyCredential
+
+    parsed = urlparse(operation_location or "")
+    path = parsed.path.rstrip("/")
+    marker = "/analyzeResults/"
+    if marker not in path:
+        raise ValueError("Could not parse Azure Document Intelligence result ID")
+
+    result_id = path.split(marker, 1)[1]
+    if not result_id:
+        raise ValueError("Missing Azure Document Intelligence result ID")
+
+    document_analysis_client = DocumentIntelligenceClient(
+        endpoint=settings.AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT,
+        credential=AzureKeyCredential(settings.AZURE_DOCUMENT_INTELLIGENCE_KEY),
+    )
+    pdf_content = document_analysis_client.get_analyze_result_pdf(
+        model_id=model,
+        result_id=result_id,
+    )
+    return b"".join(chunk for chunk in pdf_content)
+
+
+def poll_azure_document_ai(operation_location: str):
+    """
+    Poll Azure Document Intelligence operation until complete.
+    Returns the result JSON when ready.
+
+    Args:
+        operation_location: The operation location URL from submit
+
+    Returns:
+        The completed result JSON dict
+    """
+    import time
+
+    import requests
+
+    # Poll the operation until complete
+    headers = {
+        "Ocp-Apim-Subscription-Key": settings.AZURE_DOCUMENT_INTELLIGENCE_KEY,
+    }
+
+    while True:
+        response = requests.get(operation_location, headers=headers)
+        result_json = response.json()
+
+        status = result_json.get("status")
+        if status == "succeeded":
+            return result_json
+        elif status == "failed":
+            error = result_json.get("error", {})
+            raise Exception(f"Azure Document Intelligence failed: {error}")
+        elif status in ["notStarted", "running"]:
+            time.sleep(1)  # Wait 1 second before polling again
+        else:
+            raise Exception(f"Unknown status: {status}")
+
+
+def parse_azure_layout_result(result_json: dict) -> str:
+    """
+    Parse Azure Document Intelligence layout result into HTML.
+
+    Args:
+        result_json: The result JSON from Azure Document Intelligence
+
+    Returns:
+        HTML string with layout information
+    """
+    from shapely.geometry import Polygon
+
+    analyze_result = result_json.get("analyzeResult", {})
+
+    num_pages = len(analyze_result.get("pages", []))
+    Cost.objects.new(cost_type="doc-ai-prebuilt", count=num_pages)
+
+    # Extract table bounding regions for intersection checking
     table_bounding_regions = []
-    for table in result.tables:
-        for cell in table.cells:
-            table_bounding_regions.append(cell.bounding_regions[0])
+    for table in analyze_result.get("tables", []):
+        for cell in table.get("cells", []):
+            if cell.get("boundingRegions"):
+                table_bounding_regions.append(cell["boundingRegions"][0])
 
     table_chunks = []
-    for _, table in enumerate(result.tables):
-        page_number = table.bounding_regions[0].page_number
+    for table in analyze_result.get("tables", []):
+        if not table.get("boundingRegions"):
+            continue
+        page_number = table["boundingRegions"][0]["pageNumber"]
 
-        # Generate table HTML syntax
+        # Generate table HTML
         table_html = "<table>"
-        for row in range(table.row_count):
+        for row in range(table["rowCount"]):
             table_html += "<tr>"
-            for col in range(table.column_count):
-                try:
-                    cell = next(
-                        cell
-                        for cell in table.cells
-                        if cell.row_index == row and cell.column_index == col
-                    )
-                    table_html += "<td>{}</td>".format(cell.content)
-                except StopIteration:
-                    table_html += "<td></td>"
+            for col in range(table["columnCount"]):
+                cell = next(
+                    (
+                        c
+                        for c in table.get("cells", [])
+                        if c["rowIndex"] == row and c["columnIndex"] == col
+                    ),
+                    None,
+                )
+                table_html += f"<td>{cell.get('content', '') if cell else ''}</td>"
             table_html += "</tr>"
         table_html += "</table>"
 
-        # Polygon is a flat list of coordinates [x1, y1, x2, y2, ...]
-        polygon = table.bounding_regions[0].polygon
+        polygon = table["boundingRegions"][0]["polygon"]
         points = [(polygon[i], polygon[i + 1]) for i in range(0, len(polygon), 2)]
         table_polygon = Polygon(points)
 
-        chunk = {
-            "page_number": page_number,
-            "x": table_polygon.bounds[0],
-            "y": table_polygon.bounds[1],
-            "text": table_html,
-        }
-        table_chunks.append(chunk)
+        table_chunks.append(
+            {
+                "page_number": page_number,
+                "x": table_polygon.bounds[0],
+                "y": table_polygon.bounds[1],
+                "text": table_html,
+            }
+        )
 
     p_chunks = []
-    for paragraph in result.paragraphs:
-        paragraph_page_number = paragraph.bounding_regions[0].page_number
+    for para in analyze_result.get("paragraphs", []):
+        if not para.get("boundingRegions"):
+            continue
 
-        # Polygon is a flat list of coordinates [x1, y1, x2, y2, ...]
-        polygon = paragraph.bounding_regions[0].polygon
+        para_page = para["boundingRegions"][0]["pageNumber"]
+        polygon = para["boundingRegions"][0]["polygon"]
         points = [(polygon[i], polygon[i + 1]) for i in range(0, len(polygon), 2)]
-        paragraph_polygon = Polygon(points)
+        para_polygon = Polygon(points)
 
-        # Check intersection between paragraph and table cells
-        table_intersections = []
-        for bounding_region in table_bounding_regions:
-            if bounding_region.page_number == paragraph_page_number:
-                # Polygon is a flat list of coordinates [x1, y1, x2, y2, ...]
-                polygon = bounding_region.polygon
-                points = [
-                    (polygon[i], polygon[i + 1]) for i in range(0, len(polygon), 2)
-                ]
-                table_poly = Polygon(points)
-                table_intersections.append(paragraph_polygon.intersects(table_poly))
+        # Check intersection with tables
+        intersects_table = any(
+            para_page == br["pageNumber"]
+            and para_polygon.intersects(
+                Polygon(
+                    [
+                        (br["polygon"][i], br["polygon"][i + 1])
+                        for i in range(0, len(br["polygon"]), 2)
+                    ]
+                )
+            )
+            for br in table_bounding_regions
+        )
 
-        if any(table_intersections):
+        if intersects_table:
             continue
 
-        # If text contains words like :selected:, :checked:, or :unchecked:, then skip it
-        if any(
-            word in paragraph.content
-            for word in [":selected:", ":checked:", ":unchecked:"]
-        ):
+        # Skip checkbox/selection markers
+        content = para.get("content", "")
+        if any(word in content for word in [":selected:", ":checked:", ":unchecked:"]):
             continue
 
-        # Create Chunk object and append to chunks list
-        chunk = {
-            "page_number": paragraph_page_number,
-            "x": paragraph_polygon.bounds[0],
-            "y": paragraph_polygon.bounds[1],
-            "text": "<p>" + paragraph.content + "</p>",
-        }
-        p_chunks.append(chunk)
+        p_chunks.append(
+            {
+                "page_number": para_page,
+                "x": para_polygon.bounds[0],
+                "y": para_polygon.bounds[1],
+                "text": f"<p>{content}</p>",
+            }
+        )
 
     chunks = table_chunks + p_chunks
 
@@ -721,7 +1256,7 @@ def _pdf_to_html_azure_layout(content):
     )
     html = ""
     cur_page = None
-    for _, chunk in enumerate(chunks, 1):
+    for idx, chunk in enumerate(chunks, 1):
         page_start_tag = f"\n<page_{chunk.get('page_number')}>\n"
         page_end_tag = f"\n</page_{chunk.get('page_number')}>\n"
         prev_end_tag = f"\n</page_{cur_page}>\n" if cur_page is not None else ""
@@ -738,98 +1273,31 @@ def _pdf_to_html_azure_layout(content):
     return html
 
 
-def pdf_to_text_azure_read(content: bytes) -> str:
-    from azure.ai.documentintelligence import DocumentIntelligenceClient
-    from azure.core.credentials import AzureKeyCredential
+def parse_azure_read_result(result_json: dict) -> str:
+    """
+    Parse Azure Document Intelligence read result into text.
 
-    document_analysis_client = DocumentIntelligenceClient(
-        endpoint=settings.AZURE_COGNITIVE_SERVICE_ENDPOINT,
-        credential=AzureKeyCredential(settings.AZURE_COGNITIVE_SERVICE_KEY),
-    )
+    Args:
+        result_json: The result JSON from Azure Document Intelligence
 
-    poller = document_analysis_client.begin_analyze_document("prebuilt-read", content)
-    result = poller.result()
+    Returns:
+        Text string with page tags
+    """
+    analyze_result = result_json.get("analyzeResult", {})
+    pages = analyze_result.get("pages", [])
 
-    num_pages = len(result.pages)
-    cost = Cost.objects.new(cost_type="doc-ai-read", count=num_pages)
-
-    p_chunks = []
-    for page in result.pages:
-        for line in page.lines:
-            chunk = {
-                "page_number": page.page_number,
-                "text": line.content + "\n",
-            }
-            p_chunks.append(chunk)
+    num_pages = len(pages)
+    Cost.objects.new(cost_type="doc-ai-read", count=num_pages)
 
     text = ""
-    cur_page = None
-    for _, chunk in enumerate(p_chunks, 1):
-        page_start_tag = f"\n<page_{chunk.get('page_number')}>\n"
-        page_end_tag = f"\n</page_{chunk.get('page_number')}>\n"
-        prev_end_tag = f"\n</page_{cur_page}>\n" if cur_page is not None else ""
-        if chunk.get("page_number") != cur_page:
-            if cur_page is not None:
-                text = text.strip() + prev_end_tag
-            cur_page = chunk.get("page_number")
-            text = text.strip() + page_start_tag
-        text += chunk.get("text")
+    for page in pages:
+        page_num = page["pageNumber"]
+        text += f"\n<page_{page_num}>\n"
+        for line in page.get("lines", []):
+            text += line.get("content", "") + "\n"
+        text = text.strip() + f"\n</page_{page_num}>\n"
 
-    if cur_page is not None and p_chunks:
-        text = text.strip() + page_end_tag
-
-    return text
-
-
-def csv_to_markdown(content):
-    """Convert CSV content to markdown table."""
-    try:
-        with io.StringIO(content.decode("utf-8")) as csv_file:
-            reader = csv.reader(csv_file)
-            rows = list(reader)
-    except Exception as e:
-        logger.error(f"Failed to extract text from CSV file: {e}")
-        raise Exception(_("Corrupt CSV file."))
-
-    if not rows:
-        return ""
-
-    header = rows[0]
-    table = [
-        "| " + " | ".join(header) + " |",
-        "| " + " | ".join(["---"] * len(header)) + " |",
-    ]
-    for row in rows[1:]:
-        table.append("| " + " | ".join(row) + " |")
-
-    md = "\n".join(table)
-    return md
-
-
-def excel_to_markdown(content):
-    """Convert Excel content to markdown tables."""
-    try:
-        workbook = openpyxl.load_workbook(io.BytesIO(content))
-    except Exception as e:
-        logger.error(f"Failed to extract text from Excel file: {e}")
-        raise Exception(_("Corrupt Excel file."))
-
-    markdown = ""
-    for sheet in workbook.sheetnames:
-        markdown += f"# {sheet}\n\n"
-        sheet_obj = workbook[sheet]
-        rows = list(sheet_obj.values)
-        if not rows:
-            continue
-        header = rows[0]
-        table = [
-            "| " + " | ".join(map(str, header)) + " |",
-            "| " + " | ".join(["---"] * len(header)) + " |",
-        ]
-        for row in rows[1:]:
-            table.append("| " + " | ".join(map(str, row)) + " |")
-        markdown += "\n".join(table) + "\n\n"
-    return markdown
+    return text.strip()
 
 
 def resize_to_azure_requirements(content):

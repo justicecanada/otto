@@ -1,0 +1,245 @@
+{% extends "base.html" %}
+{% load static %}
+{% load i18n %}
+{% load rules %}
+
+{% block page_title %}
+  {% trans "Translate - Otto" %}
+{% endblock %}
+
+{% block page_css %}
+  <link rel="stylesheet" href="{% static 'translate/style.css' %}">
+{% endblock %}
+
+{% block page_script %}
+  <script src="{% static 'translate/translate.js' %}"></script>
+{% endblock %}
+
+{% block content_container %}
+  {% has_perm "otto.can_access_chat_next" request.user as can_access_chat_next %}
+  {% if can_access_chat_next %}
+    {% url 'chat_next:new_chat' as ai_translation_url %}
+  {% else %}
+    {% url 'chat:translate' as ai_translation_url %}
+  {% endif %}
+  <div id="translate-outer">
+    <div class="container py-3 px-0">
+      <h2 class="my-2 px-4">
+        <a href="{% url 'translate:index' %}"
+           class="text-decoration-none text-body">{% trans "JUStranslate" %}</a>
+      </h2>
+      <p class="mb-4 mx-4">
+        {% trans "For better translation quality and JUS-specific glossary support, using" %}
+        <a href="{{ ai_translation_url }}">{% trans "GPT translation in the AI Assistant" %}</a>
+        {% trans "is recommended." %}
+      </p>
+
+      <!-- Tab switcher -->
+      <ul class="nav nav-tabs px-3 border-bottom-0"
+          id="translationTabs"
+          role="tablist">
+        <li class="nav-item" role="presentation">
+          <button class="nav-link active fw-semibold text-body"
+                  id="document-tab"
+                  data-bs-toggle="tab"
+                  data-bs-target="#documentTranslation"
+                  type="button"
+                  role="tab"
+                  aria-label="{% trans 'Document translation' %}"
+                  aria-controls="documentTranslation"
+                  aria-selected="true">{% trans "Document translation" %}</button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link text-body"
+                  id="text-tab"
+                  data-bs-toggle="tab"
+                  data-bs-target="#textTranslation"
+                  type="button"
+                  role="tab"
+                  aria-label="{% trans 'Text translation' %}"
+                  aria-controls="textTranslation"
+                  aria-selected="false">{% trans "Text translation" %}</button>
+        </li>
+      </ul>
+
+      <div id="step-content" class="rounded">
+
+        <div class="tab-content" id="translationTabContent">
+
+          <!-- Document Translation Tab -->
+          <div class="tab-pane  show active p-3 border rounded"
+               id="documentTranslation"
+               role="tabpanel"
+               aria-labelledby="document-tab">
+            <form id="documentTranslationForm"
+                  hx-post="{% url 'translate:translate_document' %}"
+                  hx-target="#document-result"
+                  hx-encoding="multipart/form-data"
+                  hx-indicator="#document-spinner">
+              {% csrf_token %}
+
+              <div class="mb-4">
+                <label class="form-label text-muted medium">
+                  <strong>{% trans "Upload documents to translate" %}</strong>
+                  <span class="text-muted fw-normal d-block small">
+                    {% trans "You can translate PDF, DOCX, PPTX, XLSX, TXT files up to 40MB each." %}
+                  </span>
+                </label>
+
+                <!-- Drop zone -->
+                <div id="drop_zone"
+                     class="border border-2 border-dashed rounded p-3 text-center"
+                     style="min-height: 100px;
+                            cursor: pointer"
+                     role="button"
+                     tabindex="0"
+                     aria-label="{% trans 'Upload documents: click or press Enter or Space, or drag and drop files' %}"
+                     aria-controls="fileInput"
+                     onclick="document.getElementById('fileInput').click()">
+                  <svg class="mb-3 text-secondary"
+                       width="48"
+                       height="48"
+                       stroke="currentColor"
+                       fill="none"
+                       viewBox="0 0 48 48"
+                       aria-hidden="true">
+                    <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                  </svg>
+                  <p class="mb-1">{% trans "Click to upload or drag and drop" %}</p>
+                  <p class="text-muted small mb-0" id="file-name-display">{% trans "No files selected" %}</p>
+                  <input type="file"
+                         id="fileInput"
+                         name="file"
+                         multiple
+                         class="d-none"
+                         accept=".pdf,.docx,.pptx,.xlsx,.txt"
+                         onchange="if(this.files.length===0){document.getElementById('file-name-display').textContent='{% trans "No files selected" %}';}else if(this.files.length===1){document.getElementById('file-name-display').textContent=this.files[0].name;}else{document.getElementById('file-name-display').textContent=`${this.files.length} {% trans 'files selected' %}`;}">
+                </div>
+              </div>
+
+              <div class="d-flex justify-content-center gap-3">
+                <button type="submit"
+                        name="language"
+                        value="en"
+                        class="btn btn-primary"
+                        aria-label="{% trans 'Translate uploaded document to English' %}"
+                        onclick="this.form.querySelector('[name=language]').value='en'">
+                  {% trans "Translate to English" %}
+                </button>
+                <button type="submit"
+                        name="language"
+                        value="fr"
+                        class="btn btn-primary"
+                        aria-label="{% trans 'Translate uploaded document to French' %}"
+                        onclick="this.form.querySelector('[name=language]').value='fr'">
+                  {% trans "Translate to French" %}
+                </button>
+              </div>
+
+              <input type="hidden" name="language" value="en">
+            </form>
+            <!-- Document result / progress -->
+            <div id="document-result" class="mt-4">{% include "translate/components/document_result.html" %}</div>
+          </div>
+
+          <!-- Text Translation Tab -->
+          <div class="tab-pane  p-3 border rounded"
+               id="textTranslation"
+               role="tabpanel"
+               aria-labelledby="text-tab">
+            <label class="form-label text-muted medium">
+              <strong>{% trans "Translate text" %}</strong>
+              <span class="text-muted fw-normal d-block small">{% trans "Enter text in the left box to see the translation in the right box" %}</span>
+            </label>
+            <div class="row gy-3 gy-md-0">
+              <!-- Source text -->
+              <div class="col">
+                <div class="text-muted mt-2">
+                  <label for="sourceText"
+                         class="form-label fw-semibold"
+                         id="source-label"
+                         data-label-en="{% trans 'English Text' %}"
+                         data-label-fr="{% trans 'French Text' %}">{% trans "English Text" %}</label>
+                </div>
+                <textarea id="sourceText"
+                          name="source_text"
+                          style="min-height: 195px"
+                          class="form-control"
+                          placeholder="{% trans 'Enter text to translate...' %}"
+                          hx-post="{% url 'translate:translate_text' %}"
+                          hx-trigger="keyup changed delay:500ms"
+                          hx-target="#translatedTextContainer"
+                          hx-include="#sourceText,#sourceLang,#targetLang"
+                          hx-indicator="#text-spinner"></textarea>
+              </div>
+
+              <!-- Switch button -->
+              <div class="col-auto d-flex flex-column justify-content-center align-items-center">
+                <button type="button"
+                        class="btn btn-outline-primary rounded-circle p-3 d-inline-flex "
+                        title="{% trans 'Switch languages' %}"
+                        aria-label="{% trans 'Switch source and target languages' %}"
+                        id="switchLangBtn">
+                  <svg xmlns="http://www.w3.org/2000/svg"
+                       fill="none"
+                       viewBox="0 0 24 24"
+                       stroke-width="2"
+                       stroke="currentColor"
+                       width="18"
+                       height="18">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 21 3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" />
+                  </svg>
+                </button>
+                <div id="text-spinner" class="htmx-indicator text-center mt-2">
+                  <div class="spinner-border spinner-border-sm text-primary" role="status">
+                    <span class="visually-hidden">{% trans "Translating..." %}</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Translated text -->
+              <div class="col">
+                <div class="d-flex justify-content-between align-items-center text-muted mt-2 mb-2">
+                  <span>
+                    <label class="form-label fw-semibold mb-0"
+                           id="target-label"
+                           data-label-en="{% trans 'English Translation' %}"
+                           data-label-fr="{% trans 'French Translation' %}">{% trans "French Translation" %}</label>
+                    <span id="text-translation-cost" class="text-muted ms-2"></span>
+                  </span>
+                  <button type="button"
+                          onclick="copyMessage(this)"
+                          id="translatedTextCopyButton"
+                          style="margin-bottom:-5px;
+                                 margin-top: -2px"
+                          class="btn btn-none text-secondary btn-sm copy-message-button d-none d-inline-flex align-items-center gap-1"
+                          aria-label='{% trans "Copy translated text" %}'
+                          title='{% trans "Copy" %}'
+                          data-copy-label='{% trans "Copy" %}'
+                          data-copied-label='{% trans "Copied" %}'>
+                    <i class="bi bi-copy copy-icon-default" aria-hidden="true"></i>
+                    <i class="bi bi-check-lg copy-icon-clicked" aria-hidden="true"></i>
+                    <span class="copy-label-default">{% trans "Copy" %}</span>
+                    <span class="copy-label-clicked">{% trans "Copied" %}</span>
+                  </button>
+                </div>
+                {% with initial_load=True %}
+                  <div id="translatedTextContainer">{% include "translate/components/text_result.html" %}</div>
+                {% endwith %}
+              </div>
+
+            </div>
+
+            <!-- Hidden language state -->
+            <input type="hidden" id="sourceLang" name="source_lang" value="en">
+            <input type="hidden" id="targetLang" name="target_lang" value="fr">
+
+          </div>
+        </div>
+      </div>
+      {% include "translate/translate_warning.html" %}
+    </div>
+  </div>
+
+  {% include "translate/components/file_dropzone.html" %}
+{% endblock content_container %}

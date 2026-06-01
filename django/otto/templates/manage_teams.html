@@ -1,0 +1,181 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block breadcrumb %}
+  {{ block.super }}
+  <li class="breadcrumb-item">
+    <a href="{% url 'manage_teams' %}">{% trans "Manage teams" %}</a>
+  </li>
+{% endblock %}
+
+{% block page_css %}
+  <link rel="stylesheet"
+        type="text/css"
+        href="{% static 'thirdparty/css/datatables.bundle-2.3.4.min.css' %}">
+  <style>
+    .team-members-preview {
+      display: -webkit-box;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 2;
+      overflow: hidden;
+      max-width: 34rem;
+      word-break: break-word;
+    }
+  </style>
+{% endblock %}
+
+{% block page_title %}
+  {% trans "Manage teams - Otto" %}
+{% endblock %}
+
+{% block content_container %}
+  <div id="manage-teams-outer">
+    <div class="container py-3 px-0">
+      <h2 class="mb-3 mt-2">{% trans "Manage teams" %}</h2>
+      <div class="alert alert-info d-flex flex-column flex-lg-row justify-content-between align-items-lg-start gap-3 mb-3">
+        <div>
+          <p class="mb-2">{% trans "Teams make it easy to share libraries, presets, and skills with groups of people." %}</p>
+          <p class="mb-0 small">
+            {% trans "Use a bilingual team name when possible so it is easy to find in sharing autocompletes, for example ‘Research / Recherche’." %}
+          </p>
+        </div>
+      </div>
+
+      <div class="row mb-3">
+        <div class="col">
+          <button type="button"
+                  class="btn btn-primary"
+                  hx-get="{% url 'manage_teams_form' %}"
+                  hx-target="#team-form"
+                  hx-swap="innerHTML"
+                  hx-indicator="#modal-spinner"
+                  onclick="document.getElementById('team-form').innerHTML='';"
+                  data-bs-toggle="modal"
+                  data-bs-target="#team-modal">{% trans "Create team" %}</button>
+        </div>
+      </div>
+
+      <div class="table-responsive">
+        <table class="table table-striped" id="teams-table">
+          <thead>
+            <tr>
+              <th>{% trans "Team name" %}</th>
+              <th>{% trans "Your role" %}</th>
+              <th>{% trans "Administrators" %}</th>
+              <th>{% trans "Members" %}</th>
+              <th>{% trans "Actions" %}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for team in teams %}
+              <tr>
+                <td>{{ team.name }}</td>
+                <td>
+                  {% for badge in team.role_badges %}<span class="badge {{ badge.class }} me-1">{{ badge.label }}</span>{% endfor %}
+                </td>
+                <td>
+                  {% if team.admins %}
+                    <span class="small team-members-preview"
+                          title="{{ team.admins|join:', ' }}">{{ team.admins|join:", " }}</span>
+                  {% else %}
+                    <span class="text-muted">&mdash;</span>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if team.members %}
+                    <div class="small team-members-preview"
+                         title="{{ team.members|join:', ' }}">{{ team.members|join:", " }}</div>
+                  {% else %}
+                    <span class="text-muted">{% trans "No member-only users" %}</span>
+                  {% endif %}
+                  <div class="text-muted small mt-1">
+                    {% blocktrans count count=team.member_count %}1 total person{% plural %}{{ count }} total people{% endblocktrans %}
+                  </div>
+                </td>
+                <td>
+                  {% if team.is_team_admin %}
+                    <a href="#"
+                       hx-get="{% url 'manage_teams_form_edit' team.id %}"
+                       hx-target="#team-form"
+                       hx-swap="innerHTML"
+                       hx-indicator="#modal-spinner"
+                       onclick="document.getElementById('team-form').innerHTML='';"
+                       data-bs-toggle="modal"
+                       data-bs-target="#team-modal">{% trans "Edit" %}</a>
+                    <span class="mx-1">|</span>
+                    <a href="#"
+                       class="text-danger"
+                       hx-post="{% url 'delete_team' team.id %}"
+                       hx-confirm="{% trans 'Are you sure you want to delete this team?' %}">{% trans "Delete" %}</a>
+                  {% else %}
+                    <span class="text-muted">{% trans "Member" %}</span>
+                  {% endif %}
+                </td>
+              </tr>
+            {% empty %}
+              <tr>
+                <td colspan="5" class="text-muted text-center py-4">
+                  {% trans "You are not a member of any teams yet. Create one to get started." %}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function checkUserKeydown(event) {
+      return event instanceof KeyboardEvent
+    }
+  </script>
+
+  <!-- Modal for creating/editing teams -->
+  <div class="modal modal-lg fade"
+       id="team-modal"
+       tabindex="-1"
+       aria-labelledby="team-modal-label"
+       aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title h5" id="team-modal-label">{% trans "Team" %}</h1>
+          <button type="button"
+                  class="btn-close"
+                  data-bs-dismiss="modal"
+                  aria-label="{% trans 'Close' %}"></button>
+        </div>
+        <div id="modal-spinner" class="spinner container text-primary pt-3">
+          <span class="spinner-border" aria-hidden="true"></span>
+          <span class="visually-hidden" role="status">Loading...</span>
+        </div>
+        <div id="team-form"></div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+
+{% block page_script %}
+  <script src="{% static 'thirdparty/jquery3.7.1.min.js' %}"
+          crossorigin="anonymous"></script>
+  <script src="{% static 'thirdparty/datatables.bundle-2.3.4.min.js' %}"></script>
+  <script>
+  $(document).ready(function() {
+    const table = $('#teams-table');
+    // Only initialize DataTables if there are actual team rows (ignore empty message row)
+    if (table.find('tbody tr').length > 0 && table.find('tbody tr:first td').length > 1) {
+      table.DataTable({
+        "paginate": false,
+        "info": false,
+        "ordering": true,
+        "order": [[0, "asc"]],
+        "language": {
+          "emptyTable": "{% trans 'You are not a member of any teams yet. Create one to get started.' %}"
+        }
+      });
+    }
+  });
+  </script>
+{% endblock %}

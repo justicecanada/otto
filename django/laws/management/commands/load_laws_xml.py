@@ -2,7 +2,7 @@ import sys
 import time
 
 from django.core.management.base import BaseCommand
-from django.utils.timezone import localtime, now
+from django.utils.timezone import localtime
 
 from django_extensions.management.utils import signalcommand
 from structlog import get_logger
@@ -83,7 +83,6 @@ class Command(BaseCommand):
         )
 
     def print_status(self):
-
         def get_status():
             job_status = JobStatus.objects.singleton()
             law_statuses = LawLoadingStatus.objects.all().order_by("started_at")

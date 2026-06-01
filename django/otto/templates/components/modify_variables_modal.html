@@ -1,0 +1,152 @@
+{% load i18n %}
+<div class="modal-header">
+  <h1 class="modal-title h5" id="modifyVariablesModalLabel">{% trans "Modify site variables" %}</h1>
+  <button type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="{% trans 'Close' %}"></button>
+</div>
+<form hx-post="{% url 'modify_variables_update' %}"
+      hx-target="#modify-variables-form"
+      hx-swap="innerHTML">
+  {% csrf_token %}
+  <div class="modal-body">
+    {% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors }}</div>{% endif %}
+
+    <p class="text-muted">
+      {% trans "Leave a field blank to allow unlimited uploads for that tier." %}
+      <br>
+      <em>{% trans "Admin users have no upload limits." %}</em>
+    </p>
+
+    <fieldset class="mb-3">
+      <legend class="h6 mb-1">{% trans "Normal user: Max upload size (MB)" %}</legend>
+      <div class="row gx-3">
+        <div class="col-md-6">
+          {{ form.normal_chat_max_mb.label_tag }}
+          {{ form.normal_chat_max_mb }}
+          {{ form.normal_chat_max_mb.errors }}
+        </div>
+        <div class="col-md-6">
+          {{ form.normal_librarian_max_mb.label_tag }}
+          {{ form.normal_librarian_max_mb }}
+          {{ form.normal_librarian_max_mb.errors }}
+        </div>
+      </div>
+    </fieldset>
+
+    <fieldset class="mb-3">
+      <legend class="h6 mb-1">{% trans "Bulk uploader: Max upload size (MB)" %}</legend>
+      <div class="row gx-3">
+        <div class="col-md-6">
+          {{ form.bulk_uploader_chat_max_mb.label_tag }}
+          {{ form.bulk_uploader_chat_max_mb }}
+          {{ form.bulk_uploader_chat_max_mb.errors }}
+        </div>
+        <div class="col-md-6">
+          {{ form.bulk_uploader_librarian_max_mb.label_tag }}
+          {{ form.bulk_uploader_librarian_max_mb }}
+          {{ form.bulk_uploader_librarian_max_mb.errors }}
+        </div>
+      </div>
+    </fieldset>
+
+    <fieldset class="mb-3">
+      <legend class="h6 mb-1">{% trans "Librarian large-document embedding" %}</legend>
+      <div class="row gx-3">
+        <div class="col-md-8">
+          {{ form.librarian_auto_embed_max_chunks.label_tag }}
+          {{ form.librarian_auto_embed_max_chunks }}
+          {{ form.librarian_auto_embed_max_chunks.errors }}
+          <div class="form-text">
+            {% trans "Documents above this chunk count stay paused after text extraction until someone manually approves embedding." %}
+          </div>
+        </div>
+      </div>
+    </fieldset>
+
+    <fieldset class="mb-3">
+      <legend class="h6 mb-1">{% trans "External-tool review sensitivity" %}</legend>
+      <div class="mb-3">
+        <label class="form-label d-block">{{ form.external_tool_review_flagged_azure_pii_categories.label }}</label>
+        <div class="d-flex flex-wrap gap-3">
+          {% for checkbox in form.external_tool_review_flagged_azure_pii_categories %}
+            <div class="form-check">
+              {{ checkbox.tag }}
+              <label class="form-check-label" for="{{ checkbox.id_for_label }}">{{ checkbox.choice_label }}</label>
+            </div>
+          {% endfor %}
+        </div>
+        {{ form.external_tool_review_flagged_azure_pii_categories.errors }}
+        <div class="form-text">{{ form.external_tool_review_flagged_azure_pii_categories.help_text }}</div>
+      </div>
+
+      <div class="row gx-3">
+        <div class="col-12 col-lg-6">
+          <div class="form-check mb-2">
+            {{ form.external_tool_review_flag_local_pii }}
+            <label class="form-check-label"
+                   for="{{ form.external_tool_review_flag_local_pii.id_for_label }}">
+              {{ form.external_tool_review_flag_local_pii.label }}
+            </label>
+          </div>
+          {{ form.external_tool_review_flag_local_pii.errors }}
+          <div class="form-text mb-2">{{ form.external_tool_review_flag_local_pii.help_text }}</div>
+
+          <div class="form-check mb-2">
+            {{ form.external_tool_review_flag_credentials_or_secrets }}
+            <label class="form-check-label"
+                   for="{{ form.external_tool_review_flag_credentials_or_secrets.id_for_label }}">
+              {{ form.external_tool_review_flag_credentials_or_secrets.label }}
+            </label>
+          </div>
+          {{ form.external_tool_review_flag_credentials_or_secrets.errors }}
+          <div class="form-text">{{ form.external_tool_review_flag_credentials_or_secrets.help_text }}</div>
+        </div>
+
+        <div class="col-12 col-lg-6">
+          <div class="form-check mb-2">
+            {{ form.external_tool_review_flag_large_payloads }}
+            <label class="form-check-label"
+                   for="{{ form.external_tool_review_flag_large_payloads.id_for_label }}">
+              {{ form.external_tool_review_flag_large_payloads.label }}
+            </label>
+          </div>
+          {{ form.external_tool_review_flag_large_payloads.errors }}
+          <div class="form-text mb-2">{{ form.external_tool_review_flag_large_payloads.help_text }}</div>
+
+          <div class="form-check mb-2">
+            {{ form.external_tool_review_flag_privileged_or_classified }}
+            <label class="form-check-label"
+                   for="{{ form.external_tool_review_flag_privileged_or_classified.id_for_label }}">
+              {{ form.external_tool_review_flag_privileged_or_classified.label }}
+            </label>
+          </div>
+          {{ form.external_tool_review_flag_privileged_or_classified.errors }}
+          <div class="form-text">{{ form.external_tool_review_flag_privileged_or_classified.help_text }}</div>
+        </div>
+      </div>
+    </fieldset>
+
+    <hr>
+    <div class="mb-3">
+      {{ form.laws_last_refreshed.label_tag }}
+      {{ form.laws_last_refreshed }}
+      {{ form.laws_last_refreshed.errors }}
+    </div>
+    <div class="mb-3">
+      {{ form.exchange_rate.label_tag }}
+      {{ form.exchange_rate }}
+      {{ form.exchange_rate.errors }}
+    </div>
+    <div class="mb-3">
+      {{ form.terms_last_updated.label_tag }}
+      {{ form.terms_last_updated }}
+      {{ form.terms_last_updated.errors }}
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
+    <button type="submit" class="btn btn-primary">{% trans "Save changes" %}</button>
+  </div>
+</form>

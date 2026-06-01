@@ -1,7 +1,11 @@
+from django.conf import settings
 from django.http import HttpResponse, HttpResponseRedirect
 from django.urls import reverse
 
+from azure_auth.middleware import AzureMiddleware
 from structlog import get_logger
+
+from otto.utils.api_auth import is_api_path
 
 logger = get_logger(__name__)
 
@@ -24,11 +28,14 @@ def map_entra_to_django_user(**fields):
         "first_name": fields["givenName"],
         "last_name": fields["surname"],
         "oid": fields["oid"],
+        "entra_status": "active",
+        "job_title": fields.get("jobTitle") or "",
+        "preferred_language": fields.get("preferredLanguage") or "",
     }
     return django_user
 
 
-PUBLIC_PATHS = [
+BASE_PUBLIC_PATHS = [
     "/azure_auth/login",
     "/azure_auth/logout",
     "/accounts/login/callback",
@@ -36,9 +43,10 @@ PUBLIC_PATHS = [
     "/notifications",
     "/healthz",
     "/load_test",
+    "/metrics",
 ]
 
-NO_TERMS_PATHS = PUBLIC_PATHS + [
+BASE_NO_TERMS_PATHS = [
     "/",
     "/terms_of_use",
     "/i18n/setlang",
@@ -46,9 +54,25 @@ NO_TERMS_PATHS = PUBLIC_PATHS + [
     "/user_cost",
     "/user_management/mark_tour_completed/homepage",
     "/user_management/mark_tour_completed/ai_assistant",
+    "/user_management/mark_tour_completed/chat_next",
     "/user_management/mark_tour_completed/laws",
     "/user_management/reset_completion_flags",
 ]
+
+
+def _normalized_path_set(paths):
+    return {path.rstrip("/") or "/" for path in paths}
+
+
+def get_public_paths():
+    paths = set(BASE_PUBLIC_PATHS)
+    if getattr(settings, "BROWSER_TEST_AUTH_ENABLED", False):
+        paths.update(getattr(settings, "BROWSER_TEST_AUTH_PUBLIC_PATHS", []))
+    return _normalized_path_set(paths)
+
+
+def get_no_terms_paths():
+    return get_public_paths().union(_normalized_path_set(BASE_NO_TERMS_PATHS))
 
 
 class RedirectToLoginMiddleware:
@@ -57,7 +81,9 @@ class RedirectToLoginMiddleware:
 
     def __call__(self, request):
         no_trailing_dash_path = request.path.rstrip("/") or "/"
-        if no_trailing_dash_path in PUBLIC_PATHS:
+        if is_api_path(request.path):
+            return self.get_response(request)
+        if no_trailing_dash_path in get_public_paths():
             return self.get_response(request)
         # AC-2, AC-19: User Authentication (Can't be anonymous)
         if not request.user.is_authenticated or request.user.is_anonymous:
@@ -75,7 +101,9 @@ class AcceptTermsMiddleware:
 
     def __call__(self, request):
         no_trailing_dash_path = request.path.rstrip("/") or "/"
-        if no_trailing_dash_path in NO_TERMS_PATHS:
+        if is_api_path(request.path):
+            return self.get_response(request)
+        if no_trailing_dash_path in get_no_terms_paths():
             return self.get_response(request)
         if not request.user.accepted_terms:
             return HttpResponseRedirect(
@@ -83,3 +111,10 @@ class AcceptTermsMiddleware:
             )
 
         return self.get_response(request)
+
+
+class ApiAwareAzureMiddleware(AzureMiddleware):
+    def __call__(self, request):
+        if is_api_path(request.path):
+            return self.get_response(request)
+        return super().__call__(request)

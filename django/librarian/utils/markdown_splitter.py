@@ -172,7 +172,7 @@ class MarkdownSplitter:
         headings2 = {k: v for k, v in headings.items() if k < to_level}
         if not any(headings2.values()):
             return text
-        headings_str = f'{" > ".join([v for v in headings2.values() if v])}'
+        headings_str = f"{' > '.join([v for v in headings2.values() if v])}"
         return f"<headings>{headings_str}</headings>\n{text}"
 
     def _get_all_headings(

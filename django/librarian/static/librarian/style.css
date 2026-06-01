@@ -1,0 +1,177 @@
+/* Sticky header/footer with scrollable center for document list */
+#librarian-documents,
+#librarian-libraries,
+#librarian-data-sources {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: visible;
+}
+
+
+#editLibrariesModal,
+#chat-next-modal:has([data-chat-next-modal-view="librarian"]) {
+  --bs-modal-width: calc(min(100vw - 4rem, 1800px));
+}
+
+#editLibrariesInner div.modal-body>div.row>div {
+  min-height: calc(min(100vh - 10rem, 450px));
+  max-height: calc(100vh - 8.75rem);
+  overflow-y: auto;
+}
+
+#editLibrariesModal dl *,
+#chat-next-modal [data-chat-next-modal-view="librarian"] dl * {
+  word-break: break-word;
+}
+
+
+#editLibrariesModal .list-group-item,
+#chat-next-modal [data-chat-next-modal-view="librarian"] .list-group-item {
+  border-left: 0;
+  border-right: 0;
+  border-radius: 0 !important;
+  font-size: .875rem;
+  margin-left: -0.5rem;
+  margin-right: -0.5rem;
+  word-break: break-word;
+}
+
+
+/* Ensure librarian modal can take up most of the viewport and scroll internally.
+   This helps when lists grow tall or dropdown menus extend. */
+#editLibrariesModal .modal-dialog,
+#chat-next-modal:has([data-chat-next-modal-view="librarian"]) .modal-dialog {
+  max-width: 95vw;
+}
+
+@media (max-width: 1200px) {
+
+  #editLibrariesModal .modal-dialog,
+  #chat-next-modal:has([data-chat-next-modal-view="librarian"]) .modal-dialog {
+    margin: 5px !important;
+    width: calc(100vw - 10px);
+    max-width: calc(100vw - 10px);
+    min-height: calc(100vh - 10px);
+  }
+
+  #editLibrariesModal .modal-content,
+  #chat-next-modal:has([data-chat-next-modal-view="librarian"]) .modal-content {
+    min-height: calc(100vh - 10px);
+    max-height: calc(100vh - 10px);
+  }
+
+  #editLibrariesInner div.modal-body>div.row>div {
+    min-height: calc(100vh - 5.45rem);
+    max-height: calc(100vh - 5.45rem);
+  }
+
+  #editLibrariesModal .librarian-modal-grid,
+  #chat-next-modal [data-chat-next-modal-view="librarian"] .librarian-modal-grid {
+    min-height: calc(100vh - 10px);
+  }
+}
+
+#editLibrariesModal .modal-content,
+#chat-next-modal:has([data-chat-next-modal-view="librarian"]) .modal-content {
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 3.5rem);
+  /* keep entire modal within viewport */
+  overflow: hidden;
+  /* prevent inner content from overflowing the modal shell */
+}
+
+#editLibrariesModal .modal-body,
+#chat-next-modal [data-chat-next-modal-view="librarian"] .modal-body {
+  overflow-y: auto;
+  overflow-x: hidden;
+  /* remove horizontal scrollbar */
+  min-height: 0;
+  /* allow children to shrink within modal-content */
+  padding: 0;
+}
+
+/* Make sure dropdowns render above scrollable areas inside the modal */
+#editLibrariesModal .dropdown-menu,
+#chat-next-modal [data-chat-next-modal-view="librarian"] .dropdown-menu {
+  z-index: 1060;
+  /* slightly above modal content default */
+}
+
+/* Grid wrapper inside modal body to guarantee enough vertical space for tall dropdowns */
+#editLibrariesModal .librarian-modal-grid,
+#chat-next-modal [data-chat-next-modal-view="librarian"] .librarian-modal-grid {
+  min-height: 560px;
+  /* fits full Actions dropdown without forcing body grow beyond viewport */
+  padding: 0.75rem;
+  padding-bottom: 0;
+}
+
+#librarian-documents .librarian-v-top,
+#librarian-libraries .librarian-v-top,
+#librarian-data-sources .librarian-v-top {
+  flex-shrink: 0;
+  overflow: visible;
+}
+
+#librarian-documents .librarian-v-center,
+#librarian-libraries .librarian-v-center,
+#librarian-data-sources .librarian-v-center {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+#librarian-documents .librarian-v-bottom {
+  flex-shrink: 0;
+}
+
+#library-users-form {
+  font-size: 0.875rem;
+}
+
+.preset-form-container .nav-tabs {
+  border-bottom: none;
+  margin-bottom: 0;
+  z-index: 1;
+}
+
+.preset-form-container .nav-tabs .nav-link {
+  font-size: 0.875rem;
+  font-weight: 600;
+  border-bottom: 1px solid transparent;
+  padding: 0.5rem 1rem;
+  color: var(--bs-body-color);
+}
+
+.preset-form-container .nav-tabs .nav-link:hover {
+  color: var(--bs-gray-900);
+}
+
+[data-bs-theme="dark"] .preset-form-container .nav-tabs .nav-link:hover {
+  color: var(--bs-body-color);
+}
+
+.preset-form-container .nav-tabs .nav-link:not(.active) {
+  background-color: var(--chat-preset-tab-not-active, var(--bs-light));
+  border-bottom-color: var(--bs-gray-200);
+  font-weight: 400;
+}
+
+[data-bs-theme="dark"] .preset-form-container .nav-tabs .nav-link:not(.active) {
+  background-color: var(--chat-preset-tab-not-active, var(--bs-gray-700));
+  border-bottom-color: var(--bs-gray-700);
+}
+
+.preset-form-container .nav-tabs .nav-link:focus-visible {
+  box-shadow: 0 0 0 0.15rem rgba(66, 70, 73, 0.5);
+}
+
+.preset-form-container .language-content {
+  display: none;
+}
+
+.preset-form-container .language-content.active {
+  display: block;
+}

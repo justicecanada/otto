@@ -2,7 +2,7 @@
 {% load static %}
 
 <div id="right-sidebar"
-     class="chat-sidebar bg-light hidden"
+     class="chat-sidebar bg-light"
      aria-label='{% trans "Options" %}'>
   <div class="border-start h-100 position-relative d-flex flex-column">
     <button id="right-sidebar-resize-handle" class="btn btn-none" type="button">
@@ -20,48 +20,83 @@
               style="margin-top: -4px"
               aria-label='{% trans "Close" %}'></button>
     </div>
-    <div class="row p-2" id="presets-buttons-outer">
-      <div class="col pe-1"
-           data-bs-toggle="modal"
-           data-bs-target="#presets-modal">
-        <button type="button"
-                id="presets-modal-button"
-                class="btn btn-sm btn-outline-dark preset-btn w-100"
-                title="{% trans "Open presets menu" %}"
-                hx-get="{% url 'chat:get_presets' chat_id=chat.id %}"
-                hx-target="#presets-modal-body"
-                hx-swap="innerHTML"
-                onclick="document.getElementById('presets-modal-body').innerHTML = '';">
-          <i class="bi bi-folder"></i>
-          <span>{% trans 'Browse presets' %}</span>
-        </button>
-      </div>
-      <div class="col ps-1"
-           data-bs-toggle="modal"
-           data-bs-target="#presets-modal">
-        <button type="button"
-                class="btn btn-sm btn-outline-dark w-100"
-                title="{% trans "Save preset from current settings" %}"
-                hx-get="{% url 'chat:save_preset' chat_id=chat.id %}"
-                hx-target="#presets-modal-body"
-                hx-swap="innerHTML"
-                onclick="document.getElementById('presets-modal-body').innerHTML = '';">
-          <i class="bi bi-floppy2-fill"></i>
-          <span>{% trans 'Save settings' %}</span>
-        </button>
-      </div>
+    <div class="d-flex gap-2 p-2" id="presets-buttons-outer">
+      <button type="button"
+              id="presets-modal-button"
+              class="btn btn-sm btn-outline-dark preset-btn flex-grow-1"
+              title="{% trans "Open presets menu" %}"
+              data-bs-toggle="modal"
+              data-bs-target="#presets-modal"
+              hx-get="{% url 'chat:get_presets' chat_id=chat.id %}"
+              hx-target="#presets-modal-body"
+              hx-swap="innerHTML"
+              onclick="document.getElementById('presets-modal-body').innerHTML = '';">
+        <i class="bi bi-folder"></i>
+        <span>{% trans 'Browse presets' %}</span>
+      </button>
+      <button type="button"
+              class="btn btn-sm btn-outline-dark flex-grow-1"
+              title="{% trans "Save preset from current settings" %}"
+              data-bs-toggle="modal"
+              data-bs-target="#presets-modal"
+              hx-get="{% url 'chat:save_preset' chat_id=chat.id %}"
+              hx-target="#presets-modal-body"
+              hx-swap="innerHTML"
+              onclick="document.getElementById('presets-modal-body').innerHTML = '';">
+        <i class="bi bi-floppy2-fill"></i>
+        <span>{% trans 'Save settings' %}</span>
+      </button>
     </div>
+    {% include 'chat/components/preset_header.html' %}
     <form class="overflow-y-auto overflow-x-hidden flex-grow-1"
           id="chat-options"
           hx-trigger="optionsChanged"
           hx-post="{% url 'chat:chat_options' chat_id=chat.id %}"
           hx-swap="none"
+          data-autosave-csrf-error="{% trans 'Your session may have expired. Settings autosave has been paused. Please refresh the page and sign in again if needed.' %}"
           enctype="multipart/form-data">
       {% csrf_token %}
       {{ options_form.mode }}
       <script src="{% static 'chat/js/chatOptions.js' %}"></script>
       {% include 'chat/components/chat_options_accordion.html' %}
     </form>
+    {% if show_debug_tools %}
+      <div id="debug-tools-footer"
+           class="border-top p-2 d-flex justify-content-end align-items-center">
+        <div class="dropdown dropup">
+          <button class="btn btn-sm btn-outline-secondary dropdown-toggle"
+                  type="button"
+                  id="debug-tools-button"
+                  data-bs-toggle="dropdown"
+                  data-bs-auto-close="true"
+                  aria-expanded="false">
+            <i class="bi bi-bug me-1"></i>{% trans "Debug" %}
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end shadow-sm"
+              aria-labelledby="debug-tools-button">
+            <li>
+              <h6 class="dropdown-header">{% trans "Stream tests" %}</h6>
+            </li>
+            <li>
+              <div class="dropdown-item-text text-muted small debug-tools-note">
+                {% trans "Admin-only local tools. Each action inserts a test message into this chat." %}
+              </div>
+            </li>
+            {% for scenario_id, scenario in debug_stream_scenarios.items %}
+              <li>
+                <button type="button"
+                        class="dropdown-item"
+                        hx-post="{% url 'chat:debug_stream_test' chat_id=chat.id %}"
+                        hx-vals='{"scenario": "{{ scenario_id }}"}'
+                        hx-target="#messages-container"
+                        hx-swap="beforeend"
+                        hx-include="#chat-options">{{ scenario.label }}</button>
+              </li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+    {% endif %}
 
   </div>
 </div>

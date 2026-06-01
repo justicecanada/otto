@@ -1,0 +1,11 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "coverage:report",
+            "type": "shell",
+            "command": "python -m coverage html && python -m coverage report",
+            "problemMatcher": []
+        }
+    ]
+}

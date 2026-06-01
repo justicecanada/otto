@@ -1,0 +1,62 @@
+{% load i18n %}
+
+<div id="text-extractor-file-dropzone"
+     class="d-flex align-items-center justify-content-center">
+  <div class="rounded d-block text-center text-white"
+       id="text-extractor-file-area">
+    <i class="h3 bi bi-upload"></i>
+    <div class="mt-2 h5">{% trans "Drop files here" %}</div>
+  </div>
+</div>
+
+<script>
+
+function showTextExtractorOverlay() {
+  document.querySelector('#text-extractor-file-dropzone').classList.add('show');
+}
+
+function hideTextExtractorOverlay() {
+  document.querySelector('#text-extractor-file-dropzone').classList.remove('show');
+}
+
+function handleTextExtractorDragEnter(e) {
+  const dt = e && e.dataTransfer;
+  if (!dt) {
+    return;
+  }
+
+  if (!Array.from(dt.types || []).includes('Files')) {
+    return;
+  }
+  showTextExtractorOverlay();
+}
+
+function handleTextExtractorDragLeave(e) {
+  if (!e.relatedTarget || !document.querySelector('#text-extractor-file-dropzone').contains(e.relatedTarget)) {
+    hideTextExtractorOverlay();
+  }
+}
+
+function preventTextExtractorDefault(e) {
+  e.preventDefault();
+  e.stopPropagation();
+}
+
+function onTextExtractorDrop(e) {
+  e.preventDefault();
+  e.stopPropagation();
+  document.querySelector('#file-upload-field').value = null;
+  document.querySelector('#file-upload-field').files = e.dataTransfer.files;
+  document.querySelector('#file-upload-field').dispatchEvent(new Event('change'));
+  hideTextExtractorOverlay();
+}
+
+// Set up event listeners on the card body element when the script runs
+(function() {
+  const cardBody = document.querySelector('#upload-card-body');
+  cardBody.addEventListener('dragenter', handleTextExtractorDragEnter);
+  cardBody.addEventListener('dragover', preventTextExtractorDefault);
+  cardBody.addEventListener('dragleave', handleTextExtractorDragLeave);
+  cardBody.addEventListener('drop', onTextExtractorDrop);
+})();
+</script>

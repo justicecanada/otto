@@ -1,0 +1,66 @@
+{% load i18n %}
+
+<div class="d-flex align-items-center justify-content-center"
+     id="file-dropzone">
+  <div id="translate-file-area"
+       class="rounded d-block text-center text-light">
+    <p class="mb-3 h3">
+      <i class="bi bi-upload"></i>
+    </p>
+    <p class="mb-1 h5 fw-normal">{% trans "Drop files anywhere" %}</p>
+  </div>
+</div>
+<script>
+  // Drag and drop file upload
+  function ePrevent(e) {
+    e.preventDefault();
+    e.stopPropagation();
+  }
+  function onDrop(e) {
+    e.preventDefault();
+    e.stopPropagation();
+
+    var fileInput = document.getElementById('fileInput');
+    fileInput.files = e.dataTransfer.files;
+    fileInput.dispatchEvent(new Event('change'));
+
+    // Switch to document tab if not already active
+    var documentTab = document.getElementById('document-tab');
+    if (documentTab && !documentTab.classList.contains('active')) {
+      documentTab.click();
+    }
+
+    hideOverlay();
+  }
+  function handleDragEnter(e) {
+    var dt = (e && e.dataTransfer);
+    if (!dt) return;
+    Array.from(dt.types)?.forEach((type) => {
+      if (type === "Files") {
+        showOverlay();
+      }
+    });
+  }
+
+  function handleDragLeave(e) {
+    var dropZoneElement = document.getElementById('file-dropzone');
+    if (!e.relatedTarget || !dropZoneElement.contains(e.relatedTarget)) {
+      hideOverlay();
+    }
+  }
+
+  function showOverlay() {
+    document.getElementById('file-dropzone').classList.add('show');
+  }
+
+  function hideOverlay() {
+    document.getElementById('file-dropzone').classList.remove('show');
+  }
+
+  var dropZone = document.getElementById('file-dropzone');
+  window.addEventListener('dragenter', handleDragEnter);
+  dropZone.addEventListener('dragover', ePrevent);
+  window.addEventListener('dragleave', handleDragLeave);
+  window.addEventListener('dragexit', handleDragLeave);
+  dropZone.addEventListener('drop', onDrop);
+</script>

@@ -1,6 +1,7 @@
 {% load i18n %}
 {% load filters %}
 <div id="glossary-upload-fragment"
+     class="{% if not options_form.show_translate_glossary %}d-none{% endif %}"
      {% if swap %}hx-swap-oob="true"{% endif %}>
   <div class="px-3 mt-2">
     <label class="col-form-label col-form-label-sm" for="id_translate_glossary">

@@ -1,0 +1,18 @@
+{% load i18n %}
+
+{% for message in chat_messages %}
+  {% include 'chat_next/components/chat_message.html' %}
+{% endfor %}
+
+<script>
+// Show browser alert if a bot message is still streaming when user tries to leave
+function isBotStreaming() {  
+  return !!document.querySelector('.message-outer.bot.awaiting-response');
+}
+
+window.addEventListener('beforeunload', function (e) {
+  if (isBotStreaming()) {    
+    e.preventDefault()
+  }
+});
+</script>

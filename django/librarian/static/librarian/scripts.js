@@ -6,16 +6,69 @@ function toggleWarning(public_checkbox) {
   }
 }
 
+function shouldRouteDragToChatUploadsFromLibrarian() {
+  const modal = document.querySelector('#editLibrariesModal.show') || document.querySelector('#chat-next-modal.show');
+  const sharedLibrarianView = document.querySelector('#chat-next-modal.show [data-chat-next-modal-view="librarian"]');
+  if (!modal || (modal.id === 'chat-next-modal' && !sharedLibrarianView)) {
+    return false;
+  }
+
+  const currentChatId = String(modal.getAttribute('data-chat-id') || '');
+  if (!currentChatId) {
+    return false;
+  }
+
+  const documentsPane = document.querySelector('#librarian-documents');
+  if (!documentsPane) {
+    return false;
+  }
+
+  const selectedChatId = String(documentsPane.getAttribute('data-selected-chat-id') || '');
+  const selectedChatNextId = String(documentsPane.getAttribute('data-selected-chat-next-id') || '');
+
+  return selectedChatId === currentChatId || selectedChatNextId === currentChatId;
+}
+
+window.shouldRouteDragToChatUploadsFromLibrarian = shouldRouteDragToChatUploadsFromLibrarian;
+
+function refreshChatNextUploadMessages() {
+  if (typeof htmx === 'undefined') {
+    return;
+  }
+
+  document.querySelectorAll('[id^="message-files-"][data-library-status-url]').forEach((container) => {
+    const refreshUrl = container.getAttribute('data-library-status-url');
+    if (!refreshUrl) {
+      return;
+    }
+
+    htmx.ajax('GET', refreshUrl, {target: container, swap: 'outerHTML'});
+  });
+}
+
 let librarianModalCloseHandler = event => {
+  const modal = event.target;
+  if (modal.id === 'chat-next-modal' && !modal.querySelector('#editLibrariesInner')) {
+    return;
+  }
+
+  refreshChatNextUploadMessages();
+
   // Stop polling on element id="libraryModalPoller"
   // by replacing it with empty div
   const poller = document.getElementById('libraryModalPoller');
+  if (!poller || !poller.parentNode) {
+    return;
+  }
   const newPoller = document.createElement('div');
   newPoller.id = 'libraryModalPoller';
   poller.parentNode.replaceChild(newPoller, poller);
   // Fake library ID which won't exist. If passed through, this will reset the QA library to the default.
   let library_id = 99999999999999999999;
-  var prev_library_id = document.getElementById('id_qa_library').value;
+  const librarySelect = document.getElementById('id_qa_library');
+  if (!librarySelect || typeof chat_id === 'undefined') {
+    return;
+  }
   const selected_library_li = document.querySelector("#librarian-libraries li.list-group-item[aria-selected='true']");
   if (selected_library_li) {
     library_id = selected_library_li.getAttribute('data-library-id');
@@ -26,8 +79,10 @@ let librarianModalCloseHandler = event => {
     triggerOptionSave();
   });
 };
-const modalEl = document.getElementById('editLibrariesModal');
-modalEl.addEventListener('hidden.bs.modal', librarianModalCloseHandler);
+const legacyModalEl = document.getElementById('editLibrariesModal');
+legacyModalEl?.addEventListener('hidden.bs.modal', librarianModalCloseHandler);
+const sharedModalEl = document.getElementById('chat-next-modal');
+sharedModalEl?.addEventListener('hidden.bs.modal', librarianModalCloseHandler);
 
 function emailLibraryAdmins(url) {
   const library_id = document.getElementById("id_qa_library").value;
@@ -136,8 +191,58 @@ function initLibrarianUploadForm() {
   });
 }
 
+let librarianSearchVisibilityState = () => localStorage.getItem('librarian-search-visible') === 'true';
+
+// Modify incoming HTML before morph to set correct visibility
+document.addEventListener('htmx:beforeSwap', function (event) {
+  if (event.target.id === 'editLibrariesInner' && event.detail.serverResponse) {
+    if (librarianSearchVisibilityState()) {
+      // Remove d-none from search bar so it stays visible after morph
+      event.detail.serverResponse = event.detail.serverResponse.replace(
+        'id="librarian-search-row" class="mb-2 d-none"',
+        'id="librarian-search-row" class="mb-2"'
+      );
+    }
+  }
+});
+
 document.addEventListener('htmx:afterSwap', function (event) {
   if (event.target.id === "librarian-upload-message") {
     initLibrarianUploadForm();
   }
+
+  // Reinitialize Bootstrap dropdowns for sorting after any swap in the librarian area  
+  if (event.target.id === 'librarian-sort-list') {
+    // Dispose existing instance if any
+    const dropdown = document.getElementById('sort-toggle-btn');
+    const existingInstance = bootstrap.Dropdown.getInstance(dropdown);
+    if (existingInstance) {
+      existingInstance.dispose();
+    }
+    // Create new instance
+    new bootstrap.Dropdown(dropdown);
+  }
 });
+
+function setLocalStorageValue(show = true) {
+  localStorage.setItem('librarian-search-visible', show ? 'true' : 'false');
+}
+
+function toggleLibrarianSearch() {
+  const searchRow = document.querySelector('#librarian-search-row');
+  const isHidden = searchRow.classList.contains('d-none');
+
+  if (isHidden) {
+    searchRow.classList.remove('d-none');
+    setLocalStorageValue(true);
+    document.getElementById('librarian-search-input')?.focus();
+  } else {
+    searchRow.classList.add('d-none');
+    setLocalStorageValue(false);
+    const searchInput = document.querySelector('#librarian-search-input');
+    if (searchInput) {
+      searchInput.value = '';
+      htmx.trigger(searchInput, 'keyup');
+    }
+  }
+}

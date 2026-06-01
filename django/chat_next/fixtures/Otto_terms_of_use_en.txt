@@ -1,0 +1,66 @@
+## Terms of Use for Otto
+
+This reference file mirrors the main Terms of Use content that Otto Help should rely on when answering questions about acceptable use, privacy, retention, legal-research limitations, and related policy topics.
+
+For the live page in Otto, see `/terms_of_use/`.
+
+### Inappropriate uses and limitations of Otto
+
+You must read and follow the notices within these Terms of Use and in the notices within Otto tools.
+
+AI Assistant's Chat mode should not be trusted to provide factual information, as it is more prone to hallucination and bias in the output. Instead, use the Q&A and Summarize modes to ground the AI's responses in trusted sources such as documents that you upload or a shared document library.
+
+Otto may not be used to automate decision-making (administrative decisions affecting the rights, privileges or interests of individuals). Examples of decision-making include many human resources activities or program or funding decisions. Otto should not be used as a tool for decision-makers, nor to automate steps needed to make decisions. The use of AI for activities related to or impacting decision-making raises several legal and policy issues which are not detailed here or in other Otto documentation.
+
+Otto is not a substitute for professional legal advice. Legal professionals must analyze and understand the unique complexities of client matters, exercise professional judgment, and provide tailored strategic advice.
+
+For examples of appropriate use cases, please see the Otto user guide:
+https://collaboration.justice.gc.ca/ts/lps-spj/asb-dgas/bac-caa/Otto/Otto%20User%20Guide.docx
+
+### Security and privacy
+
+Otto is approved for information up to and including Protected B. This normally includes information subject to solicitor-client privilege. Specific statutes and regulations may impose additional requirements pertaining to certain classes of sensitive information that are considered Protected B. In such cases, the use of Otto should be considered on a case-by-case basis.
+
+You must not input any information above Protected B, either through uploads or direct text input. You must not input taxpayer information, Social Insurance Numbers (SIN) or Cabinet confidences.
+
+Apply security classification labels to Q&A folders when they contain Protected and/or personal information.
+
+Avoid uploading personal information except as needed for specific tasks. Share document libraries and chats only with those who require access (i.e. need to know if personal information is included).
+
+If information is shared with you through Otto which you should not have access to, use the provided links to email the authors or library administrators. To report other privacy or security issues, email the Otto team at otto@justice.gc.ca.
+
+For more information, please review the following:
+- Handling and Safeguarding Sensitive Information
+  https://collaboration.justice.gc.ca/co/ssms-sssgu/Documents/Guidelines%20and%20Policies/Handling-Safeguarding-sensitive-information2025-en.pdf
+- Privacy protocol for non-administrative purposes - JUSnet
+  https://jusnet.justice.gc.ca/eng/about-apropos/pdsg-pdwl/atip-aiprp/proto/proto.html
+
+### Information management
+
+Otto is for transitory information only. It is not a repository for information of business value.
+
+Only upload to Otto the documents you need to perform your tasks.
+
+Actively delete protected or personal information when it is no longer needed. Unless pinned, chats will be deleted after 90 days of inactivity (opening a chat resets the clock), along with all files uploaded to the chat. Except for libraries that are visible to all JUS users, libraries will be deleted after 90 days of inactivity (making changes to the library or using it for Q&A resets the clock).
+
+For more information, please review the following:
+- Information of Business Value vs Transitory Information - Information Management (IM) Guidelines
+  https://collaboration.justice.gc.ca/co/im-gi/Shared%20Documents/Information%20of%20Business%20Value%20vs%20Transitory%20Information%20-%20Information%20Management%20(IM)%20Guidelines.aspx
+
+### Responsible and ethical use of AI
+
+The Government of Canada aims to be a model user of copyright. Uploading copyrighted material to Otto in limited quantities for purposes such as research, study, education, criticism or review may qualify as fair dealing and thus not infringe copyright. Users should respect any contractual restrictions on sharing documents with AI-based tools. Material obtained from the Justice Library may be subject to such use restrictions.
+
+Outputs from Otto may contain the intellectual property of others, including excerpts of copyrighted material and third-party trademarks. Users intending to include outputs from Otto in external publications or communications should review the output carefully. The Treasury Board guidance referred to below provides helpful recommendations in this respect. Avoid using Otto-generated content in government publications when it is particularly critical that the Crown own the copyright.
+
+Follow policies and best practices for the responsible use of AI. Refer to and follow the guidance in the following policy documents:
+- Guide on the use of generative artificial intelligence - Canada.ca
+  https://www.canada.ca/en/government/system/digital-government/digital-government-innovations/responsible-use-ai/guide-use-generative-ai.html
+- Generative AI in your daily work - Canada.ca
+  https://www.canada.ca/en/government/system/digital-government/digital-government-innovations/responsible-use-ai/generative-ai-your-daily-work.html
+
+Legal professionals must consult developing directions and notices from courts and tribunals pertaining to the use of artificial intelligence, as well as guidance from law societies. You should endeavor to notify clients when AI tools are being used.
+
+Always be aware that AI can make mistakes, even when you have provided it with documents.
+
+If they are to be relied upon, all outputs from Otto must undergo human verification by the user or a person with appropriate knowledge and expertise to evaluate the outputs. Citations provided in outputs from Otto can assist with this verification.

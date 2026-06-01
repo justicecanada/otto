@@ -1,6 +1,7 @@
 from django.urls import include, path
 
 from .loading_views import (
+    download_skipped_texts,
     laws_list,
     laws_loading_cancel,
     laws_loading_monitor,
@@ -28,5 +29,10 @@ urlpatterns = [
     path("loading/start", laws_loading_start, name="loading_start"),
     path("loading/cancel", laws_loading_cancel, name="loading_cancel"),
     path("loading/recreate_indexes", laws_recreate_indexes, name="recreate_indexes"),
+    path(
+        "loading/download_skipped_texts",
+        download_skipped_texts,
+        name="download_skipped_texts",
+    ),
     path("loading/list", laws_list, name="laws_list"),
 ]

@@ -1,0 +1,50 @@
+{% load i18n %}
+{% load chat_next_extras %}
+
+{% comment %}
+  Display files attached to a message with processing status and preview support.
+  Uses the unified file_browser.html component for both user and bot messages.
+
+  Context variables are passed through from:
+    - Initial render in chat_message.html
+    - library_status polling view (user messages)
+    - bot_task_status polling view (bot messages)
+{% endcomment %}
+
+{% if message.text and "files translated:" in message.text or message.text and "fichiers traduits" in message.text %}
+  {# Message text already contains rendered file content #}
+  {{ message.text|safe }}
+
+{% elif has_pending_tasks and message.is_bot and not message.num_files %}
+  {% comment %}
+    Bot message with background tasks still in progress and no files visible yet.
+    Show a single bridge state and keep polling until at least one file exists.
+  {% endcomment %}
+  <div id="bot-task-files-{{ message.id }}"
+       hx-get="{% url 'chat_next:bot_task_status' message.id %}"
+       hx-trigger="load delay:1s"
+       hx-swap="outerHTML">
+    <div class="upload-status-summary d-flex align-items-center mb-2">
+      <i class="bi bi-arrow-repeat text-primary icn-spinner me-2"></i>
+      <span>{% trans "Getting files ready..." %}</span>
+    </div>
+  </div>
+
+{% else %}
+  {# Unified file browser for both user and bot messages #}
+  {% if show_library_status %}
+    <div id="message-files-{{ message.id }}"
+         data-library-status-url="{% url 'chat_next:library_status' message.id %}"
+         {% if files_processing %}hx-get="{% url 'chat_next:library_status' message.id %}" hx-trigger="load delay:1s, file-status-refresh delay:1s" hx-swap="outerHTML"{% endif %}>
+      {% include "chat_next/components/file_browser.html" %}
+    </div>
+  {% else %}
+    {% with is_processing=message|has_processing_files %}
+      <div id="message-files-{{ message.id }}"
+           data-library-status-url="{% url 'chat_next:library_status' message.id %}"
+           {% if is_processing %}hx-get="{% url 'chat_next:library_status' message.id %}" hx-trigger="load delay:1s, file-status-refresh delay:1s" hx-swap="outerHTML"{% endif %}>
+        {% include "chat_next/components/file_browser.html" %}
+      </div>
+    {% endwith %}
+  {% endif %}
+{% endif %}

@@ -10,20 +10,20 @@
       {# column2: Status #}
       {% if output_file.status == "PENDING" %}
         {# Grey circle #}
-        <div class="document-status document-status-{{ document.status }}">
+        <div class="document-status document-status-{{ output_file.status }}">
           <i class="bi bi-circle text-secondary small me-1" aria-hidden="true"></i>
           <span>{% trans 'Queued' %}...</span>
         </div>
       {% elif output_file.status == "PROCESSING" %}
         {# Blue spinner #}
-        <div class="document-status document-status-{{ document.status }}">
+        <div class="document-status document-status-{{ output_file.status }}">
           <span class="me-1">
             <i class="bi bi-arrow-repeat text-primary small icn-spinner"
                aria-hidden="true"></i>
           </span>
           <span>
-            {% if document.celery_status_message %}
-              {{ document.celery_status_message }}
+            {% if output_file.celery_status_message %}
+              {{ output_file.celery_status_message }}
             {% else %}
               {% trans 'Processing' %}...
             {% endif %}
@@ -31,17 +31,30 @@
         </div>
       {% elif output_file.status == "SUCCESS" %}
         {# Green checkmark #}
-        <div class="document-status document-status-{{ document.status }}">
+        <div class="document-status document-status-{{ output_file.status }}">
           <i class="bi bi-check-circle-fill text-success small me-1"
              aria-hidden="true"></i>
           <span>{% trans 'Processed' %}</span>
-          {% if document.content_type == "application/pdf" %}
-            {% if document.pdf_method %}<span class="text-muted">({{ document.pdf_method }})</span>{% endif %}
+          {% if output_file.content_type == "application/pdf" %}
+            {% if output_file.pdf_method %}<span class="text-muted">({{ output_file.pdf_method }})</span>{% endif %}
           {% endif %}
+        </div>
+      {% elif output_file.status == "WARNING" %}
+        {# Warning triangle #}
+        <div class="document-status document-status-{{ output_file.status }}">
+          <i class="bi bi-exclamation-triangle-fill text-warning small me-1"
+             aria-hidden="true"></i>
+          <span>
+            {% if output_file.error_message %}
+              {{ output_file.error_message }}
+            {% else %}
+              {% trans 'Processed with errors' %}
+            {% endif %}
+          </span>
         </div>
       {% elif output_file.status == "FAILURE" %}
         {# Red exclamation mark #}
-        <div class="document-status document-status-{{ document.status }}">
+        <div class="document-status document-status-{{ output_file.status }}">
           <i class="bi bi-exclamation-circle-fill text-danger small me-1"
              aria-hidden="true"></i>
           <span>
@@ -81,7 +94,8 @@
       hx-get="{{ poll_url }}"
       hx-trigger="load delay:1s"
       hx-swap="innerHTML"
-      hx-target="#completed_documents_body"></tr>
+      hx-target="#completed_documents_body"
+      hx-request='{"timeout": 10000}'></tr>
   {% if swap %}
     {% include 'text_extractor/warn_dont_leave.html' %}
   {% endif %}

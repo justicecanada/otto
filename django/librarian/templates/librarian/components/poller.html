@@ -3,20 +3,18 @@
   <div id="libraryModalPoller"
        hx-disinherit="*"
        hx-get="{{ poll_url }}"
-       hx-trigger="every 2s[!document.querySelector('#librarian-document-list li.processing-request')]"
+       hx-trigger="every 2s[!document.querySelector('#librarian-document-list li.processing-request') && !document.querySelector('#librarian-details input:focus, #librarian-details textarea:focus, #librarian-details select:focus, #librarian-details .dropdown-menu.show')]"
        hx-ext="morph"
-       hx-include="#librarian-search-input"
+       hx-include="#librarian-search-form"
        hx-swap="morph:outerHTML"
        hx-target="#librarian-document-list"
+       hx-request='{"timeout": 10000}'
        hx-swap-oob="true"></div>
 {% else %}
   {# Stop polling #}
   <div id="libraryModalPoller" hx-swap-oob="true"></div>
 {% endif %}
 
-{# 
-  Tries to remove race condition between polling and user interactions.
-#}
 <script>
 document.addEventListener('htmx:beforeRequest', function(event) {
     if (event.target.closest('#librarian-document-list')) {

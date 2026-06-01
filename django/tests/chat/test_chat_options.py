@@ -2,11 +2,37 @@ from django.urls import reverse
 
 import pytest
 
+from chat._llm import DEFAULT_TRANSLATE_MODEL_ID
 from chat.forms import ChatOptionsForm
-from chat.models import Chat, ChatOptions, Message, Preset
+from chat.models import Chat, Message, Preset
 from librarian.models import Library, LibraryUserRole
 
 pytest_plugins = ("pytest_asyncio",)
+
+
+@pytest.mark.django_db
+def test_translate_model_dropdown_uses_gpt_54_series_and_default(all_apps_user):
+    user = all_apps_user()
+    form = ChatOptionsForm(user=user)
+
+    translate_choices = list(form.fields["translate_model"].widget.choices)
+    translate_choice_ids = [choice[0] for choice in translate_choices]
+
+    assert translate_choice_ids[:4] == [
+        "azure",
+        "gpt-5.4",
+        "gpt-5.4-mini",
+        "gpt-5.4-nano",
+    ]
+    assert "gpt-5-mini" not in translate_choice_ids
+    assert form["translate_model"].value() == DEFAULT_TRANSLATE_MODEL_ID
+
+
+@pytest.mark.django_db
+def test_new_chat_options_default_translate_model(all_apps_user):
+    user = all_apps_user()
+    chat = Chat.objects.create(user=user, title="Translate default")
+    assert chat.options.translate_model == DEFAULT_TRANSLATE_MODEL_ID
 
 
 @pytest.mark.django_db
@@ -79,7 +105,7 @@ def test_chat_options(client, all_apps_user):
 
     # a new preset should have been created
     assert Preset.objects.filter(name_en="Cowboy AI").exists()
-    preset = Preset.objects.get(name_en="Cowboy AI")
+    preset = Preset.objects.get(name_en="Cowboy AI", owner=user)
 
     # Try creating a new chat then loading the preset
     response = client.get(reverse("chat:chat_with_ai"), follow=True)
@@ -114,7 +140,7 @@ def test_chat_options(client, all_apps_user):
 
     assert response.status_code == 200
     assert (
-        Preset.objects.get(name_en="Cowboy AI").options.chat_system_prompt
+        Preset.objects.get(name_en="Cowboy AI", owner=user).options.chat_system_prompt
         == "start each response with 'Yeehaw!'"
     )
 
@@ -172,7 +198,7 @@ def test_library_list(client, all_apps_user):
                         # The user's personal library should also be there
                         assert (
                             user.personal_library.id,
-                            "Chat uploads",
+                            "Chat files",
                         ) in category_choices
                         # The shared library should also be there
                         assert (
@@ -250,7 +276,7 @@ def test_library_list(client, all_apps_user):
     # Bob's personal library should also be there
     assert (
         bob.personal_library.id,
-        "Chat uploads",
+        "Chat files",
     ) in category_choices
     # But jane's should not, since Bob is contributor now, not admin
     assert (
@@ -284,3 +310,312 @@ def test_library_list(client, all_apps_user):
         bob_private_library.id,
         bob_private_library.name,
     ) not in category_choices
+
+
+@pytest.mark.django_db
+def test_preset_dirty_indicator(client, all_apps_user):
+    """
+    Test that the preset dirty indicator (*) works correctly:
+    - When a preset is loaded, no dirty indicator
+    - When options are changed after loading a preset, dirty indicator appears
+    - When options are changed back to match preset, dirty indicator disappears
+    """
+    from chat.utils import options_match
+
+    user = all_apps_user()
+    client.force_login(user)
+
+    # Create a chat - initially won't have a loaded_preset if user has no default
+    response = client.get(reverse("chat:new_chat"), follow=True)
+    assert response.status_code == 200
+    chat = Chat.objects.filter(user=user).order_by("-created_at").first()
+
+    # First create a preset so we can test with it
+    preset_form_data = {
+        "name_en": "Test Preset",
+        "name_fr": "Préréglage test",
+        "description_en": "A test preset",
+        "sharing_option": "private",
+        "accessible_to": [],
+        "prompt": "",
+    }
+
+    # Set up the options form data
+    options_form = ChatOptionsForm(instance=chat.options, user=user)
+    options_form_data = options_form.initial
+    options_form_data = {k: v for k, v in options_form_data.items() if v is not None}
+    options_form_data["qa_data_sources"] = [
+        ds.id for ds in options_form_data.get("qa_data_sources", [])
+    ]
+    if (
+        "translate_glossary" in options_form_data
+        and not options_form_data["translate_glossary"]
+    ):
+        del options_form_data["translate_glossary"]
+
+    # Create preset from current settings
+    response = client.post(
+        reverse(
+            "chat:chat_options",
+            kwargs={"chat_id": chat.id, "action": "create_preset"},
+        ),
+        preset_form_data,
+    )
+    assert response.status_code == 200
+
+    test_preset = Preset.objects.get(name_en="Test Preset", owner=user)
+
+    # Now create a new chat and load the preset
+    response = client.get(reverse("chat:new_chat"), follow=True)
+    chat = Chat.objects.filter(user=user).order_by("-created_at").first()
+
+    # Load the preset
+    response = client.post(
+        reverse("chat:chat_options", args=[chat.id, "load_preset", test_preset.id])
+    )
+    assert response.status_code == 200
+
+    # Reload chat
+    chat.refresh_from_db()
+    assert chat.loaded_preset == test_preset
+
+    # The response should include the accordion with preset_dirty=False
+    content = response.content.decode("utf-8")
+    # When preset is loaded, dirty indicator should NOT be present
+    assert 'id="preset-dirty-indicator"' not in content
+    # But the preset name should be there
+    assert "Test Preset" in content
+
+    # Options should match
+    assert options_match(chat.options, test_preset.options) is True
+
+    # Now view the chat page - preset header should be shown without dirty indicator
+    response = client.get(reverse("chat:chat", args=[chat.id]))
+    assert response.status_code == 200
+    content = response.content.decode("utf-8")
+    assert 'id="preset-header"' in content
+    assert 'id="preset-dirty-indicator"' not in content
+
+    # Update the options form data for this chat
+    options_form = ChatOptionsForm(instance=chat.options, user=user)
+    options_form_data = options_form.initial
+    options_form_data = {k: v for k, v in options_form_data.items() if v is not None}
+    options_form_data["qa_data_sources"] = [
+        ds.id for ds in options_form_data.get("qa_data_sources", [])
+    ]
+    if (
+        "translate_glossary" in options_form_data
+        and not options_form_data["translate_glossary"]
+    ):
+        del options_form_data["translate_glossary"]
+
+    original_system_prompt = options_form_data.get("chat_system_prompt", "")
+    options_form_data["chat_system_prompt"] = "I am a modified system prompt!"
+
+    # Submit the changed options
+    response = client.post(
+        reverse("chat:chat_options", args=[chat.id]), options_form_data
+    )
+    assert response.status_code == 200
+
+    # Reload chat and check options no longer match
+    chat.refresh_from_db()
+    assert options_match(chat.options, test_preset.options) is False
+
+    # The response should include preset_header with dirty indicator via hx-swap-oob
+    content = response.content.decode("utf-8")
+    assert 'id="preset-dirty-indicator"' in content
+
+    # Now change it back to match the preset
+    options_form_data["chat_system_prompt"] = original_system_prompt
+    response = client.post(
+        reverse("chat:chat_options", args=[chat.id]), options_form_data
+    )
+    assert response.status_code == 200
+
+    # Reload and check options match again
+    chat.refresh_from_db()
+    assert options_match(chat.options, test_preset.options) is True
+
+    # The response should NOT have the dirty indicator
+    content = response.content.decode("utf-8")
+    assert 'id="preset-dirty-indicator"' not in content
+
+    # Clean up
+    test_preset.delete()
+
+
+@pytest.mark.django_db
+def test_preset_dirty_after_load_and_immediate_post(client, all_apps_user):
+    """
+    Test that simulates browser behavior: after loading a preset, JavaScript
+    immediately triggers an options POST. The dirty indicator should NOT appear.
+    """
+    from chat.utils import options_match
+
+    user = all_apps_user()
+    client.force_login(user)
+
+    # Create a chat
+    response = client.get(reverse("chat:new_chat"), follow=True)
+    chat = Chat.objects.filter(user=user).order_by("-created_at").first()
+
+    # Create a preset with specific settings
+    preset_form_data = {
+        "name_en": "Browser Test Preset",
+        "name_fr": "Préréglage navigateur",
+        "description_en": "Testing browser flow",
+        "sharing_option": "private",
+        "accessible_to": [],
+        "prompt": "",
+    }
+    response = client.post(
+        reverse(
+            "chat:chat_options",
+            kwargs={"chat_id": chat.id, "action": "create_preset"},
+        ),
+        preset_form_data,
+    )
+    assert response.status_code == 200
+    test_preset = Preset.objects.get(name_en="Browser Test Preset", owner=user)
+
+    # Create a new chat
+    response = client.get(reverse("chat:new_chat"), follow=True)
+    chat = Chat.objects.filter(user=user).order_by("-created_at").first()
+
+    # Load the preset
+    response = client.post(
+        reverse("chat:chat_options", args=[chat.id, "load_preset", test_preset.id])
+    )
+    assert response.status_code == 200
+    chat.refresh_from_db()
+
+    # CRITICAL: Now simulate what the browser does - immediately POST options form
+    # The browser would have the accordion HTML with preset values, and triggerOptionSave
+    # would submit these values
+    options_form = ChatOptionsForm(instance=chat.options, user=user)
+    options_form_data = options_form.initial
+    options_form_data = {k: v for k, v in options_form_data.items() if v is not None}
+    options_form_data["qa_data_sources"] = [
+        ds.id for ds in options_form_data.get("qa_data_sources", [])
+    ]
+    if (
+        "translate_glossary" in options_form_data
+        and not options_form_data["translate_glossary"]
+    ):
+        del options_form_data["translate_glossary"]
+
+    # This POST should NOT cause the dirty indicator to appear
+    response = client.post(
+        reverse("chat:chat_options", args=[chat.id]), options_form_data
+    )
+    assert response.status_code == 200
+
+    # The response should NOT have the dirty indicator since we just submitted
+    # the same values that were loaded from the preset
+    content = response.content.decode("utf-8")
+    assert 'id="preset-dirty-indicator"' not in content, (
+        "Dirty indicator appeared when it shouldn't. "
+        "The form data should match the preset after immediate post."
+    )
+
+    # Verify options still match
+    chat.refresh_from_db()
+    assert options_match(chat.options, test_preset.options) is True
+
+    # Clean up
+    test_preset.delete()
+
+
+@pytest.mark.django_db
+def test_preset_dirty_after_mode_switch(client, all_apps_user):
+    """
+    Test that switching modes doesn't cause false positive dirty indicator.
+    Scenario: Load preset -> switch mode -> switch back -> should NOT show dirty
+    """
+    from chat.utils import options_match
+
+    user = all_apps_user()
+    client.force_login(user)
+
+    # Create a chat
+    response = client.get(reverse("chat:new_chat"), follow=True)
+    chat = Chat.objects.filter(user=user).order_by("-created_at").first()
+
+    # Create a preset
+    preset_form_data = {
+        "name_en": "Mode Switch Test Preset",
+        "name_fr": "Préréglage test",
+        "description_en": "Testing mode switch",
+        "sharing_option": "private",
+        "accessible_to": [],
+        "prompt": "",
+    }
+    response = client.post(
+        reverse(
+            "chat:chat_options",
+            kwargs={"chat_id": chat.id, "action": "create_preset"},
+        ),
+        preset_form_data,
+    )
+    assert response.status_code == 200
+    test_preset = Preset.objects.get(name_en="Mode Switch Test Preset", owner=user)
+
+    # Create a new chat
+    response = client.get(reverse("chat:new_chat"), follow=True)
+    chat = Chat.objects.filter(user=user).order_by("-created_at").first()
+
+    # Load the preset
+    response = client.post(
+        reverse("chat:chat_options", args=[chat.id, "load_preset", test_preset.id])
+    )
+    assert response.status_code == 200
+    chat.refresh_from_db()
+    original_mode = chat.options.mode
+
+    # Now get the form data to simulate what the browser would have
+    options_form = ChatOptionsForm(instance=chat.options, user=user)
+    options_form_data = options_form.initial
+    options_form_data = {k: v for k, v in options_form_data.items() if v is not None}
+    options_form_data["qa_data_sources"] = [
+        ds.id for ds in options_form_data.get("qa_data_sources", [])
+    ]
+    if (
+        "translate_glossary" in options_form_data
+        and not options_form_data["translate_glossary"]
+    ):
+        del options_form_data["translate_glossary"]
+
+    # Switch to a different mode
+    new_mode = "qa" if original_mode == "chat" else "chat"
+    options_form_data["mode"] = new_mode
+    response = client.post(
+        reverse("chat:chat_options", args=[chat.id]), options_form_data
+    )
+    assert response.status_code == 200
+
+    # The dirty indicator should appear (mode changed)
+    content = response.content.decode("utf-8")
+    assert 'id="preset-dirty-indicator"' in content, (
+        "Dirty indicator should show after mode change"
+    )
+
+    # Now switch back to original mode
+    options_form_data["mode"] = original_mode
+    response = client.post(
+        reverse("chat:chat_options", args=[chat.id]), options_form_data
+    )
+    assert response.status_code == 200
+
+    # The dirty indicator should NOT appear (mode is back to original)
+    content = response.content.decode("utf-8")
+    assert 'id="preset-dirty-indicator"' not in content, (
+        "Dirty indicator should NOT show after switching back to original mode"
+    )
+
+    # Verify options still match
+    chat.refresh_from_db()
+    assert options_match(chat.options, test_preset.options) is True
+
+    # Clean up
+    test_preset.delete()

@@ -1,0 +1,80 @@
+{% load i18n %}
+<div id="hnsw-status-container" {% if swap %}hx-swap-oob="true"{% endif %}>
+  <div class="mt-2 p-2 rounded">
+    <small class="text-muted">
+      {% with status=library.hnsw_status mode=library.hnsw_enabled %}
+        {% if status == 'ready' %}
+          {% if mode is False %}
+            <i class="bi bi-exclamation-triangle text-warning"></i>
+            {% trans "Index exists but is disabled" %}
+          {% elif mode %}
+            <i class="bi bi-lightning-charge-fill text-success"></i>
+            {% trans "Indexing active" %}
+          {% else %}
+            <i class="bi bi-lightning-charge-fill text-success"></i>
+            {% trans "Index present" %}
+          {% endif %}
+        {% elif status == 'building' %}
+          <i class="bi bi-hourglass-split text-warning"></i>
+          {% if mode is False %}
+            {% trans "Build queued while disabled" %}
+          {% else %}
+            {% trans "Building index..." %}
+          {% endif %}
+        {% elif status == 'pending' %}
+          <i class="bi bi-clock text-info"></i>
+          {% if mode is False %}
+            {% trans "Build queued while disabled" %}
+          {% else %}
+            {% trans "Index build pending" %}
+          {% endif %}
+        {% elif status == 'deleting' %}
+          <i class="bi bi-hourglass-split text-warning"></i>
+          {% trans "Deleting index..." %}
+        {% elif status == 'error' %}
+          <i class="bi bi-exclamation-triangle text-danger"></i>
+          {% if mode is None %}
+            {% trans "Last build failed; no index" %}
+          {% elif mode %}
+            {% trans "Index build failed" %}
+          {% else %}
+            {% trans "Index build failed (disabled)" %}
+          {% endif %}
+        {% else %}
+          {% if mode is False %}
+            <i class="bi bi-slash-circle text-muted"></i>
+            {% trans "No index (disabled)" %}
+          {% elif mode %}
+            <i class="bi bi-dash-circle text-muted"></i>
+            {% trans "No index yet" %}
+          {% else %}
+            <i class="bi bi-dash-circle text-muted"></i>
+            {% trans "No index" %}
+          {% endif %}
+        {% endif %}
+      {% endwith %}
+    </small>
+  </div>
+  {% if library.hnsw_status == 'building' or library.hnsw_status == 'pending' or library.hnsw_status == 'deleting' %}
+    <button type="button"
+            class="d-none"
+            id="hnsw-status-refresh-btn"
+            hx-get="{% url 'librarian:refresh_hnsw_status' library_id=library.id %}"
+            hx-target="#hnsw-status-container"
+            hx-swap="outerHTML"
+            hx-disinherit="*"></button>
+    <script>
+    (function() {
+      // Auto-poll for status updates while task is running
+      const container = document.getElementById('hnsw-status-container');
+      const refreshBtn = document.getElementById('hnsw-status-refresh-btn');
+      if (container && refreshBtn && !container.dataset.polling && typeof htmx !== 'undefined') {
+        container.dataset.polling = 'true';
+        setTimeout(function() {
+          htmx.trigger(refreshBtn, 'click');
+        }, 3000);
+      }
+    })();
+    </script>
+  {% endif %}
+</div>

@@ -1,0 +1,230 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block breadcrumb %}
+  {{ block.super }}
+  <li class="breadcrumb-item">
+    <a href="{% url 'manage_users' %}">{% trans "Manage users" %}</a>
+  </li>
+  <li class="breadcrumb-item active" aria-current="page">{% trans "External tool approvals" %}</li>
+{% endblock %}
+
+{% block page_title %}
+  {% trans "External tool approvals - Otto" %}
+{% endblock %}
+
+{% block page_css %}
+  <style>
+    .external-tool-approval-logs-container {
+      width: 100%;
+      max-width: 2048px;
+    }
+
+    .external-tool-approval-logs-table {
+      width: 100%;
+    }
+  </style>
+{% endblock %}
+
+{% block content_container %}
+  <div class="container-fluid py-3 px-2 px-md-3 external-tool-approval-logs-container">
+    <div class="mb-3">
+      <h2 class="mb-1 mt-2">{% trans "External tool approval logs" %}</h2>
+      <p class="text-muted mb-0">
+        {% blocktrans count count=filtered_total %}1 logged approval event{% plural %}{{ count }} logged approval events{% endblocktrans %}
+      </p>
+    </div>
+
+    <form method="get" class="row g-2 align-items-end mb-3">
+      <input type="hidden" name="sort" value="{{ selected_sort }}">
+      {% if expand_all_queries %}<input type="hidden" name="expand_queries" value="all">{% endif %}
+      <div class="col-12 col-xl-4">
+        <label for="approval-log-query" class="form-label">{% trans "Search" %}</label>
+        <input id="approval-log-query"
+               type="text"
+               name="q"
+               value="{{ search_query }}"
+               class="form-control"
+               placeholder="{% trans 'User, message ID, service, tool, PII categories, or query text' %}">
+      </div>
+      <div class="col-12 col-md-4 col-xl-2">
+        <label for="approval-log-decision" class="form-label">{% trans "Decision" %}</label>
+        <select id="approval-log-decision" name="decision" class="form-select">
+          <option value="">{% trans "All decisions" %}</option>
+          {% for value, label in decision_choices %}
+            <option value="{{ value }}"
+                    {% if selected_decision == value %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-12 col-md-4 col-xl-2">
+        <label for="approval-log-pii-flagged" class="form-label">{% trans "PII flagged" %}</label>
+        <select id="approval-log-pii-flagged" name="pii_flagged" class="form-select">
+          <option value="">{% trans "All" %}</option>
+          <option value="yes" {% if selected_pii_flagged == 'yes' %}selected{% endif %}>{% trans "Flagged" %}</option>
+          <option value="no" {% if selected_pii_flagged == 'no' %}selected{% endif %}>{% trans "No" %}</option>
+        </select>
+      </div>
+      <div class="col-12 col-md-4 col-xl-2">
+        <label for="approval-log-page-size" class="form-label">{% trans "Rows" %}</label>
+        <select id="approval-log-page-size" name="page_size" class="form-select">
+          {% for value, label in page_size_choices %}
+            <option value="{{ value }}"
+                    {% if selected_page_size == value %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-12 col-xl-2 d-flex gap-2">
+        <button type="submit" class="btn btn-primary w-100">{% trans "Filter" %}</button>
+        <a href="{% url 'manage_external_tool_approvals' %}"
+           class="btn btn-outline-secondary">{% trans "Reset" %}</a>
+      </div>
+    </form>
+
+    <div class="d-flex justify-content-end gap-2 mb-3">
+      <button type="button"
+              class="btn btn-outline-secondary"
+              hx-get="{% url 'modify_variables_modal' %}"
+              hx-target="#modify-variables-form"
+              data-bs-toggle="modal"
+              data-bs-target="#modifyVariablesModal">{% trans "Review sensitivity" %}</button>
+      <a href="{{ toggle_expand_url }}" class="btn btn-outline-secondary">
+        {% if expand_all_queries %}
+          {% trans "Collapse all queries" %}
+        {% else %}
+          {% trans "Expand all queries" %}
+        {% endif %}
+      </a>
+      <a href="{{ download_url }}" class="btn btn-outline-secondary">{% trans "Download as CSV" %}</a>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table table-striped table-hover align-middle external-tool-approval-logs-table">
+        <thead>
+          <tr>
+            <th>
+              <a class="link-dark text-decoration-none"
+                 href="?sort={{ logged_at_sort_next }}{% if sort_querystring %}&{{ sort_querystring }}{% endif %}">
+                {% trans "Logged at" %}
+                {% if selected_sort == 'logged_at_desc' %}
+                  ↓
+                {% elif selected_sort == 'logged_at_asc' %}
+                  ↑
+                {% endif %}
+              </a>
+            </th>
+            <th>
+              <a class="link-dark text-decoration-none"
+                 href="?sort={{ user_sort_next }}{% if sort_querystring %}&{{ sort_querystring }}{% endif %}">
+                {% trans "User" %}
+                {% if selected_sort == 'user_desc' %}
+                  ↓
+                {% elif selected_sort == 'user_asc' %}
+                  ↑
+                {% endif %}
+              </a>
+            </th>
+            <th>{% trans "Message ID" %}</th>
+            <th>{% trans "Service" %}</th>
+            <th>{% trans "Tool" %}</th>
+            <th>{% trans "Decision" %}</th>
+            <th>{% trans "Review time" %}</th>
+            <th>{% trans "PII flagged" %}</th>
+            <th>{% trans "Query" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for log in page_obj %}
+            <tr>
+              <td>
+                <span class="d-none">{{ log.created_at|date:'c' }}</span>
+                {{ log.created_at|date:"Y-m-d H:i:s T" }}
+              </td>
+              <td>{{ log.user.upn|default:_("Deleted user") }}</td>
+              <td>{{ log.message_reference_id|default:"—" }}</td>
+              <td>{{ log.external_service_name|default:"—" }}</td>
+              <td>{{ log.tool_name }}</td>
+              <td>
+                <span class="badge {% if log.decision == 'denied' %}bg-danger{% elif log.decision == 'auto_approved' %}bg-info text-dark{% elif log.decision == 'approved' %}bg-success{% else %}bg-warning text-dark{% endif %}">
+                  {{ log.get_decision_display }}
+                </span>
+              </td>
+              <td>
+                {% if log.review_latency_seconds is not None %}
+                  {{ log.review_latency_seconds|floatformat:1 }}s
+                {% else %}
+                  —
+                {% endif %}
+              </td>
+              <td>
+                {% if log.pii_flagged %}
+                  <div>
+                    <span class="badge bg-warning text-dark">{% trans "Flagged" %}</span>
+                  </div>
+                  {% if log.pii_entity_categories %}
+                    <div class="small text-muted">{{ log.pii_entity_categories_display }}</div>
+                  {% endif %}
+                {% else %}
+                  {% trans "No" %}
+                {% endif %}
+              </td>
+              <td style="min-width: 24rem; max-width: 36rem;">
+                <details {% if expand_all_queries %}open{% endif %}>
+                  <summary>{% trans "View query" %}</summary>
+                  <pre class="small mt-2 mb-0" style="white-space: pre-wrap;">{{ log.query }}</pre>
+                </details>
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="9" class="text-center text-muted py-4">
+                {% trans "No external tool approval events matched the current filter." %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    {% if page_obj.paginator.num_pages > 1 %}
+      <nav aria-label="{% trans 'External tool approval log pages' %}"
+           class="mt-3">
+        <ul class="pagination mb-0">
+          <li class="page-item {% if not page_obj.has_previous %}disabled{% endif %}">
+            {% if page_obj.has_previous %}
+              <a class="page-link"
+                 href="?page={{ page_obj.previous_page_number }}{% if pagination_querystring %}&{{ pagination_querystring }}{% endif %}">{% trans "Previous" %}</a>
+            {% else %}
+              <span class="page-link">{% trans "Previous" %}</span>
+            {% endif %}
+          </li>
+          <li class="page-item disabled">
+            <span class="page-link">
+              {% blocktrans with current=page_obj.number total=page_obj.paginator.num_pages %}Page {{ current }} of {{ total }}{% endblocktrans %}
+            </span>
+          </li>
+          <li class="page-item {% if not page_obj.has_next %}disabled{% endif %}">
+            {% if page_obj.has_next %}
+              <a class="page-link"
+                 href="?page={{ page_obj.next_page_number }}{% if pagination_querystring %}&{{ pagination_querystring }}{% endif %}">{% trans "Next" %}</a>
+            {% else %}
+              <span class="page-link">{% trans "Next" %}</span>
+            {% endif %}
+          </li>
+        </ul>
+      </nav>
+    {% endif %}
+  </div>
+
+  <div class="modal fade"
+       id="modifyVariablesModal"
+       tabindex="-1"
+       aria-labelledby="modifyVariablesModalLabel"
+       aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div id="modify-variables-form"></div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

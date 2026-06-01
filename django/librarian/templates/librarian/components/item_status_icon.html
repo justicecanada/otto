@@ -13,18 +13,29 @@
        title="{% trans 'Processing status' %}{% trans ':' %} {% trans 'Stopped' %}"
        aria-hidden="true"></i>
     <span class="visually-hidden">{% trans 'Processing status' %}{% trans ':' %} {% trans 'Stopped' %}</span>
+  {% elif item.status == "PAUSED" %}
+    <i class="bi bi-pause-circle-fill text-warning small"
+       title="{% trans 'Processing status' %}{% trans ':' %} {% trans 'Paused pending embedding approval' %}"
+       aria-hidden="true"></i>
+    <span class="visually-hidden">{% trans 'Processing status' %}{% trans ':' %} {% trans 'Paused pending embedding approval' %}</span>
   {% elif item.status == "INIT" %}
     {# Grey circle #}
     <i class="bi bi-circle text-secondary small"
        title="{% trans 'Processing status' %}{% trans ':' %} {% trans 'Initializing' %}"
        aria-hidden="true"></i>
     <span class="visually-hidden">{% trans 'Initializing' %}</span>
-  {% elif item.status == "PROCESSING" %}
+  {% elif item.status == "PROCESSING" or item.status == "TEXT_EXTRACTED" %}
     {# Blue spinner #}
     <i class="bi bi-arrow-repeat text-primary small icn-spinner"
-       title="{% trans 'Processing status' %}{% trans ':' %} {% trans 'Processing' %}"
+       title="{% trans 'Processing status' %}{% trans ':' %} {% if item.status == 'TEXT_EXTRACTED' %}{% trans 'Adding to library' %}{% else %}{% trans 'Processing' %}{% endif %}"
        aria-hidden="true"></i>
-    <span class="visually-hidden">{% trans 'Processing status' %}{% trans ':' %} {% trans 'Processing' %}</span>
+    <span class="visually-hidden">{% trans 'Processing status' %}{% trans ':' %}
+      {% if item.status == 'TEXT_EXTRACTED' %}
+        {% trans 'Adding to library' %}
+      {% else %}
+        {% trans 'Processing' %}
+      {% endif %}
+    </span>
   {% elif item.status == "SUCCESS" %}
     {# Green checkmark #}
     <i class="bi bi-check-circle-fill text-success small"

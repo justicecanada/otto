@@ -1,0 +1,166 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% load autocomplete %}
+
+{% block breadcrumb %}
+  {{ block.super }}
+  <li class="breadcrumb-item">
+    <a href="{% url 'manage_users' %}">{% trans "Manage users" %}</a>
+  </li>
+  <li class="breadcrumb-item active" aria-current="page">{% trans "Merge users" %}</li>
+{% endblock %}
+
+{% block page_title %}
+  {% trans "Merge users - Otto" %}
+{% endblock %}
+
+{% block content_container %}
+  <div class="container py-3 px-0">
+    <h2 class="mb-3 mt-2">{% trans "Merge duplicate user accounts" %}</h2>
+
+    <div class="alert alert-danger" role="alert">
+      <div class="fw-semibold mb-1">{% trans "High-risk admin tool" %}</div>
+      <div>
+        {% trans "This operation moves ownership, permissions, and history between user accounts, then deactivates the source accounts. Review the preview carefully before confirming." %}
+      </div>
+    </div>
+
+    <form method="post" class="card shadow-sm border-0 mb-4">
+      {% csrf_token %}
+      <div class="card-body">
+        {% if form.non_field_errors %}
+          <div class="alert alert-danger">
+            {% for error in form.non_field_errors %}<div>{{ error }}</div>{% endfor %}
+          </div>
+        {% endif %}
+
+        <div class="row g-3 align-items-start">
+          <div class="col-lg-6">
+            <label class="form-label" for="{{ form.source_users.id_for_label }}">{{ form.source_users.label }}</label>
+            {{ form.source_users }}
+            {% for error in form.source_users.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+            <div class="form-text">{{ form.source_users.help_text }}</div>
+          </div>
+          <div class="col-lg-6">
+            <label class="form-label" for="{{ form.target_user.id_for_label }}">{{ form.target_user.label }}</label>
+            {{ form.target_user }}
+            {% for error in form.target_user.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+            <div class="form-text">{{ form.target_user.help_text }}</div>
+          </div>
+        </div>
+
+        {% if preview %}
+          <div class="form-check mt-4">
+            {{ form.confirm_merge }}
+            <label class="form-check-label" for="{{ form.confirm_merge.id_for_label }}">{{ form.confirm_merge.label }}</label>
+          </div>
+          {% for error in form.confirm_merge.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+        {% endif %}
+      </div>
+      <div class="card-footer d-flex gap-2 justify-content-end bg-body-tertiary">
+        <button type="submit" name="action" value="preview" class="btn btn-primary">{% trans "Preview merge" %}</button>
+        {% if preview %}
+          <button type="submit" name="action" value="merge" class="btn btn-danger">{% trans "Confirm and merge" %}</button>
+        {% endif %}
+      </div>
+    </form>
+
+    {% if preview %}
+      <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body">
+          <h3 class="h5 mb-3">{% trans "Pre-merge impact summary" %}</h3>
+          <div class="mb-3">
+            <span class="fw-semibold">{% trans "Target" %}:</span> {{ preview.target.upn }}
+          </div>
+
+          {% for item in preview.per_source %}
+            <div class="border rounded p-3 mb-3">
+              <h4 class="h6 mb-3">{{ item.source.upn }}</h4>
+              <div class="row g-3 mb-2">
+                <div class="col-md-4">
+                  <strong>{% trans "Groups" %}:</strong> {{ item.group_count }}
+                </div>
+                <div class="col-md-4">
+                  <strong>{% trans "Permissions" %}:</strong> {{ item.permission_count }}
+                </div>
+                <div class="col-md-4">
+                  <strong>{% trans "Cost groups" %}:</strong> {{ item.cost_group_count }}
+                </div>
+                <div class="col-md-4">
+                  <strong>{% trans "Personal libraries" %}:</strong> {{ item.personal_library_count }}
+                </div>
+                <div class="col-md-4">
+                  <strong>{% trans "Library roles" %}:</strong> {{ item.library_role_count }}
+                </div>
+                <div class="col-md-4">
+                  <strong>{% trans "Library role conflicts" %}:</strong> {{ item.library_role_conflicts }}
+                </div>
+                <div class="col-md-4">
+                  <strong>{% trans "Access controls" %}:</strong> {{ item.access_control_count }}
+                </div>
+                <div class="col-md-4">
+                  <strong>{% trans "Access control conflicts" %}:</strong> {{ item.access_control_conflicts }}
+                </div>
+                <div class="col-md-4">
+                  <strong>{% trans "Shared libraries owned" %}:</strong> {{ item.non_personal_libraries }}
+                </div>
+              </div>
+
+              <div class="row g-3">
+                <div class="col-lg-6">
+                  <h5 class="h6">{% trans "Direct ownership transfers" %}</h5>
+                  <ul class="mb-0">
+                    {% for transfer in item.transfer_counts %}<li>{{ transfer.label }}: {{ transfer.count }}</li>{% endfor %}
+                    <li>{% trans "AccessControl.modified_by" %}: {{ item.access_control_modified }}</li>
+                  </ul>
+                </div>
+                <div class="col-lg-6">
+                  <h5 class="h6">{% trans "Preset sharing and singleton rows" %}</h5>
+                  <ul class="mb-0">
+                    {% for transfer in item.preset_permission_counts %}<li>{{ transfer.label }}: {{ transfer.count }}</li>{% endfor %}
+                    <li>
+                      {% trans "UserOptions present" %}:
+                      {% if item.has_user_options %}
+                        {% trans "Yes" %}
+                      {% else %}
+                        {% trans "No" %}
+                      {% endif %}
+                    </li>
+                    <li>
+                      {% trans "Visitor present" %}:
+                      {% if item.has_visitor %}
+                        {% trans "Yes" %}
+                      {% else %}
+                        {% trans "No" %}
+                      {% endif %}
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    {% endif %}
+
+    {% if merge_result %}
+      <div class="card shadow-sm border-0">
+        <div class="card-body">
+          <h3 class="h5 mb-3">{% trans "Post-merge report" %}</h3>
+          <div class="row g-3">
+            {% for section in merge_result.report_sections %}
+              <div class="col-12">
+                <div class="border rounded p-3 bg-body-tertiary h-100">
+                  <h4 class="h6 mb-3">{{ section.title }}</h4>
+                  <ul class="small mb-0 ps-3">
+                    {% for item in section.items %}<li class="mb-1">{{ item }}</li>{% endfor %}
+                  </ul>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+{% endblock %}

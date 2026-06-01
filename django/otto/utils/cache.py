@@ -1,10 +1,12 @@
-"Thread-safe in-memory cache backend."
-"!MODIFIED TO REMOVE PICKLING!"
 import time
 from collections import OrderedDict
 from threading import Lock
 
 from django.core.cache.backends.base import DEFAULT_TIMEOUT, BaseCache
+
+"Thread-safe in-memory cache backend."
+
+"!MODIFIED TO REMOVE PICKLING!"
 
 # Global in-memory store of cache data. Keyed by name, to provide
 # multiple named local memory caches.
@@ -14,7 +16,6 @@ _locks = {}
 
 
 class LocMemCache(BaseCache):
-
     def __init__(self, name, params):
         super().__init__(params)
         self._cache = _caches.setdefault(name, OrderedDict())

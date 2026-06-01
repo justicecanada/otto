@@ -1,0 +1,69 @@
+{% load i18n %}
+
+{% if total_pages > 1 %}
+  <div class="d-flex justify-content-between align-items-center mt-2 small librarian-v-bottom">
+    <div class="text-muted d-flex align-items-center gap-1">
+      {% trans "Page" %}
+      <span id="librarian-page-display"
+            class="border px-2 py-1 rounded"
+            style="cursor: pointer;
+                   min-width: 2rem;
+                   text-align: center"
+            onclick="showLibrarianPageInput()">{{ page }}</span>
+      <input type="number"
+             id="librarian-page-input-field"
+             class="form-control form-control-sm text-center border"
+             style="display: none;
+                    width: 3rem;
+                    padding: 0.25rem"
+             min="1"
+             max="{{ total_pages }}"
+             value="{{ page }}"
+             onkeypress="librarianPageInputKeypress(event)"
+             onblur="hideLibrarianPageInput()">
+      {% trans "of" %} {{ total_pages }}
+    </div>
+    <div class="btn-group btn-group-sm" role="group">
+      <button type="button"
+              class="btn btn-outline-secondary btn-sm"
+              {% if page <= 1 %}disabled{% endif %}
+              hx-get="{% url 'librarian:modal_view_data_source' selected_data_source.id %}?page={{ page|add:'-1' }}{% if search %}&search={{ search }}{% endif %}">
+        <i class="bi bi-chevron-left"></i>
+      </button>
+      <button type="button"
+              class="btn btn-outline-secondary btn-sm"
+              {% if page >= total_pages %}disabled{% endif %}
+              hx-get="{% url 'librarian:modal_view_data_source' selected_data_source.id %}?page={{ page|add:'1' }}{% if search %}&search={{ search }}{% endif %}">
+        <i class="bi bi-chevron-right"></i>
+      </button>
+    </div>
+  </div>
+
+  <script>
+      function showLibrarianPageInput() {
+        document.getElementById('librarian-page-display').style.display = 'none';
+        const input = document.getElementById('librarian-page-input-field');
+        input.style.display = 'inline-block';
+        input.focus();
+        input.select();
+      }
+
+      function hideLibrarianPageInput() {
+        document.getElementById('librarian-page-input-field').style.display = 'none';
+        document.getElementById('librarian-page-display').style.display = 'inline-block';
+      }
+
+      function librarianPageInputKeypress(event) {
+        if (event.key === 'Enter') {
+          const input = event.target;
+          const val = parseInt(input.value);
+          const max = parseInt(input.max);
+          const min = parseInt(input.min);
+          if (val >= min && val <= max) {
+            const url = '{% url "librarian:modal_view_data_source" selected_data_source.id %}?page=' + val + '{% if search %}&search={{ search }}{% endif %}';
+            htmx.ajax('GET', url, {target: '#editLibrariesInner'});
+          }
+        }
+      }
+  </script>
+{% endif %}

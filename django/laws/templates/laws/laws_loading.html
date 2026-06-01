@@ -14,7 +14,6 @@
 {% endblock %}
 
 {% block page_css %}
-  <script src="{% static 'thirdparty/htmx.min.js' %}"></script>
   <style>
     .status-container {
       min-height: 400px;
@@ -59,7 +58,8 @@
               <form id="start-form"
                     hx-post="{% url 'laws:loading_start' %}"
                     hx-swap="none"
-                    hx-indicator="#start-spinner">
+                    hx-indicator="#start-spinner"
+                    hx-request='{"timeout": 30000}'>
                 {% csrf_token %}
                 <div class="row">
                   <div class="col-md-6">
@@ -133,6 +133,7 @@
                         hx-confirm="{% trans 'Are you sure you want to cancel the running job?' %}"
                         hx-swap="none"
                         hx-indicator="#cancel-spinner"
+                        hx-request='{"timeout": 30000}'
                         {% if job_status.status in 'finished,cancelled,error' %}disabled{% endif %}>
                   <span>{% trans "Cancel Job" %}</span>
                   <span id="cancel-spinner"
@@ -146,7 +147,8 @@
                         hx-post="{% url 'laws:recreate_indexes' %}"
                         hx-confirm="{% trans 'Are you sure you want to recreate the database indexes? This may temporarily impact performance.' %}"
                         hx-swap="none"
-                        hx-indicator="#recreate-indexes-spinner">
+                        hx-indicator="#recreate-indexes-spinner"
+                        hx-request='{"timeout": 30000}'>
                   <span>{% trans "Recreate Indexes" %}</span>
                   <span id="recreate-indexes-spinner"
                         class="spinner-border spinner-border-sm htmx-indicator"
@@ -164,7 +166,8 @@
            class="status-container"
            hx-get="{% url 'laws:loading_status' %}"
            hx-trigger="load, every 2s"
-           hx-swap="innerHTML">
+           hx-swap="innerHTML"
+           hx-request='{"timeout": 10000}'>
         <!-- Initial status content will be loaded here -->
         {% include 'laws/partials/status_content.html' %}
       </div>

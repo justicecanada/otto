@@ -13,6 +13,10 @@
 }
 </style>
 
+{% if preset_loaded %}
+  {% include "chat/components/preset_header.html" with preset_loaded=preset_loaded preset_dirty=preset_dirty swap=True %}
+{% endif %}
+
 <script>
 function close_modal(flag){
   const modal = bootstrap.Modal.getInstance(document.getElementById('presets-modal'));

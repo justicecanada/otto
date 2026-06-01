@@ -1,0 +1,15 @@
+# Extra dependencies needed only in development/tests and in the heavy document-processing image.
+# Keep this list import-safe by lazily importing these packages from application code.
+
+# Heavy document extraction -----------------------------------------------------
+mammoth==1.12.0
+python-pptx==1.0.2
+python-docx==1.1.2
+openpyxl==3.1.5
+shapely==2.1.2
+reportlab==4.5.0
+
+# Email / office conversion -----------------------------------------------------
+extract_msg==0.55.0
+pymupdf==1.27.2.2
+pymupdf4llm==1.27.2.2

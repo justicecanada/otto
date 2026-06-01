@@ -1,0 +1,97 @@
+{% load i18n %}
+{% load rules %}
+
+<form id="usage-dashboard-form"
+      hx-get="{% url 'usage_dashboard' %}"
+      hx-trigger="change from:select, change from:#start_date, change from:#end_date, change from:#id_specific_cost_groups__textinput"
+      hx-target="#usage-dashboard-outer"
+      hx-push-url="true"
+      hx-select="#usage-dashboard-outer">
+  <fieldset class="form-group">
+    <div class="row mb-1">
+      <legend class="col-form-label col-1 fw-semibold">{% trans "Chart:" %}</legend>
+      <div class="col-lg-1">
+        <label class="col-form-label" for="x_axis">{{ form.x_axis.label_tag }}</label>
+      </div>
+      <div class="col-lg-2">{{ form.x_axis }}</div>
+
+      <div class="col-lg-auto">
+        <label class="col-form-label" for="group">{{ form.group.label_tag }}</label>
+      </div>
+      <div class="col-lg-2">{{ form.group }}</div>
+
+      <div class="col-lg-auto">
+        <label class="col-form-label" for="bar_chart_type">{{ form.bar_chart_type.label_tag }}</label>
+      </div>
+      <div class="col-lg-2">{{ form.bar_chart_type }}</div>
+    </div>
+  </fieldset>
+  <fieldset class="form-group">
+    <div class="row mb-1">
+      <legend class="col-form-label col-1 fw-semibold">{% trans "Filter:" %}</legend>
+      <div class="col-lg-1 visually-hidden">
+        <div class="col-form-label me-0">{{ form.cost_group.label_tag }}</div>
+      </div>
+
+      <div class="col-lg-3">
+        {{ form.cost_group }}
+        <div id="usage-specific-cost_groups-container"
+             class="mt-1 mb-2"
+             style="display: {% if form.cost_group.value == 'specific' %}block{% else %}none{% endif %}"
+             hx-disinherit="*">{{ form.specific_cost_groups }}</div>
+      </div>
+      <div class="col-lg-1 visually-hidden">
+        <label class="col-form-label me-0" for="count_type">{{ form.count_type.label_tag }}</label>
+      </div>
+      <div class="col-lg-3">{{ form.count_type }}</div>
+
+      {% if form.count_type.value != 'laws_query' %}
+        <div class="col-lg-1 visually-hidden">
+          <label class="col-form-label me-0" for="chat_type">{{ form.chat_type.label_tag }}</label>
+        </div>
+        <div class="col-lg-3">{{ form.chat_type }}</div>
+      {% endif %}
+    </div>
+  </fieldset>
+  <fieldset class="form-group">
+    <div class="row mb-1">
+      <legend class="col-form-label col-1 fw-semibold">{% trans "Dates:" %}</legend>
+      <div class="col-lg-1 visually-hidden">
+        <label class="col-form-label" for="date_group">{{ form.date_group.label_tag }}</label>
+      </div>
+      <div class="col-lg-3">{{ form.date_group }}</div>
+      {% if form.date_group.value == "custom" %}
+        <div class="col-lg-1">
+          <label class="col-form-label" for="start_date">{% trans "Start:" %}</label>
+        </div>
+        <div class="col-lg-2">
+          <input class="form-control"
+                 type="date"
+                 id="start_date"
+                 name="start_date"
+                 value="{{ start_date|date:'Y-m-d' }}">
+        </div>
+        <div class="col-lg-1">
+          <label class="col-form-label" for="end_date">{% trans "End:" %}</label>
+        </div>
+        <div class="col-lg-2">
+          <input class="form-control"
+                 type="date"
+                 id="end_date"
+                 name="end_date"
+                 value="{{ end_date|date:'Y-m-d' }}">
+        </div>
+      {% endif %}
+    </div>
+  </fieldset>
+
+</form>
+
+<script>
+  document.getElementById('count_type').addEventListener('change', function() {
+    var chatTypeSelect = document.getElementById('chat_type');
+    if (chatTypeSelect) {
+      chatTypeSelect.value = 'all';
+    }
+  });
+</script>

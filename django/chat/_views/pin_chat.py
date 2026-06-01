@@ -1,14 +1,17 @@
-from django.http import HttpRequest, HttpResponse, JsonResponse
-from django.shortcuts import get_object_or_404, redirect, render
-from django.utils.translation import gettext as _
+from django.db.models import Count, Q
+from django.http import HttpRequest, HttpResponse
+from django.shortcuts import get_object_or_404, render
 
 from rules.contrib.views import objectgetter
 from structlog import get_logger
 
-from chat.llm import OttoLLM
-from chat.models import Chat
-from chat.utils import get_chat_history_sections, title_chat
 from otto.utils.decorators import permission_required
+
+from chat.models import Chat
+from chat.utils import (
+    annotate_pending_titles,
+    get_chat_history_sections,
+)
 
 app_name = "chat"
 logger = get_logger(__name__)
@@ -16,22 +19,14 @@ logger = get_logger(__name__)
 
 def chat_list_response(request: HttpRequest, chat: Chat) -> HttpResponse:
     user_chats = (
-        Chat.objects.filter(user=request.user, messages__isnull=False)
-        .exclude(pk=chat.id)
-        .union(Chat.objects.filter(pk=chat.id))
+        Chat.objects.filter(user=request.user)
+        .annotate(message_count=Count("messages"))
+        .filter(Q(message_count__gt=0) | Q(pk=chat.id))
         .order_by("-last_modification_date")
     )
-    llm = None
     for user_chat in user_chats:
         user_chat.current_chat = user_chat.id == chat.id
-        if user_chat.title.strip() == "":
-            if not llm:
-                llm = OttoLLM()
-            user_chat.title = title_chat(user_chat.id, llm=llm)
-            if not user_chat.current_chat:
-                user_chat.save()
-    if llm:
-        llm.create_costs()
+    annotate_pending_titles(user_chats, language=request.LANGUAGE_CODE)
     chat_history_sections = get_chat_history_sections(user_chats)
     return render(
         request,

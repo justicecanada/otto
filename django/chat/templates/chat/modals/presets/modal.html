@@ -20,8 +20,11 @@ function handlePresetModalSubmit(event) {
   const nameFrElement = document.getElementById("id_name_fr").value;
   const sharingOptionElement = document.querySelector('input[name="sharing_option"]:checked');
   const sharingOption = sharingOptionElement ? sharingOptionElement.value : "";
-  const accessibleToElement = document.querySelector('[name="accessible_to"]');
-  const accessibleTo = accessibleToElement ? accessibleToElement.value : "";
+  // Check for selected values in autocomplete hidden inputs
+  const accessibleToInputs = document.querySelectorAll('input[name="accessible_to"]');
+  const editableByInputs = document.querySelectorAll('input[name="editable_by"]');
+  const hasAccessibleTo = Array.from(accessibleToInputs).some(input => input.value);
+  const hasEditableBy = Array.from(editableByInputs).some(input => input.value);
   const errorMessage = document.getElementById("error-message");
   let isValid = true;
   if (!nameEnElement && !nameFrElement) {
@@ -32,8 +35,8 @@ function handlePresetModalSubmit(event) {
     isValid = false;
   }
 
-  if (sharingOption === 'others' && !accessibleToElement) {
-    errorMessage.innerText = "{% trans 'Please provide at least one user for the accessible field.' %}";
+  if (sharingOption === 'others' && !hasAccessibleTo && !hasEditableBy) {
+    errorMessage.innerText = "{% trans 'Please provide at least one user to share with or allow to edit.' %}";
     errorMessage.classList.remove('d-none');
     event.preventDefault();
     event.stopPropagation();
@@ -45,11 +48,25 @@ function handlePresetModalSubmit(event) {
     event.stopPropagation();
     isValid = false;
   }
-  document.querySelector('input[name=\'prompt\']').value = document.getElementById('chat-prompt').value;
-
   // Only dismiss modal if validation passes
   if (!isValid) {
     errorMessage.focus();
   }
 }
+
+// event listener for submit
+document.addEventListener("submit", function(event) {
+  const form = event.target;
+  // Check if this form is inside the presets modal
+  if (!form.closest('#presets-modal')) {
+    return;
+  }
+
+  const promptField = form.querySelector("input[name='prompt']");
+  const chatPrompt = document.getElementById('chat-prompt');
+  
+  if (promptField && chatPrompt) {
+    promptField.value = chatPrompt.value;
+  }
+}, true);
 </script>

@@ -1,0 +1,93 @@
+{% load i18n %}
+
+{% comment %}
+File card with overlaid status badge, preview eye icon, and download link.
+Used in both user and bot messages via file_browser.html.
+
+- Clicking the file icon (with overlaid status) opens the librarian modal.
+- Clicking the filename or eye icon opens the file preview.
+- Download icon always shown when saved_file exists.
+
+Required context:
+  - file: ChatFile object
+  - file_index: 0-based index of the file in the message's sorted_files list
+  - show_status: boolean - whether to show the document processing status badge
+  - show_download: boolean (optional) - whether to show a download icon
+{% endcomment %}
+
+{% with is_child=file.document.parent_document %}
+  <li class="file-status-card d-flex align-items-center py-1 px-2 mb-1 border rounded-2{% if is_child and not file.message.is_bot %} ms-3{% endif %}"
+      id="file-card-{{ file.id }}"
+      data-file-id="{{ file.id }}"
+      data-file-index="{{ file_index }}">
+
+    {# ── File icon with overlaid status badge — opens librarian modal ── #}
+    <span class="file-icon-wrapper flex-shrink-0 me-2"
+          {% if file.document %} role="button" data-bs-toggle="modal" data-bs-target="#chat-next-modal" hx-get="{% url 'chat_next:modal_librarian_document' chat_id=file.message.chat.id document_id=file.document.id %}" hx-target="#chat-next-modal-content" hx-indicator="#librarian-modal-spinner" hx-swap="innerHTML" hx-trigger="click" onclick="event.stopPropagation();" title="{% trans 'View in library' %}" {% endif %}>
+      {% if is_child and not file.message.is_bot %}<i class="bi bi-arrow-return-right text-muted me-1 small"></i>{% endif %}
+      <i class="bi bi-file-text text-muted"></i>
+      {% if show_status %}
+        <span class="status-badge">
+          {% if file.document %}
+            {% with doc=file.document %}
+              {% if doc.status == "PENDING" %}
+                <i class="bi bi-circle-fill text-secondary"
+                   title="{% trans 'Not started' %}"></i>
+              {% elif doc.status == "BLOCKED" %}
+                <i class="bi bi-slash-circle text-warning" title="{% trans 'Stopped' %}"></i>
+              {% elif doc.status == "INIT" %}
+                <i class="bi bi-circle text-secondary"
+                   title="{% trans 'Initializing' %}"></i>
+              {% elif doc.status == "PROCESSING" or doc.status == "TEXT_EXTRACTED" %}
+                <i class="bi bi-arrow-repeat text-primary icn-spinner"
+                   title="{% if doc.status == 'TEXT_EXTRACTED' %}{% trans 'Adding to library' %}{% else %}{% trans 'Processing' %}{% endif %}"></i>
+              {% elif doc.status == "PAUSED" %}
+                <i class="bi bi-pause-circle-fill text-warning"
+                   title="{% trans 'Paused — not searchable yet' %}"></i>
+              {% elif doc.status == "SUCCESS" %}
+                <i class="bi bi-check-circle-fill text-success"
+                   title="{% trans 'Success' %}"></i>
+              {% elif doc.status == "ERROR" %}
+                <i class="bi bi-exclamation-circle-fill text-danger"
+                   title="{% trans 'Error' %}"></i>
+              {% else %}
+                <i class="bi bi-circle-fill text-secondary"
+                   title="{% trans 'Not started' %}"></i>
+              {% endif %}
+            {% endwith %}
+          {% else %}
+            <i class="bi bi-arrow-repeat text-primary icn-spinner"
+               title="{% trans 'Processing' %}"></i>
+          {% endif %}
+        </span>
+      {% endif %}
+    </span>
+
+    {# ── Filename — clicking opens preview ── #}
+    <span class="filename-link text-truncate small flex-grow-1"
+          role="button"
+          title="{{ file.filename }}"
+          onclick="openFilePreview('{{ file.message_id }}', {{ file_index }})">{{ file.display_path }}</span>
+
+    {# ── Action icons ── #}
+    <span class="d-flex align-items-center flex-shrink-0 ms-1 gap-1">
+      {% if file.saved_file %}
+        <a href="#"
+           class="file-action-btn text-muted small"
+           title="{% trans 'Preview' %}"
+           onclick="event.preventDefault(); event.stopPropagation(); openFilePreview('{{ file.message_id }}', {{ file_index }});">
+          <i class="bi bi-eye" aria-hidden="true"></i>
+        </a>
+      {% endif %}
+      {% if show_download and file.saved_file %}
+        <a href="{% url 'chat_next:download_file' file_id=file.id %}"
+           class="file-action-btn text-muted small"
+           title="{% trans 'Download' %}"
+           download
+           onclick="event.stopPropagation();">
+          <i class="bi bi-download" aria-hidden="true"></i>
+        </a>
+      {% endif %}
+    </span>
+  </li>
+{% endwith %}

@@ -33,146 +33,7 @@
         <div class="col">
           <div class="mb-3 pt-1">
             <h5 class="card-title visually-hidden">{% trans "Chart options" %}</h5>
-            <form id="cost-dashboard-form"
-                  hx-get="{% url 'cost_dashboard' %}"
-                  hx-trigger="change"
-                  hx-target="#cost-dashboard-outer"
-                  hx-push-url="true"
-                  hx-select="#cost-dashboard-outer">
-              <fieldset class="form-group">
-                <div class="row mb-1">
-                  <legend class="col-form-label col-1 fw-semibold">{% trans "Chart:" %}</legend>
-                  <div class="col-lg-1">
-                    <label class="col-form-label" for="x_axis">{% trans "X-axis:" %}</label>
-                  </div>
-                  <div class="col-lg-2">
-                    <select class="form-select" id="x_axis" name="x_axis">
-                      {% for option_id, option in x_axis_options.items %}
-                        <option value="{{ option_id }}"
-                                {% if option_id == x_axis %}selected{% endif %}>{{ option }}</option>
-                      {% endfor %}
-                    </select>
-                  </div>
- 
-                  <div class="col-lg-auto">
-                    <label class="col-form-label" for="group">{% trans "Group by:" %}</label>
-                  </div>
-                  <div class="col-lg-2">
-                    <select class="form-select" id="group" name="group">
-                      {% for option_id, option in group_options.items %}
-                        <option value="{{ option_id }}"
-                                {% if option_id == group %}selected{% endif %}>{{ option }}</option>
-                      {% endfor %}
-                    </select>
-                  </div>
-
-                  <div class="col-lg-auto">
-                    <label class="col-form-label" for="bar_chart_type">{% trans "Bar chart type:" %}</label>
-                  </div>
-                  <div class="col-lg-2">
-                    <select class="form-select" id="bar_chart_type" name="bar_chart_type">
-                      {% for option_id, option in bar_chart_type_options.items %}
-                        <option value="{{ option_id }}"
-                                {% if option_id == bar_chart_type %}selected{% endif %}>{{ option }}</option>
-                      {% endfor %}
-                    </select>
-                  </div>
-                </div>
-              </fieldset>
-              <fieldset class="form-group">
-                <div class="row mb-1">
-                  <legend class="col-form-label col-1 fw-semibold">{% trans "Filter:" %}</legend>
-                  <div class="col-lg-1 visually-hidden">
-                    <label class="col-form-label me-0" for="pilot">{% trans "Pilot:" %}</label>
-                  </div>
-                  <div class="col-lg-3">
-                    <select class="form-select" id="pilot" name="pilot">
-                      {% for option_id, option in pilot_options.items %}
-                        <option value="{{ option_id }}"
-                                {% if option_id|stringformat:"s" == pilot|stringformat:"s" %}selected{% endif %}>
-                          {{ option }}
-                        </option>
-                      {% endfor %}
-                    </select>
-                  </div>
-
-                  <div class="col-lg-1 visually-hidden">
-                    <label class="col-form-label me-0" for="feature">{% trans "Feature:" %}</label>
-                  </div>
-                  <div class="col-lg-3">
-                    <select class="form-select" id="feature" name="feature">
-                      {% for option_id, option in feature_options.items %}
-                        <option value="{{ option_id }}"
-                                {% if option_id|stringformat:"s" == feature|stringformat:"s" %}selected{% endif %}>
-                          {{ option }}
-                        </option>
-                      {% endfor %}
-                    </select>
-                  </div>
-
-                  <div class="col-lg-auto visually-hidden">
-                    <label class="col-form-label me-0" for="cost_type">{% trans "Cost type:" %}</label>
-                  </div>
-                  <div class="col-lg-4">
-                    <select class="form-select" id="cost_type" name="cost_type">
-                      {% for option_id, option in cost_type_options.items %}
-                        <option value="{{ option_id }}"
-                                {% if option_id|stringformat:"s" == cost_type|stringformat:"s" %}selected{% endif %}>
-                          {{ option }}
-                        </option>
-                      {% endfor %}
-                    </select>
-                  </div>
-
-                </div>
-              </fieldset>
-              <fieldset class="form-group">
-                <div class="row mb-1">
-                  <legend class="col-form-label col-1 fw-semibold">{% trans "Dates:" %}</legend>
-                  <div class="col-lg-1 visually-hidden">
-                    <label class="col-form-label" for="date_group">{% trans "Range:" %}</label>
-                  </div>
-                  <div class="col-lg-3">
-                    <select class="form-select" id="date_group" name="date_group">
-                      {% for option_id, option in date_group_options.items %}
-                        <option value="{{ option_id }}"
-                                {% if option_id == date_group %}selected{% endif %}>{{ option }}</option>
-                      {% endfor %}
-                    </select>
-                  </div>
-                  {% if date_group == "custom" %}
-                    <div class="col-lg-1">
-                      <label class="col-form-label" for="start_date">{% trans "Start:" %}</label>
-                    </div>
-                    <div class="col-lg-2">
-                      <input class="form-control"
-                             type="date"
-                             id="start_date"
-                             name="start_date"
-                             value="{{ start_date|date:'Y-m-d' }}">
-                    </div>
-                    <div class="col-lg-1">
-                      <label class="col-form-label" for="end_date">{% trans "End:" %}</label>
-                    </div>
-                    <div class="col-lg-2">
-                      <input class="form-control"
-                             type="date"
-                             id="end_date"
-                             name="end_date"
-                             value="{{ end_date|date:'Y-m-d' }}">
-                    </div>
-                  {% endif %}
-                </div>
-              </fieldset>
-              <a id="download-link"
-                 class="btn btn-outline-dark btn-sm"
-                 href="#"
-                 onclick="event.preventDefault(); downloadCsv(); return false;">
-                <i class="bi bi-download"></i>
-                {% trans "Download CSV for selected dates (filters disabled)" %}
-              </a>
-            </form>
- 
+            {% include 'forms/cost_dashboard.html' %}
           </div>
         </div>
         {# Top-line numbers #}
@@ -303,18 +164,14 @@
             <table class="table table-striped" id="totals">
               <thead>
                 <tr>
-                  {% for header in column_headers %}
-                    <th>{{ header }}</th>
-                  {% endfor %}
+                  {% for header in column_headers %}<th>{{ header }}</th>{% endfor %}
                 </tr>
- 
+
               </thead>
               <tbody>
                 {% for row in rows %}
                   <tr>
-                    {% for col in row %}
-                      <td>{{ col }}</td>
-                    {% endfor %}
+                    {% for col in row %}<td>{{ col }}</td>{% endfor %}
                   </tr>
                 {% endfor %}
               </tbody>
@@ -330,17 +187,42 @@
       return event instanceof KeyboardEvent;
     }
     function downloadCsv() {
-        // Get the current URL
         let currentUrl = new URL(window.location.href);
-
-        // Add the download parameter
         currentUrl.searchParams.set('download', 'true');
-
-        // Redirect to the new URL
         window.location.href = currentUrl.toString();
     };
+    
+    // Show/hide specific cost_groups autocomplete based on selection
+    function initCostGroupFilter() {
+      const cost_groupSelect = document.getElementById('cost_group');
+      const specificContainer = document.getElementById('cost-specific-cost_groups-container');
+      
+      if (cost_groupSelect && specificContainer) {
+        function updateSpecificCostGroupsVisibility() {
+          if (cost_groupSelect.value === 'specific') {
+            specificContainer.style.display = 'block';
+          } else {
+            specificContainer.style.display = 'none';
+          }
+        }
+
+        updateSpecificCostGroupsVisibility();
+        cost_groupSelect.onchange = updateSpecificCostGroupsVisibility;
+      }
+    }
+    
+    // Initialize on page load
+    initCostGroupFilter();
+    
+    // Re-initialize after HTMX swaps
+    document.addEventListener('htmx:afterSwap', function(event) {
+      if (event.target.id === 'cost-dashboard-outer') {
+        initCostGroupFilter();
+      }
+    });
   </script>
- 
+
 {% endblock %}
 
-{% block page_script %}{% endblock %}
+{% block page_script %}
+{% endblock %}

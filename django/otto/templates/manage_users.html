@@ -14,7 +14,17 @@
 {% block page_css %}
   <link rel="stylesheet"
         type="text/css"
-        href="{% static 'thirdparty/css/datatables.min.css' %}">
+        href="{% static 'thirdparty/css/datatables.bundle-2.3.4.min.css' %}">
+  <style>
+    .manage-users-container {
+      width: 100%;
+      max-width: 2048px;
+    }
+
+    .manage-users-table {
+      width: 100%;
+    }
+  </style>
 {% endblock %}
 
 {% block page_title %}
@@ -23,22 +33,62 @@
 
 {% block content_container %}
   <div id="manage-users-outer">
-    <div class="container py-3 px-0">
+    <div class="container-fluid py-3 px-2 px-md-3 manage-users-container">
       <h2 class="mb-3 mt-2">{% trans "Manage users" %}</h2>
 
       <div class="d-flex flex-column flex-xl-row mb-3 justify-content-xl-between align-items-xl-center">
         <div class="d-flex">
-          <a href="{% url 'cost_dashboard' %}"
-             class="btn btn-outline-secondary me-1">{% trans "Cost dashboard" %}</a>
-          <a href="{% url 'feedback_dashboard' %}"
-             class="btn btn-outline-secondary me-1">{% trans "Feedback" %}</a>
-          <a href="{% url 'manage_pilots' %}"
-             class="btn btn-outline-secondary me-1">{% trans "Pilots" %}</a>
-          <a href="{% url 'blocked_urls' %}"
-             class="btn btn-outline-secondary me-3">{% trans "Blocked URLs" %}</a>
+          <div class="dropdown me-1">
+            <button class="btn btn-outline-dark dropdown-toggle"
+                    type="button"
+                    data-bs-toggle="dropdown"
+                    aria-expanded="false">{% trans "Dashboards" %}</button>
+            <ul class="dropdown-menu">
+              <li>
+                <a href="{% url 'cost_dashboard' %}" class="dropdown-item">{% trans "Cost dashboard" %}</a>
+              </li>
+              <li>
+                <a href="{% url 'usage_dashboard' %}" class="dropdown-item">{% trans "Usage dashboard" %}</a>
+              </li>
+              <li>
+                <a href="{% url 'feedback_dashboard' %}" class="dropdown-item">{% trans "Feedback" %}</a>
+              </li>
+              <li>
+                <a href="{% url 'blocked_urls' %}" class="dropdown-item">{% trans "Blocked URLs" %}</a>
+              </li>
+              <li>
+                <a href="{% url 'manage_external_tool_approvals' %}"
+                   class="dropdown-item">{% trans "External tool approvals" %}</a>
+              </li>
+            </ul>
+          </div>
+          <a href="{% url 'manage_cost_groups' %}"
+             class="btn btn-outline-dark me-1">{% trans "Cost Groups" %}</a>
+          <a href="{% url 'manage_teams' %}" class="btn btn-outline-dark me-1">{% trans "Teams" %}</a>
+          <a href="{% url 'manage_api_clients' %}"
+             class="btn btn-outline-dark me-1">{% trans "API Clients" %}</a>
+          <a href="{% url 'manage_skill_tags' %}"
+             class="btn btn-outline-dark me-1">{% trans "Skill Tags" %}</a>
+          <button type="button"
+                  class="btn btn-outline-danger me-1"
+                  hx-get="{% url 'modify_variables_modal' %}"
+                  hx-target="#modify-variables-form"
+                  hx-indicator="#modal-spinner"
+                  data-bs-toggle="modal"
+                  data-bs-target="#modifyVariablesModal">{% trans "Modify variables" %}</button>
+          <a href="{% url 'manage_user_merge' %}"
+             class="btn btn-outline-danger me-3">{% trans "Merge users" %}</a>
         </div>
         <div class="d-flex">
-          <a href="{% url 'download_users' %}" class="btn btn-secondary me-1">{% trans "Download CSV" %}</a>
+          <a href="{% url 'download_users' %}"
+             class="btn btn-secondary me-1 d-inline-flex align-items-center"
+             id="download-users-link">
+            <span>{% trans "Download CSV" %}</span>
+            <span id="download-users-spinner"
+                  class="spinner-border spinner-border-sm ms-2 d-none"
+                  role="status"
+                  aria-hidden="true"></span>
+          </a>
           <button type="button"
                   class="btn btn-secondary me-3"
                   data-bs-toggle="modal"
@@ -78,30 +128,147 @@
         </div>
       </div>
 
-      <p class="fw-semibold">{% trans "Only displaying users with roles assigned." %}</p>
+      <div class="d-flex flex-column flex-lg-row gap-2 justify-content-lg-between align-items-lg-start mb-3">
+        <div class="dropdown">
+          <button class="btn btn-outline-secondary dropdown-toggle"
+                  type="button"
+                  id="manage-users-columns-button"
+                  data-bs-toggle="dropdown"
+                  data-bs-auto-close="outside"
+                  aria-expanded="false">{% trans "Visible columns" %}</button>
+          <div class="dropdown-menu p-3"
+               aria-labelledby="manage-users-columns-button">
+            <div class="form-check mb-2">
+              <input class="form-check-input"
+                     type="checkbox"
+                     value="show_all"
+                     id="toggle-show-all-columns">
+              <label class="form-check-label" for="toggle-show-all-columns">{% trans "Show all" %}</label>
+            </div>
+            <hr class="my-2">
+            <div class="form-check mb-2">
+              <input class="form-check-input manage-users-column-toggle"
+                     type="checkbox"
+                     value="last_login"
+                     id="toggle-last-login"
+                     data-column-index="5"
+                     checked>
+              <label class="form-check-label" for="toggle-last-login">{% trans "Last login" %}</label>
+            </div>
+            <div class="form-check mb-2">
+              <input class="form-check-input manage-users-column-toggle"
+                     type="checkbox"
+                     value="entra_status"
+                     id="toggle-entra-status"
+                     data-column-index="2">
+              <label class="form-check-label" for="toggle-entra-status">{% trans "Entra status" %}</label>
+            </div>
+            <div class="form-check mb-2">
+              <input class="form-check-input manage-users-column-toggle"
+                     type="checkbox"
+                     value="job_title"
+                     id="toggle-job-title"
+                     data-column-index="3">
+              <label class="form-check-label" for="toggle-job-title">{% trans "Job title" %}</label>
+            </div>
+            <div class="form-check mb-2">
+              <input class="form-check-input manage-users-column-toggle"
+                     type="checkbox"
+                     value="preferred_language"
+                     id="toggle-preferred-language"
+                     data-column-index="4">
+              <label class="form-check-label" for="toggle-preferred-language">{% trans "Preferred language" %}</label>
+            </div>
+            <div class="form-check mb-2">
+              <input class="form-check-input manage-users-column-toggle"
+                     type="checkbox"
+                     value="cost_7_days"
+                     id="toggle-cost-7-days"
+                     data-column-index="6">
+              <label class="form-check-label" for="toggle-cost-7-days">{% trans "Costs (7 days)" %}</label>
+            </div>
+            <div class="form-check mb-2">
+              <input class="form-check-input manage-users-column-toggle"
+                     type="checkbox"
+                     value="cost_30_days"
+                     id="toggle-cost-30-days"
+                     data-column-index="7"
+                     checked>
+              <label class="form-check-label" for="toggle-cost-30-days">{% trans "Costs (30 days)" %}</label>
+            </div>
+            <div class="form-check mb-2">
+              <input class="form-check-input manage-users-column-toggle"
+                     type="checkbox"
+                     value="cost_all_time"
+                     id="toggle-cost-all-time"
+                     data-column-index="8">
+              <label class="form-check-label" for="toggle-cost-all-time">{% trans "Costs (all time)" %}</label>
+            </div>
+            <div class="form-check mb-2">
+              <input class="form-check-input manage-users-column-toggle"
+                     type="checkbox"
+                     value="roles"
+                     id="toggle-roles"
+                     data-column-index="9"
+                     checked>
+              <label class="form-check-label" for="toggle-roles">{% trans "Roles" %}</label>
+            </div>
+            <div class="form-check mb-2">
+              <input class="form-check-input manage-users-column-toggle"
+                     type="checkbox"
+                     value="cost_groups"
+                     id="toggle-cost-groups"
+                     data-column-index="10"
+                     checked>
+              <label class="form-check-label" for="toggle-cost-groups">{% trans "Cost groups" %}</label>
+            </div>
+            <div class="form-check mb-0">
+              <input class="form-check-input manage-users-column-toggle"
+                     type="checkbox"
+                     value="teams"
+                     id="toggle-teams"
+                     data-column-index="11"
+                     checked>
+              <label class="form-check-label" for="toggle-teams">{% trans "Teams" %}</label>
+            </div>
+          </div>
+        </div>
+        <div class="text-muted small pt-lg-2">{% trans "Search only matches columns currently shown." %}</div>
+      </div>
 
       <!-- Bootstrap table of users -->
       <div class="table-responsive">
-        <table class="table table-striped" id="users">
+        <table class="table table-striped manage-users-table"
+               id="users"
+               data-ajax-url="{{ users_data_url }}">
           <thead>
             <tr>
-              {# <th>{% trans "Name" %}</th> #}
               <th></th>
               <th>{% trans "UPN" %}</th>
+              <th>{% trans "Entra status" %}</th>
+              <th>{% trans "Job title" %}</th>
+              <th>{% trans "Preferred language" %}</th>
               <th>{% trans "Last login" %}</th>
-              <th>{% trans "Costs" %}</th>
+              <th>{% trans "Costs (7 days)" %}</th>
+              <th>{% trans "Costs (30 days)" %}</th>
+              <th>{% trans "Costs (all time)" %}</th>
               <th>{% trans "Roles" %}</th>
-              <th>{% trans "Pilot" %}</th>
+              <th>{% trans "Cost groups" %}</th>
+              <th>{% trans "Teams" %}</th>
               <th>{% trans "Manage" %}</th>
               <th class="d-none"></th>
             </tr>
           </thead>
           <tbody>
+            <!-- DataTables populates rows via AJAX -->
             {% for u in users %}
               <tr>
                 {# <th>{{ u.lastname_firstname }}</th> #}
                 <td></td>
                 <th>{{ u.upn }}</th>
+                <td>{% include "components/manage/user_status.html" with user=u %}</td>
+                <td>{{ u.job_title|default:"" }}</td>
+                <td>{{ u.preferred_language|default:"" }}</td>
                 <td>
                   {% comment %}ISO date is for sorting to work properly{% endcomment %}
                   <span class="d-none">{{ u.last_login|iso_date }}</span>
@@ -111,6 +278,8 @@
                     -
                   {% endif %}
                 </td>
+                <td></td>
+                <td>${{ u.total_cost }}</td>
                 <td>${{ u.total_cost }}</td>
                 <td>
                   {% for role in u.roles %}
@@ -122,8 +291,11 @@
                   {% endfor %}
                 </td>
                 <td>
-                  {% if u.pilot %}<span class="badge bg-success">{{ u.pilot.name }}</span>{% endif %}
+                  {% for cost_group in u.available_cost_groups %}
+                    <span class="badge bg-success me-1">{{ cost_group.name }}</span>
+                  {% endfor %}
                 </td>
+                <td></td>
                 <td style="max-width:100px;">
                   <a href="#"
                      hx-get="{% url 'manage_users_form' u.id %}"
@@ -147,6 +319,8 @@
       return event instanceof KeyboardEvent
     }
   </script>
+  <div id="download-users-status" class="visually-hidden" aria-live="polite">{% trans "Preparing CSV download." %}</div>
+  <div id="upload-users-status" class="visually-hidden" aria-live="polite"></div>
   <!-- Bootstrap modal for adding users -->
   <div class="modal fade modal-xl"
        id="bulkUploadModal"
@@ -163,6 +337,7 @@
                   aria-label="{% trans 'Close' %}"></button>
         </div>
         <form action="{% url 'upload_users' %}"
+              id="bulk-upload-form"
               method="post"
               enctype="multipart/form-data">
           {% csrf_token %}
@@ -173,37 +348,27 @@
                      class="form-control mb-2"
                      id="csv_file"
                      name="csv_file"
-                     accept=".csv">
-              <button type="submit" class="btn btn-primary">{% trans "Upload" %}</button>
+                     accept=".csv"
+                     required>
+              <button type="submit"
+                      class="btn btn-primary d-inline-flex align-items-center"
+                      id="bulk-upload-submit-button">
+                <span>{% trans "Upload" %}</span>
+                <span id="bulk-upload-submit-spinner"
+                      class="spinner-border spinner-border-sm ms-2 d-none"
+                      role="status"
+                      aria-hidden="true"></span>
+              </button>
             </div>
             <hr>
             <div class="mb-3">
               <h2 class="h6">{% trans "Expected format and behaviour" %}</h2>
-              <table class="table table-border">
-                <tr>
-                  <th>upn</th>
-                  <th>pilot</th>
-                  <th>roles</th>
-                </tr>
-                <tr>
-                  <td>Givenname.Surname@justice.gc.ca</td>
-                  <td>pilot_id</td>
-                  <td>role1|role2</td>
-                </tr>
-                <tr>
-                  <td>Admin.User@justice.gc.ca</td>
-                  <td></td>
-                  <td>Otto user</td>
-                </tr>
-                <tr>
-                  <td>ApprovedApps.User@justice.gc.ca</td>
-                  <td>lsb_drafting</td>
-                  <td>AI Assistant user|Text Extractor user|Legislation Search user</td>
-                </tr>
-              </table>
-              <p>{% trans "The file must be in English as shown above." %}</p>
+              <p>{% trans "The CSV downloaded from this page is compatible with upload." %}</p>
+              <p>{% trans "You can download, edit in a spreadsheet, and upload the same file." %}</p>
+              <p>{% trans "Upload uses these columns: upn, roles, monthly_max, cost_groups." %}</p>
+              <p>{% trans "Other download columns (such as last_login and the cost columns) are ignored on upload." %}</p>
               <p>
-                {% trans "The upn column must match the Azure Active Directory (Entra) userPrincipalName property. This is usually the user's Justice email, and is case-sensitive." %}
+                {% trans "The upn column must match the Azure Active Directory (Entra) userPrincipalName property. This is usually the user's Justice email, and is matched case-insensitively. Otto stores new UPN values in lowercase." %}
               </p>
               <p>{% trans "Roles are case-insensitive. Invalid roles will be ignored. These are the valid roles:" %}</p>
               <ul>
@@ -213,14 +378,14 @@
                 {% trans "Users which do not currently exist in Otto will be created. Users which do exist will have their roles updated to match the CSV file. i.e. the user's roles which are not in the CSV will be removed." %}
               </p>
               <p>
-                {% trans "Any pilot_id that does not exist will be created, then the user will be associated with it. The pilot_id is optional." %}
-              </p>
-              <p>
                 {% trans "If the user does not exist, their first name, last name and email will be extrapolated from the UPN. These properties will be updated when the user next logs in with Entra." %}
               </p>
+              <p>
+                {% trans "Use the cost_groups column to assign available cost groups by their identifier (cost_group_id). Separate multiple entries with the pipe character (|). Leave the column blank to remove all cost groups for that user." %}
+              </p>
             </div>
-          </form>
-        </div>
+          </div>
+        </form>
       </div>
     </div>
   </div>
@@ -243,10 +408,27 @@
           <span class="spinner-border" aria-hidden="true"></span>
           <span class="visually-hidden" role="status">Loading...</span>
         </div>
-        <form action="{{ request.path }}" method="post">
+        <form action="{{ request.path }}"
+              method="post"
+              hx-post="{{ request.path }}"
+              hx-target="#user-roles-form"
+              hx-swap="innerHTML"
+              hx-indicator="#modal-spinner">
           {% csrf_token %}
           <div id="user-roles-form"></div>
         </form>
+      </div>
+    </div>
+  </div>
+  <!-- Modal placeholder for Modify Variables -->
+  <div class="modal fade"
+       id="modifyVariablesModal"
+       tabindex="-1"
+       aria-labelledby="modifyVariablesModalLabel"
+       aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div id="modify-variables-form"></div>
       </div>
     </div>
   </div>
@@ -255,6 +437,6 @@
 {% block page_script %}
   <script src="{% static 'thirdparty/jquery3.7.1.min.js' %}"
           crossorigin="anonymous"></script>
-  <script src="{% static 'thirdparty/datatables.min.js' %}"></script>
+  <script src="{% static 'thirdparty/datatables.bundle-2.3.4.min.js' %}"></script>
   <script src="{% static 'js/manageUsers.js' %}"></script>
 {% endblock %}

@@ -1,0 +1,76 @@
+# ============================================================================
+# Otto AKS Celery Heavyworker Image - document conversion / extraction extras
+# ============================================================================
+
+FROM python:3.12-slim-bookworm@sha256:4c50375fc4b8ea5ca06ac9485186ccb50171c99390b0e9300c2bac871cc2dc3e
+
+ARG SITE_URL
+ARG ENTRA_REDIRECT_URI
+ARG AZURE_AI_SERVICES_ENDPOINT
+ARG AZURE_AI_SERVICES_VERSION
+ARG AZURE_AI_SERVICES_REGION
+
+WORKDIR /django
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    TIKTOKEN_CACHE_DIR=/opt/tiktoken_cache \
+    NLTK_DATA=/root/.cache/llama_index/_static/nltk_cache
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    gettext \
+    libreoffice-writer \
+    postgresql-client \
+    procps \
+    wget \
+    ca-certificates && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*
+
+RUN wget -q --header="Host: pki-icp.canada.ca" \
+    http://167.43.15.18/aia/GoC-GdC-Root-A.crt \
+    -O /usr/local/share/ca-certificates/GoC-GdC-Root-A.crt && \
+    chmod 644 /usr/local/share/ca-certificates/GoC-GdC-Root-A.crt && \
+    update-ca-certificates --fresh
+
+COPY requirements*.txt /tmp/pip-tmp/
+RUN pip3 --disable-pip-version-check install --upgrade pip "setuptools>=70.0" wheel && \
+    pip3 --disable-pip-version-check --no-cache-dir install \
+    -r /tmp/pip-tmp/requirements.txt \
+    -r /tmp/pip-tmp/requirements_heavy.txt && \
+    rm -rf /tmp/pip-tmp
+
+RUN mkdir -p "$NLTK_DATA" && \
+    python3 -m pip install nltk && \
+    python3 -c "import nltk; \
+    nltk.download('punkt', download_dir='$NLTK_DATA'); \
+    nltk.download('punkt_tab', download_dir='$NLTK_DATA'); \
+    nltk.download('stopwords', download_dir='$NLTK_DATA'); \
+    nltk.download('wordnet', download_dir='$NLTK_DATA'); \
+    nltk.download('averaged_perceptron_tagger', download_dir='$NLTK_DATA'); \
+    nltk.download('omw-1.4', download_dir='$NLTK_DATA'); \
+    nltk.download('maxent_ne_chunker', download_dir='$NLTK_DATA'); \
+    nltk.download('words', download_dir='$NLTK_DATA')";
+
+RUN rm -f /usr/local/lib/python3.12/site-packages/certifi/cacert.pem && \
+    ln -s /etc/ssl/certs/ca-certificates.crt /usr/local/lib/python3.12/site-packages/certifi/cacert.pem && \
+    sed -i 's|return _certifi_where()|return "/etc/ssl/certs/ca-certificates.crt"|' /usr/local/lib/python3.12/site-packages/certifi/core.py
+
+COPY . /django
+
+RUN chmod +x /django/*.sh
+
+ENV SITE_URL=$SITE_URL \
+    ENTRA_REDIRECT_URI=$ENTRA_REDIRECT_URI \
+    AZURE_AI_SERVICES_ENDPOINT=$AZURE_AI_SERVICES_ENDPOINT \
+    AZURE_AI_SERVICES_VERSION=$AZURE_AI_SERVICES_VERSION \
+    AZURE_AI_SERVICES_REGION=$AZURE_AI_SERVICES_REGION
+
+RUN mkdir -p $TIKTOKEN_CACHE_DIR && \
+    python /django/cache_tiktoken.py
+
+RUN --mount=type=secret,id=azure_ai_services_key \
+    AZURE_AI_SERVICES_KEY=$(cat /run/secrets/azure_ai_services_key) \
+    python3 manage.py load_app_localization
+
+CMD ["daphne", "--bind", "0.0.0.0", "--port", "8000", "otto.asgi:application"]

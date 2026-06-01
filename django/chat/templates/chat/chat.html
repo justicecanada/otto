@@ -19,16 +19,28 @@
   <script src="{% static 'thirdparty/htmx_ext_sse.js' %}"></script>
   <script>
     const chat_id = "{{ chat.id }}";
-    {% if can_upload_large_files %}
-    const CHAT_MAX_UPLOAD_SIZE = 100000000; // 100MB
-    const LIBRARIAN_MAX_UPLOAD_SIZE = Number.MAX_VALUE; // No limit
+    {% comment %} Use values from OttoStatus singleton passed in context. A None value means "no limit"; templates convert that to Number.MAX_VALUE for JS. {% endcomment %}
+    {% if chat_max_upload_size %}
+    const CHAT_MAX_UPLOAD_SIZE = {{ chat_max_upload_size }};
     {% else %}
-    const CHAT_MAX_UPLOAD_SIZE = 10000000; // 10MB
-    const LIBRARIAN_MAX_UPLOAD_SIZE = 25000000; // 25MB
+    const CHAT_MAX_UPLOAD_SIZE = Number.MAX_VALUE;
     {% endif %}
-    const CHAT_UPLOAD_TOO_LARGE = '{% trans "File too large (max 10MB)" %}'.replace('10', CHAT_MAX_UPLOAD_SIZE/1000000);
-    const LIBRARIAN_UPLOAD_TOO_LARGE = '{% trans "File too large (max 10MB)" %}'.replace('10', LIBRARIAN_MAX_UPLOAD_SIZE/1000000);
+    {% if librarian_max_upload_size %}
+    const LIBRARIAN_MAX_UPLOAD_SIZE = {{ librarian_max_upload_size }};
+    {% else %}
+    const LIBRARIAN_MAX_UPLOAD_SIZE = Number.MAX_VALUE;
+    {% endif %}
+    {% if azure_translation_max_upload_size %}
+    const AZURE_TRANSLATION_MAX_UPLOAD_SIZE = {{ azure_translation_max_upload_size }};
+    {% endif %}
+    const CHAT_UPLOAD_TOO_LARGE = '{% trans "File too large (max 10MB)" %}'.replace('10', (CHAT_MAX_UPLOAD_SIZE===Number.MAX_VALUE? '∞' : (CHAT_MAX_UPLOAD_SIZE/1000000)));
+    const LIBRARIAN_UPLOAD_TOO_LARGE = '{% trans "File too large (max 10MB)" %}'.replace('10', (LIBRARIAN_MAX_UPLOAD_SIZE===Number.MAX_VALUE? '∞' : (LIBRARIAN_MAX_UPLOAD_SIZE/1000000)));
+    const AZURE_TRANSLATION_UPLOAD_TOO_LARGE = '{% trans "File too large (max 40MB)" %}'.replace('40', (AZURE_TRANSLATION_MAX_UPLOAD_SIZE===Number.MAX_VALUE? '∞' : (AZURE_TRANSLATION_MAX_UPLOAD_SIZE/1000000)));
     const CANCEL_UPLOAD_WARNING = '{% trans "This could cancel your file upload. Are you sure you want to continue?" %}';
+    {% if push_url %}
+    // Update URL without redirect when coming from new_chat views
+    history.replaceState(null, '', '{{ push_url }}');
+    {% endif %}
   </script>
   {% include "chat/components/chat_tour_steps.html" %}
   {% include "components/tour_script.html" %}
@@ -61,7 +73,7 @@
           <i class="bi bi-gear"></i>
           <span class="visually-hidden">{% trans "Toggle chat options sidebar" %}</span>
         </button>
-        <div class="container px-5 position-relative">
+        <div id="chat-content-container" class="container px-5 position-relative">
           {% if pinned_messages %}
             <div id="pinned-messages-container" class="pb-1 pt-3 border-bottom">
               {% with messages=pinned_messages %}
@@ -75,6 +87,10 @@
               {% include 'chat/components/chat_welcome.html' %}
             {% endif %}
             {% include 'chat/components/chat_messages.html' %}
+          </div>
+          {# Screen reader live region for announcing Otto responses #}
+          <div class="visually-hidden" aria-live="polite" aria-atomic="true">
+            <span id="chat-sr-message"></span>
           </div>
           {% include 'chat/components/chat_upload_message.html' %}
           <button id="scroll-btn" onclick="scrollToBottom(true, true)"></button>
@@ -92,22 +108,43 @@
   {% include "librarian/modal_outer.html" %}
   {% include "chat/modals/chat_tour_modal.html" %}
 
-  <script src="{% static 'thirdparty/markdown-it.min.js' %}"></script>
-  <script src="{% static 'thirdparty/katex.min.js' %}"></script>
-  <script src="{% static 'thirdparty/markdown-it-katex.js' %}"></script>
-  <script src="{% static 'thirdparty/highlight.js' %}"></script>
-  <script src="{% static 'thirdparty/turndown.js' %}"></script>
-  <script src="{% static 'thirdparty/turndown-plugin-gfm.js' %}"></script>
+  <script defer src="{% static 'thirdparty/markdown-it.min.js' %}"></script>
+  <script defer src="{% static 'thirdparty/katex.min.js' %}"></script>
+  <script defer src="{% static 'thirdparty/markdown-it-katex.js' %}"></script>
+  <script defer src="{% static 'thirdparty/highlight.js' %}"></script>
+  <script defer src="{% static 'thirdparty/turndown.js' %}"></script>
+  <script defer src="{% static 'thirdparty/turndown-plugin-gfm.js' %}"></script>
 
-  <script src="{% static 'chat/js/scripts.js' %}"></script>
-  <script src="{% static 'librarian/scripts.js' %}"></script>
-  <script src="{% static 'chat/js/presetModal.js' %}"></script>
-  <script src="{% static 'chat/js/paste.js' %}"></script>
-
+  <script defer src="{% static 'chat/js/scripts.js' %}"></script>
+  <script defer src="{% static 'librarian/scripts.js' %}"></script>
+  <script defer src="{% static 'chat/js/presetModal.js' %}"></script>
+  <script defer src="{% static 'chat/js/paste.js' %}"></script>
+  <script>
+    // Measure the admin banner (if any) and set a CSS variable so chat layout
+    // calc() expressions stay correct regardless of banner presence/height.
+    // Exposed globally so dismissBanner() can trigger recalculation.
+    var updateBannerHeight;
+    (function() {
+      updateBannerHeight = function() {
+        var banner = document.getElementById('message-from-admins');
+        var h = (banner && !banner.classList.contains('d-none')) ? banner.offsetHeight : 0;
+        document.documentElement.style.setProperty('--banner-height', h + 'px');
+      };
+      updateBannerHeight();
+      window.addEventListener('resize', updateBannerHeight);
+      // Re-measure if the banner is added/removed/changed via HTMX
+      new MutationObserver(updateBannerHeight).observe(
+        document.getElementById('message-from-admins') || document.body,
+        { attributes: true, childList: true, subtree: true, characterData: true }
+      );
+    })();
+  </script>
 
   <link rel="stylesheet" href="{% static 'chat/css/highlightjs.css' %}">
   <link rel="stylesheet" href="{% static 'thirdparty/css/katex.min.css' %}">
 
   <link rel="stylesheet" href="{% static 'file_form/file_form.css' %}">
-  <link rel="stylesheet" href="{% static 'chat/css/print.css' %}">
+  <link rel="stylesheet"
+        href="{% static 'chat/css/print.css' %}"
+        media="print">
 {% endblock %}

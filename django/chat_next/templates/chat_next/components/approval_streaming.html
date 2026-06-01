@@ -1,0 +1,38 @@
+{% load i18n %}
+{% comment %}
+This template replaces the message content area when user approves/denies a tool call.
+It sets up the SSE streaming infrastructure and auto-connects to the approval_stream endpoint.
+This is swapped into the message via HTMX.
+{% endcomment %}
+<div class="reasoning-widget-container"
+     id="reasoning-container-{{ message.id }}"
+     data-thinking-text="{% trans 'Thinking' %}"
+     data-show-reasoning-text="{% trans 'Show processing steps' %}"
+     data-generating-text="{% trans 'Generating final response' %}"
+     data-reasoning-steps-text="{% trans 'Processing steps' %}"
+     data-empty-reasoning-text="{% trans 'Processing steps will appear here shortly.' %}"
+     data-action-required-title="{% trans '⚠️ Action Required' %}"
+     {% include "chat_next/components/external_approval_data_attributes.html" %}></div>
+<div id="reasoning-data-{{ message.id }}"
+     style="display:none"
+     data-is-reasoning="true"
+     data-reasoning="{{ processing_steps_json }}"></div>
+<div hx-ext="sse"
+     sse-connect="{% url 'chat_next:approval_stream' message_id=message.id %}?approved={{ approved }}&cost_cancelled={{ cost_cancelled|default:'false' }}"
+     sse-swap="message"
+     sse-close="done"
+     sse-no-retry="true"
+     class="chat-streaming-response"
+     id="response-{{ message.id }}"
+     data-message-id="{{ message.id }}"
+     data-message-html-url="{% url 'chat_next:get_message_html' message_id=message.id %}"
+     data-error-text="{% trans 'Connection lost. The response may be incomplete.' %}"
+     data-retry-text="{% trans 'Retry' %}"
+     data-image-loading-text="{% trans 'Image loading...' %}"
+     data-file-pending-text="{% trans 'Available when response completes' %}">
+  {% comment %} Spans below require to make CSS "typing dots" bounce {% endcomment %}
+  <!-- djlint:off -->
+          <div class="typing"><span></span><span></span><span></span></div>
+<!-- djlint:on -->
+</div>
+{% include "chat_next/components/stop_button.html" %}

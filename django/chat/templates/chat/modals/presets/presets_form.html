@@ -85,6 +85,10 @@
               <label class="form-label" for="id_accessible_to">{% trans "Share with:" %}</label>
               {{ form.accessible_to }}
             </div>
+            <div class="mt-2">
+              <label class="form-label" for="id_editable_by">{% trans "Allow these users to edit:" %}</label>
+              {{ form.editable_by }}
+            </div>
           </div>
         </div>
       {% else %}
@@ -94,8 +98,31 @@
         <input type="hidden"
                name="accessible_to"
                value="{{ form.accessible_to.value }}">
+        <input type="hidden" name="editable_by" value="{{ form.editable_by.value }}">
       {% endif %}
       {% include "chat/modals/presets/public_preset_warning.html" %}
+      {% if preset_id %}
+        <div id="shareable-link-section"
+             class="mt-3 p-3 rounded border {% if not is_public %}d-none{% endif %}">
+          <label class="form-label fw-semibold mb-2">
+            <i class="bi bi-link-45deg me-1"></i>
+            {% trans "Shareable link (opens a new chat with this preset loaded)" %}
+          </label>
+          <div class="input-group">
+            <input type="text"
+                   class="form-control form-control-sm"
+                   id="shareable-link-input"
+                   value="{{ request.scheme }}://{{ request.get_host }}{% url 'chat:from_preset' preset_id=preset_id %}"
+                   readonly>
+            <button class="btn btn-outline-secondary btn-sm"
+                    type="button"
+                    onclick="copyShareableLink()"
+                    title="{% trans 'Copy link' %}">
+              <i class="bi bi-clipboard" id="copy-icon"></i>
+            </button>
+          </div>
+        </div>
+      {% endif %}
       <input type="checkbox"
              id="make-default"
              class="visually-hidden"
@@ -190,6 +217,17 @@
     }
   }
 
+  function toggleShareableLink(display_link) {
+    const shareableLinkSection = document.getElementById("shareable-link-section");
+    if (shareableLinkSection) {
+      if (display_link) {
+        shareableLinkSection.classList.remove("d-none");
+      } else {
+        shareableLinkSection.classList.add("d-none");
+      }
+    }
+  }
+
   function toggleOtherUsers() {
     const selectedOption = document.querySelector('input[name="sharing_option"]:checked');
     if (selectedOption) {
@@ -201,6 +239,7 @@
       if (!initially_public) {
         toggleWarning(selectedOption.value === "everyone");
       }
+      toggleShareableLink(selectedOption.value === "everyone");
     }
   }
 
@@ -229,4 +268,17 @@
     updateStar();
   }
 })();
+
+function copyShareableLink() {
+  const input = document.getElementById('shareable-link-input');
+  const copyIcon = document.getElementById('copy-icon');
+  navigator.clipboard.writeText(input.value).then(() => {
+    copyIcon.classList.remove('bi-clipboard');
+    copyIcon.classList.add('bi-clipboard-check');
+    setTimeout(() => {
+      copyIcon.classList.remove('bi-clipboard-check');
+      copyIcon.classList.add('bi-clipboard');
+    }, 2000);
+  });
+}
 </script>

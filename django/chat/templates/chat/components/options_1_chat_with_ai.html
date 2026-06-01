@@ -12,7 +12,8 @@
   </div>
   <div class="px-3">{{ options_form.chat_model }}</div>
 
-  <div id="reasoning-effort-container" style="display: none;">
+  <div id="reasoning-effort-container"
+       {% if not options_form.show_chat_reasoning_effort %}class="d-none"{% endif %}>
     <div class="px-3 mt-2">
       <label class="col-form-label col-form-label-sm"
              for="{{ options_form.chat_reasoning_effort.auto_id }}">{% trans "Reasoning effort" %}</label>
@@ -20,11 +21,23 @@
     <div class="px-3">{{ options_form.chat_reasoning_effort }}</div>
   </div>
 
-  <div class="px-3 mt-2">
-    <label class="col-form-label col-form-label-sm"
-           for="{{ options_form.chat_temperature.auto_id }}">{% trans "Style" %}</label>
+  <div id="verbosity-container"
+       {% if not options_form.show_chat_verbosity %}class="d-none"{% endif %}>
+    <div class="px-3 mt-2">
+      <label class="col-form-label col-form-label-sm"
+             for="{{ options_form.chat_verbosity.auto_id }}">{% trans "Verbosity" %}</label>
+    </div>
+    <div class="px-3">{{ options_form.chat_verbosity }}</div>
   </div>
-  <div class="px-3">{{ options_form.chat_temperature }}</div>
+
+  <div id="temperature-container"
+       {% if not options_form.show_chat_temperature %}class="d-none"{% endif %}>
+    <div class="px-3 mt-2">
+      <label class="col-form-label col-form-label-sm"
+             for="{{ options_form.chat_temperature.auto_id }}">{{ options_form.chat_temperature.label }}</label>
+    </div>
+    <div class="px-3">{{ options_form.chat_temperature }}</div>
+  </div>
 
   <div class="px-3 mt-2">
     <label for="{{ options_form.chat_system_prompt.auto_id }}"
@@ -33,9 +46,17 @@
   <div class="px-3">{{ options_form.chat_system_prompt }}</div>
 
   {% comment %}
+  Vision mode toggles disabled - files in Chat mode auto-switch to Q&A
+  <div class="mx-3 mt-3 form-switch form-check">
+    {{ options_form.chat_include_images }}
+    <label class="form-check-label small ms-1" for="{{ options_form.chat_include_images.auto_id }}">{% trans "Include uploaded images" %}</label>
+  </div>
+
   <div class="mx-3 mt-2 form-switch form-check">
-    {{ options_form.chat_agent }}
-    <label class="form-check-label small ms-1" for="{{ options_form.chat_agent.auto_id }}">{% trans "Detect best mode (Chat or Q&A)" %}</label>
+    {{ options_form.chat_include_pdfs }}
+    <label class="form-check-label small ms-1" for="{{ options_form.chat_include_pdfs.auto_id }}">{% trans "Include uploaded PDFs" %}</label>
   </div>
   {% endcomment %}
+
+
 {% endblock %}

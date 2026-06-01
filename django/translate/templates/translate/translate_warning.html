@@ -1,0 +1,92 @@
+{% load i18n %}
+<div class="alert alert-warning my-4 mx-3 mb-3"
+     role="alert"
+     id="translate-warning">
+  <div class="row align-items-center"
+       role="button"
+       id="translate-warning-header"
+       aria-expanded="true"
+       aria-controls="translate-warning-body">
+    <div class="col-auto pe-0">
+      <svg class="flex-shrink-0 bi me-2"
+           width="24"
+           height="24"
+           role="img"
+           aria-label='{% trans "Warning" %}:'>
+        <use xlink:href="#exclamation-triangle-fill"></use>
+      </svg>
+    </div>
+    <div class="col ps-1">
+      <h5 class="text-align-center mb-0">{% trans "Safe use of JUStranslate" %}</h5>
+    </div>
+    <div class="col-auto">
+      <i class="bi bi-chevron-down" id="translate-warning-chevron"></i>
+    </div>
+  </div>
+  <div class="collapse mt-3" id="translate-warning-body">
+    {% if environment == "prod" %}
+      <p>
+        <strong class="fw-semibold">{% trans "Protected B approved:" %}</strong>
+        {% trans "JUStranslate is approved to handle information up to and including Protected B. This normally includes information subject to solicitor-client privilege, however this should be determined on a case-by-case basis. Specific statutes and regulations may impose additional requirements pertaining to certain classes of sensitive information." %}
+      </p>
+    {% else %}
+      <p>
+        <strong class="fw-semibold">{% trans "Unclassified only:" %}</strong>
+        {% trans "This is a development / testing environment. Use unclassified information only." %}
+      </p>
+    {% endif %}
+    <p>
+      <strong class="fw-semibold">{% trans "Personal Information:" %}</strong>
+      {% trans "You must not input any information above Protected B, either through uploads or direct text input. You must not input taxpayer information, Social Insurance Numbers (SIN) or Cabinet confidences." %}
+    </p>
+    <p>
+      <strong class="fw-semibold">{% trans "AI use:" %}</strong>
+      {% trans "Users are also encouraged to consult developing directions and notices from courts and tribunals pertaining to the use of artificial intelligence." %}
+    </p>
+    <p>
+      <strong class="fw-semibold">{% trans "Human review required:" %}</strong>
+      {% trans "These translations rely on cloud-based services and are produced by an automated system and may contain errors. We encourage users to review the translation for accuracy." %}
+    </p>
+    <div class="text-end">
+      <button type="button"
+              class="btn btn-sm btn-outline-dark"
+              id="translate-warning-dismiss">{% trans "Dismiss" %}</button>
+    </div>
+  </div>
+</div>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    var STORAGE_KEY = 'translate-warning-dismissed';
+    var body = document.getElementById('translate-warning-body');
+    var header = document.getElementById('translate-warning-header');
+    var chevron = document.getElementById('translate-warning-chevron');
+    var dismissBtn = document.getElementById('translate-warning-dismiss');
+    var bsCollapse = new bootstrap.Collapse(body, {toggle: false});
+
+    // Expand on first visit, collapse if previously dismissed
+    if (localStorage.getItem(STORAGE_KEY)) {
+      chevron.classList.add('collapsed');
+    } else {
+      bsCollapse.show();
+    }
+
+    // Toggle on header click
+    header.addEventListener('click', function() {
+      bsCollapse.toggle();
+    });
+
+    // Rotate chevron on show/hide
+    body.addEventListener('show.bs.collapse', function() {
+      chevron.classList.remove('collapsed');
+    });
+    body.addEventListener('hide.bs.collapse', function() {
+      chevron.classList.add('collapsed');
+    });
+
+    // Dismiss: collapse and remember
+    dismissBtn.addEventListener('click', function() {
+      localStorage.setItem(STORAGE_KEY, '1');
+      bsCollapse.hide();
+    });
+  });
+</script>

@@ -3,18 +3,13 @@
 
 {% load i18n %}
 {% get_current_language as LANGUAGE_CODE %}
-
+{% block page_title %}
+  {% trans "Terms of use - Otto" %}
+{% endblock %}
 {% block body %}
 
-  <!-- Title -->
   <div class="mb-5 mx-5">
-    <h2 class="mb-3">
-      {% if is_pilot_environment %}
-        {% trans "Terms of use for Otto Protected B Pilot" %}
-      {% else %}
-        {% trans "Terms of use for Otto" %}
-      {% endif %}
-    </h2>
+    <h2 class="mb-3">{% trans "Terms of use for Otto" %}</h2>
     <p class="text-secondary">{% trans "Last updated on" %} {{ last_updated|date:"F j, Y" }}.</p>
     {% if request.user.accepted_terms_date %}
       <p class="text-success fw-semibold">
@@ -22,37 +17,74 @@
       </p>
     {% endif %}
   </div>
+
+  <!-- Mandatory training attestation (card with 2 checkboxes) -->
+  <div class="m-5">
+    <div class="card border-warning">
+      <div class="card-header bg-warning-subtle border-warning fw-semibold">
+        {% trans "Attestation of completion of mandatory courses" %}
+      </div>
+      <div class="card-body">
+        <p class="mb-3">
+          {% blocktrans %}Before using Otto, you must have successfully completed the mandatory Canada School of Public Service (CSPS) security courses <a href="https://catalogue.csps-efpc.gc.ca/product?catalog=cor310&amp;cm_locale=en" target="_blank" rel="noopener">Security Awareness (COR310)</a> and <a href="https://catalogue.csps-efpc.gc.ca/product?catalog=DDN235&amp;cm_locale=en" target="_blank" rel="noopener">Discover Cyber Security (DDN235)</a>. These courses are already mandatory for all Justice employees.{% endblocktrans %}
+        </p>
+        <p class="mb-3">
+          {% blocktrans %}You can confirm whether you have completed them by consulting the <a href="https://explore.justice.gc.ca/pbi/powerbi/JUS/MS-SG/HR-RH/CC19057/Testing%20Training%20dashboard/training%20dashboard/My%20Training%20Dashboard" target="_blank" rel="noopener">Mandatory Training Dashboard</a> or by logging into the <a href="https://app.csps-efpc.gc.ca/d2l/home" target="_blank" rel="noopener">CSPS learning portal</a>.{% endblocktrans %}
+        </p>
+        <div class="form-check">
+          <input class="form-check-input border-secondary"
+                 type="checkbox"
+                 id="attest_training"
+                 {% if request.user.accepted_terms_date %}checked disabled{% else %}required{% endif %}>
+          <label class="form-check-label fw-semibold" for="attest_training">
+            {% trans "I attest that I have completed both mandatory CSPS security courses (COR310 and DDN235)." %}
+          </label>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Terms of Use -->
   <div class="mb-4 mx-5">
-    {% if is_pilot_environment %}
-      <!-- Participation in pilot activities -->
-      <h3 class="h4 mt-4">{% trans "Participation in pilot activities" %}</h3>
-      <p>
-        {% trans "You are part of a select group of 'Pilot users' who have been granted early access to Otto during the pilot phase. You are expected to actively experiment with Otto for work tasks, to provide feedback through Otto, and to complete surveys when requested." %}
-      </p>
-    {% endif %}
-
     <!-- Inappropriate uses and limitations of Otto -->
     <h3 class="h4 mt-4">{% trans "Inappropriate uses and limitations of Otto" %}</h3>
     <p>
       {% trans "You must read and follow the notices within these Terms of Use and in the notices within Otto tools." %}
     </p>
     <p>
-      {% trans "AI Assistant's Chat mode should not be trusted to provide factual information, as it is more prone to hallucination and bias in the output. Instead, use the Q&A and Summarize modes to ground the AI's responses in trusted sources such as documents that you upload or a shared document library." %}
-    </p>
-    <p>
       {% trans "Otto may not be used to automate decision-making (administrative decisions affecting the rights, privileges or interests of individuals). Examples of decision-making include many human resources activities or program or funding decisions. Otto should not be used as a tool for decision-makers, nor to automate steps needed to make decisions. The use of AI for activities related to or impacting decision-making raises several legal and policy issues which are not detailed here or in other Otto documentation." %}
-    </p>
-    <p>
-      {% trans "The AI Assistant does not connect to legal databases like Westlaw, Lexis, CanLII or Justipedia. It should not be used for searching for legislation, case law, opinions, etc. Only the Legislation Search tool should be used for questions about Canadian federal laws." %}
     </p>
     <p>
       {% trans "Otto is not a substitute for professional legal advice. Legal professionals must analyze and understand the unique complexities of client matters, exercise professional judgment, and provide tailored strategic advice." %}
     </p>
     <p>
       {% trans "For examples of appropriate use cases, please see the " %}
-      <a href="{% if LANGUAGE_CODE == 'fr' %}https://collaboration.justice.gc.ca/ts/lps-spj/asb-dgas/bac-caa/_layouts/15/DocIdRedir.aspx?ID=1010-1069292447-9{% else %}https://collaboration.justice.gc.ca/ts/lps-spj/asb-dgas/bac-caa/_layouts/15/DocIdRedir.aspx?ID=1010-1069292447-10{% endif %}"
+      <a href="{% if LANGUAGE_CODE == 'fr' %}https://collaboration.justice.gc.ca/ts/lps-spj/asb-dgas/bac-caa/Otto/Guide%20de%20l'utilisateur%20d'Otto.docx{% else %}https://collaboration.justice.gc.ca/ts/lps-spj/asb-dgas/bac-caa/Otto/Otto%20User%20Guide.docx{% endif %}"
          target="_blank">{% trans "Otto user guide." %}</a>
+    </p>
+
+    <h4 class="h6" style="font-style: italic">{% trans "AI Assistant (classic)" %}</h4>
+    <p class="ms-3">
+      {% trans "Chat mode should not be trusted to provide factual information, as it is more prone to hallucination and bias in the output. Instead, use the Q&A and Summarize modes to ground the AI's responses in trusted sources such as documents that you upload or a shared library." %}
+    </p>
+
+    <h4 class="h6" style="font-style: italic">
+      {% trans "AI Assistant (new)" %}
+      <span class="text-muted fw-normal" style="font-style: normal">{% trans "(phased rollout; may not be visible to all users)" %}</span>
+    </h4>
+    <p class="ms-3">
+      {% trans "Otto may generate queries to an external database: Access to Algorithmic Justice (A2AJ, for legal information) and Termium (for translation). This raises the risk of the query being viewed by the external provider. Before Otto consults one of these databases, you must approve sending the query and confirm that it contains no Protected, Classified or privileged information." %}
+    </p>
+    <p class="ms-3">
+      {% trans "A2AJ is the only legal database to which Otto has access; there is no access for example to Westlaw, Lexis, CanLII or Justipedia. There are significant limits on A2AJ’s coverage of decisions of courts and tribunals, as well as legislation.  The texts are unofficial and may contain inaccuracies and be incomplete.  Users must refer to information on coverage and data quality at" %}
+      <a href="https://a2aj.ca/data/" target="_blank">https://a2aj.ca/data/</a>
+      {% if LANGUAGE_CODE == 'fr' %}
+        {% trans "(English only)" %}
+      {% endif %}
+      .
+    </p>
+    <p>
+      {% trans "Because AI may make mistakes, it is important to check the accuracy of results before relying on them." %}
     </p>
 
     <!-- Security and privacy -->
@@ -60,12 +92,17 @@
     <p>
       {% trans "Otto is approved for information up to and including Protected B. This normally includes information subject to solicitor-client privilege. Specific statutes and regulations may impose additional requirements pertaining to certain classes of sensitive information that are considered Protected B. In such cases, the use of Otto should be considered on a case-by-case basis." %}
     </p>
-    <p>{% trans "You must not input any information above Protected B, either through uploads or direct text input." %}</p>
     <p>
-      {% trans "Apply security classification labels to chats and document libraries when they contain Protected and/or personal information." %}
+      {% trans "You must not input any information above Protected B, either through uploads or direct text input. Regardless of their security classification, do not input Social Insurance Numbers (SIN) or Cabinet confidences." %}
     </p>
     <p>
-      {% trans "Avoid uploading personal information except as needed for specific tasks. Share document libraries and chats only with those who require access (i.e. need to know if personal information is included)." %}
+      {% trans "Taxpayer information may be entered only where authorized under s.241 of the Income Tax Act (or equivalent provisions), such as when it is necessary for tax administration, enforcement or legal proceedings. Use only the minimum taxpayer information required; exclude or redact data such as Social Insurance Numbers (SIN), bank account numbers or addresses." %}
+    </p>
+    <p>
+      {% trans "Apply security classification labels to library folders when they contain Protected and/or personal information." %}
+    </p>
+    <p>
+      {% trans "Avoid uploading personal information except as needed for specific tasks. Share libraries and chats only with those who require access (i.e. need to know if personal information is included)." %}
     </p>
     <p>
       {% trans "If information is shared with you through Otto which you should not have access to, use the provided links to email the authors or library administrators. To report other privacy or security issues, email the Otto team at" %}
@@ -98,7 +135,7 @@
     <p>{% trans "Otto is for transitory information only. It is not a repository for information of business value." %}</p>
     <p>{% trans "Only upload to Otto the documents you need to perform your tasks." %}</p>
     <p>
-      {% trans "Actively delete protected or personal information when it is no longer needed. Document libraries and chats will be deleted after 30 days of inactivity. This means that if you do not open a chat for 30 days, it will be automatically deleted along with all files uploaded to the chat. For libraries, if no changes have been made and no Q&A queries have been performed for 30 days, the library will be automatically deleted." %}
+      {% trans "Actively delete protected or personal information when it is no longer needed. Unless pinned, chats will be deleted after 90 days of inactivity (opening a chat resets the clock), along with all files uploaded to the chat. Except for libraries that are visible to all JUS users, libraries will be deleted after 90 days of inactivity (making changes to the library or using it for Q&A resets the clock)." %}
     </p>
     <p>{% trans "For more information, please review the following:" %}</p>
     <ul>
@@ -157,6 +194,7 @@
     </p>
   </div>
 
+  <!-- Acceptance Form -->
   {% if not request.user.accepted_terms_date %}
     <hr>
     <form method="post" id="accessRequestForm" class="mx-5">
@@ -170,25 +208,54 @@
                  id="accept_usage_terms"
                  required
                  name="usage_terms"
-                 class="form-check-input border-secondary">
+                 class="form-check-input border-secondary"
+                 disabled>
           <label for="accept_usage_terms" class="form-check-label">{% trans "I agree to the terms of use." %}</label>
         </div>
       </div>
       <!-- Submit Button -->
       <button type="submit" id="submitButton" class="btn btn-primary" disabled>{% trans "Submit" %}</button>
     </form>
+  {% else %}
+    <div class="mx-5 mb-4">
+      <div class="form-check">
+        <input type="checkbox"
+               id="accept_usage_terms"
+               class="form-check-input border-secondary"
+               checked
+               disabled>
+        <label for="accept_usage_terms" class="form-check-label">{% trans "I agree to the terms of use." %}</label>
+      </div>
+    </div>
   {% endif %}
 
 {% endblock %}
 
 {% block page_script %}
-  <script>
-    const terms_checkbox = document.getElementById('accept_usage_terms');
-    if (terms_checkbox) {
-      terms_checkbox.addEventListener('change', function() {
-        document.getElementById('submitButton').disabled = !this.checked;
-      });
-    }
-  </script>
-
+  {% if not request.user.accepted_terms_date %}
+    <script>
+      const terms_checkbox = document.getElementById('accept_usage_terms');
+      const training_checkbox = document.getElementById('attest_training');
+      const submitBtn = document.getElementById('submitButton');
+      function recompute() {
+        const trainingOk = training_checkbox ? training_checkbox.checked : true;
+        if (terms_checkbox) {
+          // Enable terms checkbox only after training attested (if training checkbox exists)
+            if (training_checkbox) {
+              terms_checkbox.disabled = !trainingOk;
+            }
+        }
+        const termsOk = terms_checkbox ? terms_checkbox.checked : true;
+        submitBtn.disabled = !(trainingOk && termsOk);
+      }
+      if (training_checkbox) {
+        training_checkbox.addEventListener('change', recompute);
+      }
+      if (terms_checkbox) {
+        terms_checkbox.addEventListener('change', recompute);
+      }
+      // Initial state
+      recompute();
+    </script>
+  {% endif %}
 {% endblock %}

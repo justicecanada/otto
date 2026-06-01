@@ -1,0 +1,59 @@
+{% load i18n %}
+
+{# OOB swap to reset the upload form after submission #}
+<form id="prompt-upload-form"
+      method="post"
+      enctype="multipart/form-data"
+      hx-post="{% url 'chat_next:upload' chat.id %}"
+      hx-swap="beforeend"
+      hx-target="#messages-container"
+      hx-encoding="multipart/form-data"
+      hx-swap-oob="true">
+  {% csrf_token %}
+  {{ upload_form }}
+</form>
+<script>
+  // Re-initialize the upload form after a short delay to let DOM settle
+  setTimeout(function() {
+    const uploadForm = document.getElementById("prompt-upload-form");
+    const uploadMessage = typeof window.ensurePromptUploadMessagePlaceholder === "function"
+      ? window.ensurePromptUploadMessagePlaceholder()
+      : document.getElementById("chat-upload-message");
+    const uploadProgressFiles = uploadMessage ? uploadMessage.querySelector("#upload-progress-files") : null;
+    const sendButton = document.getElementById("send-button");
+    
+    if (uploadForm) {
+      // Reset initialization flag so it can be re-initialized
+      uploadForm.dataset.initialized = 'false';
+      
+      // Clear the upload progress area
+      if (uploadProgressFiles) {
+        uploadProgressFiles.innerHTML = '';
+      }
+      if (uploadMessage) {
+        uploadMessage.classList.add('d-none');
+        uploadMessage.classList.remove('submitting');
+      }
+      
+      // Re-enable the send button
+      if (sendButton) {
+        sendButton.disabled = false;
+      }
+
+      if (typeof setUploadsInProgress === 'function') {
+        setUploadsInProgress(false);
+      }
+      
+      // Call the global initialization function
+      if (typeof window.initPromptUploadArea === 'function') {
+        window.initPromptUploadArea();
+      }
+    }
+    
+    // Ensure the main prompt form still works - re-process HTMX on it
+    const promptForm = document.getElementById("prompt-form");
+    if (promptForm && typeof htmx !== 'undefined') {
+      htmx.process(promptForm);
+    }
+  }, 150);
+</script>

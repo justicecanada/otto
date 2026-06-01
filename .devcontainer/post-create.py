@@ -1,32 +1,11 @@
 import os
 import subprocess
+import sys
 
+from azure.core.exceptions import ResourceNotFoundError
 from azure.identity import DefaultAzureCredential
 from azure.keyvault.secrets import SecretClient
 from dotenv import load_dotenv
-
-process = subprocess.Popen(
-    [
-        "az",
-        "ad",
-        "app",
-        "list",
-        "--display-name",
-        "Otto (Sandbox)",
-        "--query",
-        "[].{appId:appId}",
-        "--output",
-        "tsv",
-    ],
-    text=True,
-    stdout=subprocess.PIPE,
-)
-entra_client_id, entra_client_id_stderr = process.communicate()
-
-if entra_client_id_stderr:
-    print("Error: An error occured trying to retrieve the client id. \n")
-else:
-    entra_client_id = entra_client_id.strip()
 
 process = subprocess.Popen(
     [
@@ -61,16 +40,44 @@ client = SecretClient(
 
 print("Writing temporary .env file...")
 
+
+def get_secret(name, required=True):
+    """Get secret from Key Vault. Returns empty string if not required and missing."""
+    try:
+        return client.get_secret(name).value
+    except ResourceNotFoundError:
+        if required:
+            print(f"ERROR: Required secret '{name}' not found in Key Vault")
+            sys.exit(1)
+        return ""
+
+
 # Write a file to current directory/.env
+# Start with non-secret base config from .env.example
+with open(
+    os.path.join(os.path.dirname(__file__), "../django/.env.example"), "r"
+) as example:
+    example_content = example.read()
+
 with open(os.path.join(os.path.dirname(__file__), "../django/.env"), "w") as f:
-    f.write(f"AZURE_OPENAI_KEY='{client.get_secret('OPENAI-CANADA-EAST-KEY').value}'\n")
+    # Write non-secret vars from .env.example first
+    f.write(example_content)
+    f.write("\n# Secrets from Key Vault below\n")
+
+    # Then append secrets from Key Vault
+    f.write(f"AZURE_AI_SERVICES_KEY='{get_secret('AI-SERVICES-KEY')}'\n")
     f.write(
-        f"AZURE_COGNITIVE_SERVICE_KEY='{client.get_secret('COGNITIVE-SERVICE-KEY').value}'\n"
+        f"AZURE_DOCUMENT_INTELLIGENCE_KEY='{get_secret('DOCUMENT-INTELLIGENCE-KEY')}'\n"
     )
-    f.write(f"AZURE_ACCOUNT_KEY='{client.get_secret('STORAGE-KEY').value}'\n")
-    f.write(f"ENTRA_CLIENT_SECRET='{client.get_secret('ENTRA-CLIENT-SECRET').value}'\n")
+    f.write(f"AZURE_ACCOUNT_KEY='{get_secret('STORAGE-ACCOUNT-KEY')}'\n")
+
+    f.write(f"ENTRA_CLIENT_SECRET='{get_secret('ENTRA-CLIENT-SECRET')}'\n")
+    f.write(
+        f"CUSTOM_TRANSLATOR_ID='{get_secret('CUSTOM-TRANSLATOR-ID', required=False)}'\n"
+    )
+
+    entra_client_id = get_secret("ENTRA-CLIENT-ID", required=False)
+    if not entra_client_id:
+        entra_client_id = os.environ.get("ENTRA_CLIENT_ID", "")
     f.write(f"ENTRA_CLIENT_ID='{entra_client_id}'\n")
     f.write(f"ENTRA_AUTHORITY='https://login.microsoftonline.com/{entra_tenant_id}'\n")
-    f.write(
-        f"CUSTOM_TRANSLATOR_ID='{client.get_secret('CUSTOM-TRANSLATOR-ID').value}'\n"
-    )

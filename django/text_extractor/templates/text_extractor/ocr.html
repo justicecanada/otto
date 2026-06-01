@@ -18,7 +18,8 @@
     </h2>
     <p class="mb-4 mx-4">{% trans "Extract text and handwriting from scanned PDF and images with AI-enabled OCR." %}</p>
     <div class="card">
-      <div class="card-body p-4">
+      <div class="card-body p-4 position-relative" id="upload-card-body">
+        {% include 'text_extractor/components/text_extractor_dropzone.html' %}
         <form method="post"
               enctype="multipart/form-data"
               hx-post="{% url 'text_extractor:submit_document' %}"
@@ -46,6 +47,21 @@
                      name="merge_docs_checkbox"
                      id="merge_docs_checkbox">
               <label class="form-check-label" for="merge_docs_checkbox">{% trans "Merge multiple files into one document" %}</label>
+            </div>
+            <div class="mt-3 row">
+              <div class="col-4">
+                <label class="form-label" for="ai_model_select">{% trans "AI model" %}</label>
+                <select class="form-select w-100" id="ai_model_select" name="ai_model">
+                  <option value="document_intelligence">{% trans "Document Intelligence OCR (fastest, 1x cost)" %}</option>
+                  <option value="gpt_vision">{% trans "GPT-5.1 (better for handwriting, slower, 4x cost)" %}</option>
+                </select>
+              </div>
+              <div class="col-8 d-flex align-items-end">
+                <div id="gpt_vision_info"
+                     class="alert alert-info mb-0 py-2 d-none"
+                     role="note"
+                     style="font-size:0.95em">{% trans "Note: GPT-5.1 will only create TXT files as output." %}</div>
+              </div>
             </div>
           </div>
           <div class="row mb-1">
@@ -131,6 +147,23 @@ document.getElementById('file-upload-field').addEventListener('change', function
   document.getElementById('error_message').classList.add('d-none');
 });
 
+// event listener for paste to allow pasting images
+document.addEventListener('paste', function(e) {
+  const files = e.clipboardData?.files;
+  if (files && files.length > 0) {
+    const fileInput = document.querySelector('#file-upload-field');
+    fileInput.files = files;
+    fileInput.dispatchEvent(new Event('change'));
+  }
+});
+document.getElementById('ai_model_select').addEventListener('change', function() {
+  var warning = document.getElementById('gpt_vision_info');
+  if (this.value === 'gpt_vision') {
+    warning.classList.remove('d-none');
+  } else {
+    warning.classList.add('d-none');
+  }
+});
 
 {% if not show_output %}
   setTimeout(() => {

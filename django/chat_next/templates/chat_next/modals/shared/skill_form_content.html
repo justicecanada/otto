@@ -1,0 +1,28 @@
+{% load i18n %}
+
+<div class="chat-next-modal-view"
+     data-chat-next-modal-view="skill-editor"
+     data-modal-current-url="{{ current_url }}">
+  <div class="modal-header">
+    <div class="d-flex align-items-center flex-grow-1 min-w-0">
+      <button type="button"
+              class="btn btn-sm btn-none chat-next-modal-back-button me-1"
+              hx-get="{{ modal_back_url }}"
+              hx-target="#chat-next-modal-content"
+              hx-swap="innerHTML"
+              aria-label="{% trans 'Back' %}"
+              title="{% trans 'Back' %}">
+        <i class="bi bi-arrow-left"></i>
+      </button>
+      <h5 class="modal-title mb-0 text-truncate">{% trans "Skills" %}</h5>
+    </div>
+    <button type="button"
+            class="btn-close"
+            data-bs-dismiss="modal"
+            aria-label="{% trans 'Close' %}"></button>
+  </div>
+  <div id="skill-modal-nav-state" class="d-none">
+    <input type="hidden" name="modal_back_url" value="{{ modal_back_url }}">
+  </div>
+  {% include "chat_next/modals/skills/skill_form.html" %}
+</div>

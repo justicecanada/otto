@@ -1,0 +1,8 @@
+
+{% for role in roles %}
+  {% if role.name == "Otto admin" %}
+    <span class="badge bg-danger me-1">{{ role.name }}</span>
+  {% else %}
+    <span class="badge bg-secondary me-1">{{ role.name }}</span>
+  {% endif %}
+{% endfor %}

@@ -1,0 +1,26 @@
+{% load i18n %}
+
+<div id="skill-import-status"
+     class="alert {% if bundle_import_status.state == 'error' %}alert-danger{% elif bundle_import_status.state == 'processing' %}alert-secondary{% else %}alert-success{% endif %} py-2 px-3 small"
+     {% if bundle_import_status.state == 'processing' and bundle_import_status_url %} hx-get="{{ bundle_import_status_url }}" hx-trigger="load delay:1500ms" hx-swap="outerHTML" {% endif %}>
+  <div class="d-flex align-items-start gap-2">
+    {% if bundle_import_status.state == 'processing' %}
+      <div class="spinner-border spinner-border-sm text-primary mt-1"
+           role="status"
+           aria-hidden="true"></div>
+    {% elif bundle_import_status.state == 'error' %}
+      <i class="bi bi-exclamation-triangle-fill mt-1"></i>
+    {% else %}
+      <i class="bi bi-check-circle-fill mt-1"></i>
+    {% endif %}
+    <div>
+      <div class="fw-semibold mb-1">{% trans "Imported bundle files" %}</div>
+      <div>{{ bundle_import_status.status_text }}</div>
+      {% if bundle_import_status.child_total %}
+        <div class="mt-1 text-muted">
+          {% blocktrans with success=bundle_import_status.child_success processing=bundle_import_status.child_processing errors=bundle_import_status.child_error total=bundle_import_status.child_total %}{{ success }} ready, {{ processing }} processing, {{ errors }} errors, out of {{ total }} extracted files.{% endblocktrans %}
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>

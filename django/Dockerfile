@@ -2,8 +2,8 @@
 # Otto AKS Python/Django Image - GoC SSL Trust Chain & Security Rationale
 # ============================================================================
 # Why these choices?
-# - Python 3.11-slim-bookworm: Python 3.13+ enforces strict X.509 (AKI) checks
-#   that break compatibility with GoC CA as of May 2025. Python 3.11 is secure,
+# - Python 3.12-slim-bookworm: Python 3.13+ enforces strict X.509 (AKI) checks
+#   that break compatibility with GoC CA as of May 2025. Python 3.12 is secure,
 #   widely supported, and works with the GoC trust chain. Bookworm (Debian 12)
 #   is the latest stable base, with faster security updates than Bullseye.
 # - System CA trust: We bake the GoC CA into the system trust at build time,
@@ -15,27 +15,26 @@
 # - All other security and dependency practices are standard for AKS workloads.
 # ============================================================================
 
-FROM python:3.11-slim-bookworm
+FROM python:3.12-slim-bookworm@sha256:4c50375fc4b8ea5ca06ac9485186ccb50171c99390b0e9300c2bac871cc2dc3e
 
 ARG SITE_URL
 ARG ENTRA_REDIRECT_URI
-ARG AZURE_OPENAI_ENDPOINT
-ARG AZURE_OPENAI_VERSION
-ARG AZURE_COGNITIVE_SERVICE_ENDPOINT
-ARG AZURE_COGNITIVE_SERVICE_REGION
+ARG AZURE_AI_SERVICES_ENDPOINT
+ARG AZURE_AI_SERVICES_VERSION
+ARG AZURE_AI_SERVICES_REGION
 
 WORKDIR /django
 
 # Environment variables for non-interactive install and tiktoken cache
 ENV DEBIAN_FRONTEND=noninteractive \
-    TIKTOKEN_CACHE_DIR=/opt/tiktoken_cache
+    TIKTOKEN_CACHE_DIR=/opt/tiktoken_cache \
+    NLTK_DATA=/root/.cache/llama_index/_static/nltk_cache
 
 # Install system dependencies and clean up
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     gettext \
     postgresql-client \
-    poppler-utils \
     procps \
     wget \
     ca-certificates && \
@@ -53,7 +52,7 @@ RUN wget -q --header="Host: pki-icp.canada.ca" \
 # Vulnerability CVE-2024-6345 is fixed in setuptools 70.0.0
 # and later. The vulnerability is present in all versions of
 # setuptools prior to 70.0.0; however, the fix is not included in
-# the Python 3.11-slim-bookworm image. This is a workaround to
+# the Python 3.12-slim-bookworm image. This is a workaround to
 # ensure that the latest version of setuptools is installed.
 COPY requirements*.txt /tmp/pip-tmp/
 RUN pip3 --disable-pip-version-check install --upgrade pip "setuptools>=70.0" wheel && \
@@ -61,10 +60,23 @@ RUN pip3 --disable-pip-version-check install --upgrade pip "setuptools>=70.0" wh
     -r /tmp/pip-tmp/requirements.txt && \
     rm -rf /tmp/pip-tmp
 
+# Preload essential NLTK corpora for llama_index and common NLP operations
+RUN mkdir -p "$NLTK_DATA" && \
+    python3 -m pip install nltk && \
+    python3 -c "import nltk; \
+    nltk.download('punkt', download_dir='$NLTK_DATA'); \
+    nltk.download('punkt_tab', download_dir='$NLTK_DATA'); \
+    nltk.download('stopwords', download_dir='$NLTK_DATA'); \
+    nltk.download('wordnet', download_dir='$NLTK_DATA'); \
+    nltk.download('averaged_perceptron_tagger', download_dir='$NLTK_DATA'); \
+    nltk.download('omw-1.4', download_dir='$NLTK_DATA'); \
+    nltk.download('maxent_ne_chunker', download_dir='$NLTK_DATA'); \
+    nltk.download('words', download_dir='$NLTK_DATA')";
+
 # Ensure Python uses the system CA bundle instead of certifi’s
-RUN rm -f /usr/local/lib/python3.11/site-packages/certifi/cacert.pem && \
-    ln -s /etc/ssl/certs/ca-certificates.crt /usr/local/lib/python3.11/site-packages/certifi/cacert.pem && \
-    sed -i 's|return _certifi_where()|return "/etc/ssl/certs/ca-certificates.crt"|' /usr/local/lib/python3.11/site-packages/certifi/core.py
+RUN rm -f /usr/local/lib/python3.12/site-packages/certifi/cacert.pem && \
+    ln -s /etc/ssl/certs/ca-certificates.crt /usr/local/lib/python3.12/site-packages/certifi/cacert.pem && \
+    sed -i 's|return _certifi_where()|return "/etc/ssl/certs/ca-certificates.crt"|' /usr/local/lib/python3.12/site-packages/certifi/core.py
 
 # Copy application code
 COPY . /django
@@ -75,20 +87,17 @@ RUN chmod +x /django/*.sh
 # Load environment variables
 ENV SITE_URL=$SITE_URL \
     ENTRA_REDIRECT_URI=$ENTRA_REDIRECT_URI \
-    AZURE_OPENAI_ENDPOINT=$AZURE_OPENAI_ENDPOINT \
-    AZURE_OPENAI_VERSION=$AZURE_OPENAI_VERSION \
-    AZURE_COGNITIVE_SERVICE_ENDPOINT=$AZURE_COGNITIVE_SERVICE_ENDPOINT \
-    AZURE_COGNITIVE_SERVICE_REGION=$AZURE_COGNITIVE_SERVICE_REGION
+    AZURE_AI_SERVICES_ENDPOINT=$AZURE_AI_SERVICES_ENDPOINT \
+    AZURE_AI_SERVICES_VERSION=$AZURE_AI_SERVICES_VERSION \
+    AZURE_AI_SERVICES_REGION=$AZURE_AI_SERVICES_REGION
 
 # Create tiktoken cache directory and pre-cache tokens
 RUN mkdir -p $TIKTOKEN_CACHE_DIR && \
     python /django/cache_tiktoken.py
 
 # Preload localization files
-RUN --mount=type=secret,id=azure_openai_key \
-    --mount=type=secret,id=azure_cognitive_service_key \
-    AZURE_OPENAI_KEY=$(cat /run/secrets/azure_openai_key) \
-    AZURE_COGNITIVE_SERVICE_KEY=$(cat /run/secrets/azure_cognitive_service_key) \
+RUN --mount=type=secret,id=azure_ai_services_key \
+    AZURE_AI_SERVICES_KEY=$(cat /run/secrets/azure_ai_services_key) \
     python3 manage.py load_app_localization
 
 CMD ["daphne", "--bind", "0.0.0.0", "--port", "8000", "otto.asgi:application"]

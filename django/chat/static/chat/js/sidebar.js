@@ -1,5 +1,7 @@
 let optionSaveTimeout = null;
 let optionSaveDelay = 500;
+let chatOptionsAutosaveDisabled = false;
+let chatOptionsAutosaveErrorShown = false;
 
 const handlebar = document.getElementById("right-sidebar-resize-handle");
 const sidebar = document.getElementById("right-sidebar");
@@ -11,17 +13,52 @@ const sidebarMaxWidth = 600;
 
 // This saves the options when the user changes them via HTMX
 function triggerOptionSave() {
+  if (chatOptionsAutosaveDisabled) {
+    return;
+  }
+
+  const chatOptionsForm = document.querySelector('#chat-options');
+  if (!chatOptionsForm) {
+    return;
+  }
+
   // Re-enable any disabled inputs within #chat-options form
   let previously_disabled_elements = document.querySelectorAll('#chat-options select:disabled');
   document.querySelectorAll('#chat-options select').forEach((el) => {
     el.removeAttribute('disabled');
   });
-  document.querySelector('#chat-options').dispatchEvent(new Event('optionsChanged'));
+  chatOptionsForm.dispatchEvent(new Event('optionsChanged'));
   // Disable the inputs that were previously disabled
   previously_disabled_elements.forEach((el) => {
     el.setAttribute('disabled', 'disabled');
   });
 }
+
+document.addEventListener('htmx:responseError', function (event) {
+  const form = document.querySelector('#chat-options');
+  if (!form || chatOptionsAutosaveDisabled) {
+    return;
+  }
+
+  const requestElement = event.detail?.elt;
+  if (requestElement !== form) {
+    return;
+  }
+
+  if (event.detail?.xhr?.status !== 403) {
+    return;
+  }
+
+  chatOptionsAutosaveDisabled = true;
+
+  if (!chatOptionsAutosaveErrorShown) {
+    chatOptionsAutosaveErrorShown = true;
+    const message = form.dataset.autosaveCsrfError;
+    if (message) {
+      window.alert(message);
+    }
+  }
+});
 
 function optionPresetDropdown() {
   let el = document.querySelector('#option_presets input');

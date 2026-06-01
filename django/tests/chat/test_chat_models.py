@@ -1,5 +1,4 @@
 from django.db import IntegrityError
-from django.utils import timezone
 
 import pytest
 
@@ -32,10 +31,10 @@ def test_message_parent_relationship(all_apps_user):
     chat = Chat.objects.create(title="test", user=user)
 
     message = Message.objects.create(chat=chat, is_bot=False)
-    assert message.parent == None
+    assert message.parent is None
 
     response_message = Message.objects.create(chat=chat, is_bot=True)
-    assert response_message.parent == None
+    assert response_message.parent is None
 
     response_message.parent = message
     response_message.save()
@@ -45,6 +44,6 @@ def test_message_parent_relationship(all_apps_user):
         user_message = Message.objects.create(chat=chat, is_bot=False)
         message.parent = user_message
         message.save()
-        assert message.parent == None
+        assert message.parent is None
     except IntegrityError:
         assert True

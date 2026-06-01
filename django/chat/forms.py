@@ -5,7 +5,8 @@ from urllib.parse import urlparse
 from django import forms
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.db.models import Q
+from django.db.models import CharField, Count, F, Q, Value
+from django.db.models.functions import Coalesce, Lower
 from django.forms import ModelForm
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
@@ -17,14 +18,20 @@ from django_file_form.forms import FileFormMixin, MultipleUploadedFileField
 from rules import is_group_member
 from structlog import get_logger
 
-from chat.llm_models import get_grouped_chat_model_choices
+from otto.form_fields import (
+    PermissiveModelMultipleChoiceField,
+    UserOrTeamMultipleChoiceField,
+)
+from otto.forms import SharingAccessibleToAutocomplete, SharingEditableByAutocomplete
+
+from chat._llm.models import MODELS_BY_ID, get_grouped_chat_model_choices
 from chat.models import (
-    MODE_CHOICES,
     QA_MODE_CHOICES,
     QA_PROCESS_MODE_CHOICES,
     QA_SCOPE_CHOICES,
     REASONING_EFFORT_CHOICES,
     TRANSLATE_MODEL_CHOICES,
+    VERBOSITY_CHOICES,
     Chat,
     ChatOptions,
     Preset,
@@ -35,9 +42,9 @@ from librarian.utils.process_engine import generate_hash
 logger = get_logger(__name__)
 
 TEMPERATURES = [
-    (0.1, _("Precise")),
-    (0.5, _("Balanced")),
-    (1.0, _("Creative")),
+    (0.5, _("Precise (0.5)")),
+    (1.0, _("Balanced (1.0)")),
+    (1.5, _("Creative (1.5)")),
 ]
 LANGUAGES = [("en", _("English")), ("fr", _("French"))]
 
@@ -45,6 +52,27 @@ if not settings.CUSTOM_TRANSLATOR_ID:
     TRANSLATE_MODEL_CHOICES = [
         t for t in TRANSLATE_MODEL_CHOICES if t[0] != "azure_custom"
     ]
+
+
+def annotate_and_order_documents(queryset):
+    """Annotate a queryset of Documents with a coalesced, lower-cased
+    sort label and order it A->Z by that label. Returns the modified
+    queryset so callers can continue chaining (e.g. .values(...) or
+    slicing).
+    """
+    return queryset.annotate(
+        _sort_label=Lower(
+            Coalesce(
+                F("manual_title"),
+                F("extracted_title"),
+                F("generated_title"),
+                F("filename"),
+                F("url"),
+                Value(""),
+                output_field=CharField(),
+            )
+        )
+    ).order_by("_sort_label")
 
 
 class GroupedLibraryChoiceField(forms.ModelChoiceField):
@@ -144,60 +172,87 @@ class DataSourcesAutocomplete(HTMXAutoComplete):
             .path.strip("/")
             .split("/")[-1],
         )
-        if library_id:
-            library = (
-                Library.objects.filter(pk=library_id)
-                .prefetch_related("data_sources")
-                .first()
-            )
-            data = library.data_sources.all()
-            if chat_id and library.is_personal_library:
-                chat = Chat.objects.get(pk=chat_id)
-                if DataSource.objects.filter(chat=chat).exists():
-                    data = list(
-                        data.filter(
-                            Q(chat=chat) | Q(chat__messages__isnull=False)
-                        ).distinct()
-                    )
-                # Only show chats that have Documents (or are the current chat)
-                data = [
-                    x
-                    for x in data
-                    if x.documents.count() > 0 or (x.chat and str(x.chat.id) == chat_id)
-                ]
-        else:
-            data = DataSource.objects.all()
-        if search is not None:
+
+        # Handle values case first - fetch only specific IDs
+        if values is not None:
+            if library_id:
+                data = DataSource.objects.filter(library_id=library_id, id__in=values)
+            else:
+                data = DataSource.objects.filter(id__in=values)
             items = [
                 {
                     "label": (
-                        mark_safe(
-                            f"<span class='fw-semibold'>{this_chat_string}</span>"
-                        )
+                        this_chat_string
                         if x.chat and str(x.chat.id) == chat_id
                         else x.label
                     ),
                     "value": str(x.id),
                 }
                 for x in data
-                if search == "" or str(search).upper() in f"{x}".upper()
             ]
             return items
-        if values is not None:
-            items = [
-                {
-                    "label": (
-                        mark_safe(
+
+        # Handle search case
+        if search is not None:
+            if library_id:
+                library = (
+                    Library.objects.filter(pk=library_id)
+                    .prefetch_related("data_sources")
+                    .first()
+                )
+                data = library.data_sources.all()
+                if chat_id and library.is_personal_library:
+                    if DataSource.objects.filter(chat_id=chat_id).exists():
+                        data = list(
+                            data.filter(
+                                Q(chat_id=chat_id) | Q(chat__messages__isnull=False)
+                            ).distinct()
+                        )
+                    if not isinstance(data, list):
+                        data = data.annotate(document_count=Count("documents"))
+                    # Only show chats that have Documents (or are the current chat)
+                    data = [
+                        x
+                        for x in data
+                        if getattr(x, "document_count", 0) > 0
+                        or (x.chat and str(x.chat.id) == chat_id)
+                    ]
+                # NOTE: No limit applied - typically <500 data sources per library.
+                # Python filtering used here due to complex logic for personal libraries
+                # and special "This chat" label formatting.
+                final_data = data if isinstance(data, list) else list(data)
+            else:
+                # Return empty when no library_id to avoid full table scan
+                final_data = []
+
+            def get_search_text(x):
+                """Get plain text for searching (without HTML formatting)"""
+                if hasattr(x, "chat") and x.chat and str(x.chat.id) == chat_id:
+                    return this_chat_string
+                return x.label
+
+            def get_label(x):
+                """Get label with HTML formatting when no search term, plain text otherwise"""
+                is_current_chat = (
+                    hasattr(x, "chat") and x.chat and str(x.chat.id) == chat_id
+                )
+                if is_current_chat:
+                    # Show bold HTML when no search term, plain text when searching
+                    if search == "":
+                        return mark_safe(
                             f"<span class='fw-semibold'>{this_chat_string}</span>"
                         )
-                        if x.chat and str(x.chat.id) == chat_id
-                        # and parse_qs(request.body.decode()).get("remove")
-                        else x.label
-                    ),
+                    else:
+                        return this_chat_string
+                return x.label
+
+            items = [
+                {
+                    "label": get_label(x),
                     "value": str(x.id),
                 }
-                for x in data
-                if str(x.id) in values
+                for x in final_data
+                if search == "" or str(search).upper() in get_search_text(x).upper()
             ]
             return items
 
@@ -223,11 +278,56 @@ class DocumentsAutocomplete(HTMXAutoComplete):
         ]
         request = get_request()
         library_id = request.GET.get("library_id", None)
-        data = (
-            Document.objects.filter(data_source__library_id=library_id).values(*vals)
-            if library_id
-            else Document.objects.all().values(*vals)
-        )
+        selected_data_source_ids = request.GET.get("selected_data_source_ids", "")
+
+        def parse_ids(csv_value):
+            return [
+                int(value)
+                for value in str(csv_value).split(",")
+                if str(value).strip().isdigit()
+            ]
+
+        selected_data_source_ids = parse_ids(selected_data_source_ids)
+
+        # If specific values are requested, fetch only those documents by ID
+        if values is not None:
+            # Annotate a coalesced sort label and order A-Z for returned values
+            data = annotate_and_order_documents(
+                Document.objects.filter(id__in=values)
+            ).values(*vals)
+        elif library_id:
+            queryset = Document.objects.filter(data_source__library_id=library_id)
+
+            if self.name == "qa_excluded_documents":
+                if selected_data_source_ids:
+                    queryset = queryset.filter(
+                        data_source_id__in=selected_data_source_ids
+                    )
+                else:
+                    queryset = queryset.none()
+            elif self.name == "qa_additional_documents":
+                if selected_data_source_ids:
+                    queryset = queryset.exclude(
+                        data_source_id__in=selected_data_source_ids
+                    )
+                else:
+                    queryset = queryset.none()
+
+            # Apply search filter in SQL across all title/name fields
+            if search is not None and search != "":
+                queryset = queryset.filter(
+                    Q(manual_title__icontains=search)
+                    | Q(extracted_title__icontains=search)
+                    | Q(generated_title__icontains=search)
+                    | Q(filename__icontains=search)
+                    | Q(url__icontains=search)
+                )
+            # Annotate a coalesced sort label and order A-Z before slicing
+            data = annotate_and_order_documents(queryset).values(*vals)[:500]
+        else:
+            # Don't load all documents - return empty queryset to avoid full table scan
+            # The frontend will set library_id before making autocomplete requests
+            data = Document.objects.none().values(*vals)
 
         def label(x):
             return (
@@ -246,15 +346,34 @@ class DocumentsAutocomplete(HTMXAutoComplete):
             }
 
         if search is not None:
-            return [
-                format_item(x)
-                for x in data
-                if search == "" or str(search).upper() in label(x).upper()
-            ]
+            # Filtering already applied in SQL above
+            return [format_item(x) for x in data]
         if values is not None:
             return [format_item(x) for x in data if str(x["id"]) in values]
 
         return []
+
+
+class AdditionalDocumentsAutocomplete(HTMXAutoComplete):
+    """Autocomplete for extra documents to include when folders are selected."""
+
+    name = "qa_additional_documents"
+    placeholder = _("None")
+    multiselect = True
+    minimum_search_length = 0
+    model = Document
+    get_items = DocumentsAutocomplete.get_items
+
+
+class ExcludedDocumentsAutocomplete(HTMXAutoComplete):
+    """Autocomplete for documents to exclude when folders are selected."""
+
+    name = "qa_excluded_documents"
+    placeholder = _("None")
+    multiselect = True
+    minimum_search_length = 0
+    model = Document
+    get_items = DocumentsAutocomplete.get_items
 
 
 class GroupedModelChoiceField(forms.ChoiceField):
@@ -268,7 +387,6 @@ class SelectWithModelGroups(SelectWithOptionClasses):
     def optgroups(self, name, value, attrs=None):
         # Render grouped options dynamically based on current language
         groups = []
-        has_selected = False
         # Fetch fresh grouped choices
         grouped_choices = get_grouped_chat_model_choices()
         for index, (group_label, options) in enumerate(grouped_choices):
@@ -281,8 +399,6 @@ class SelectWithModelGroups(SelectWithOptionClasses):
                         name, option_value, option_label, selected, index
                     )
                 )
-                if selected:
-                    has_selected = True
             groups.append((group_label, subgroup, index))
         return groups
 
@@ -303,6 +419,9 @@ class ChatOptionsForm(ModelForm):
             "prompt",
             "translate_glossary",
         ]
+        labels = {
+            "chat_temperature": _("Style (temperature)"),
+        }
         widgets = {
             "mode": forms.HiddenInput(attrs={"onchange": "triggerOptionSave();"}),
             "chat_temperature": forms.Select(
@@ -319,11 +438,32 @@ class ChatOptionsForm(ModelForm):
                     "onchange": "triggerOptionSave();",
                 },
             ),
+            "chat_verbosity": forms.Select(
+                choices=VERBOSITY_CHOICES,
+                attrs={
+                    "class": "form-select form-select-sm",
+                    "onchange": "triggerOptionSave();",
+                },
+            ),
+            "summarize_reasoning_effort": forms.Select(
+                choices=REASONING_EFFORT_CHOICES,
+                attrs={
+                    "class": "form-select form-select-sm",
+                    "onchange": "triggerOptionSave();",
+                },
+            ),
+            "summarize_verbosity": forms.Select(
+                choices=VERBOSITY_CHOICES,
+                attrs={
+                    "class": "form-select form-select-sm",
+                    "onchange": "triggerOptionSave();",
+                },
+            ),
             "qa_mode": forms.Select(
                 choices=QA_MODE_CHOICES,
                 attrs={
                     "class": "form-select form-select-sm",
-                    "onchange": "if (this.value=='summarize') {switchToDocumentScope();} updateQaSourceForms(); triggerOptionSave();",
+                    "onchange": "switch_comb_sep_text(this); updateQaSourceForms(); triggerOptionSave();",
                     "data-rag_string": _(
                         """
                         <strong>Combine:</strong> Search once across all selected documents before answer generation. <em>May not include all documents. Cheap, more succint.</em>
@@ -347,11 +487,18 @@ class ChatOptionsForm(ModelForm):
                     "onchange": "triggerOptionSave();",
                 },
             ),
+            "qa_verbosity": forms.Select(
+                choices=VERBOSITY_CHOICES,
+                attrs={
+                    "class": "form-select form-select-sm",
+                    "onchange": "triggerOptionSave();",
+                },
+            ),
             "qa_process_mode": forms.Select(
                 choices=QA_PROCESS_MODE_CHOICES,
                 attrs={
                     "class": "form-select form-select-sm",
-                    "onchange": "if (this.value=='per_doc') {switchToDocumentScope();} updateQaSourceForms(); triggerOptionSave();",
+                    "onchange": "updateQaSourceForms(); triggerOptionSave();",
                 },
             ),
             "qa_scope": forms.Select(
@@ -384,11 +531,12 @@ class ChatOptionsForm(ModelForm):
             "qa_granular_toggle": forms.HiddenInput(
                 attrs={"onchange": "triggerOptionSave();"}
             ),
-            "qa_prune": forms.HiddenInput(attrs={"onchange": "triggerOptionSave();"}),
             "qa_granularity": forms.HiddenInput(
                 attrs={"onchange": "triggerOptionSave();"}
             ),
-            "qa_rewrite": forms.HiddenInput(attrs={"onchange": "triggerOptionSave();"}),
+            "qa_history": forms.CheckboxInput(
+                attrs={"class": "form-check-input", "onchange": "triggerOptionSave();"}
+            ),
             "translate_glossary": forms.FileInput(
                 attrs={"accept": ".csv", "onchange": "triggerOptionSave();"}
             ),
@@ -398,6 +546,10 @@ class ChatOptionsForm(ModelForm):
         user = kwargs.pop("user", None)
         super(ChatOptionsForm, self).__init__(*args, **kwargs)
         # Each of summarize_model, qa_model should be a grouped choice field
+        # NOTE: The onchange calls normalizeAndSave which normalizes reasoning effort
+        # BEFORE triggering the save. This is critical because the inline handler runs
+        # before addEventListener callbacks, and we need the correct reasoning_effort
+        # value when the form is serialized.
         for field in [
             "chat_model",
             "summarize_model",
@@ -407,7 +559,7 @@ class ChatOptionsForm(ModelForm):
                 widget=SelectWithModelGroups(
                     attrs={
                         "class": "form-select form-select-sm",
-                        "onchange": "triggerOptionSave();",
+                        "onchange": f"normalizeAndSave('{field}');",
                     }
                 ),
                 required=False,
@@ -473,7 +625,8 @@ class ChatOptionsForm(ModelForm):
 
         # Toggles
         for field in [
-            "chat_agent",
+            "chat_include_images",
+            "chat_include_pdfs",
         ]:
             self.fields[field].widget = forms.CheckboxInput(
                 attrs={
@@ -489,39 +642,149 @@ class ChatOptionsForm(ModelForm):
             widget=SelectWithOptionClasses(
                 attrs={
                     "class": "form-select form-select-sm",
-                    "onchange": "resetQaElements(); resetQaAutocompletes(); triggerOptionSave(); updateLibraryModalButton();",
+                    "onchange": "resetQaAutocompletes(); triggerOptionSave(); updateLibraryModalButton();",
                 }
             ),
         )
 
-        self.fields["qa_data_sources"] = forms.ModelMultipleChoiceField(
-            queryset=DataSource.objects.all(),
+        # Set up queryset for qa_data_sources
+        # Use PermissiveModelMultipleChoiceField to silently filter out deleted items
+        # Start with only currently selected items to avoid loading all DataSources
+        if self.instance and self.instance.pk:
+            # Use .all() to leverage Django's prefetch cache when available,
+            # instead of .values_list() which always hits the database.
+            ids = [obj.id for obj in self.instance.qa_data_sources.all()]
+            # Annotate a text sort label and order alphabetically A-Z (case-insensitive)
+            qa_data_sources_qs = (
+                DataSource.objects.filter(id__in=ids)
+                # Use the `name` field available on DataSource for sorting
+                .annotate(_sort_label=Lower(Coalesce(F("name"), Value(""))))
+                .order_by("_sort_label")
+            )
+        else:
+            qa_data_sources_qs = DataSource.objects.none()
+
+        self.fields["qa_data_sources"] = PermissiveModelMultipleChoiceField(
+            queryset=qa_data_sources_qs,
             label=_("Select folder(s)"),
             required=False,
             widget=Autocomplete(
                 use_ac=DataSourcesAutocomplete,
                 attrs={
-                    "component_id": f"id_qa_data_sources",
-                    "id": f"id_qa_data_sources__textinput",
+                    "component_id": "id_qa_data_sources",
+                    "id": "id_qa_data_sources__textinput",
                 },
             ),
         )
 
-        self.fields["qa_documents"] = forms.ModelMultipleChoiceField(
-            queryset=Document.objects.all(),
+        # Set up queryset for qa_documents
+        # Use PermissiveModelMultipleChoiceField to silently filter out deleted items
+        # Start with only currently selected items to avoid loading all Documents
+        if self.instance and self.instance.pk:
+            # Use .all() to leverage Django's prefetch cache when available,
+            # instead of .values_list() which always hits the database.
+            ids = [obj.id for obj in self.instance.qa_documents.all()]
+            # Build a coalesced label from the available title/name fields and sort A-Z
+            qa_documents_qs = annotate_and_order_documents(
+                Document.objects.filter(id__in=ids)
+            )
+        else:
+            qa_documents_qs = Document.objects.none()
+
+        self.fields["qa_documents"] = PermissiveModelMultipleChoiceField(
+            queryset=qa_documents_qs,
             label=_("Select document(s)"),
             required=False,
             widget=Autocomplete(
                 use_ac=DocumentsAutocomplete,
                 attrs={
-                    "component_id": f"id_qa_documents",
-                    "id": f"id_qa_documents__textinput",
+                    "component_id": "id_qa_documents",
+                    "id": "id_qa_documents__textinput",
+                },
+            ),
+        )
+
+        # Set up queryset for qa_additional_documents
+        if self.instance and self.instance.pk:
+            ids = [obj.id for obj in self.instance.qa_additional_documents.all()]
+            qa_additional_documents_qs = annotate_and_order_documents(
+                Document.objects.filter(id__in=ids)
+            )
+        else:
+            qa_additional_documents_qs = Document.objects.none()
+
+        self.fields["qa_additional_documents"] = PermissiveModelMultipleChoiceField(
+            queryset=qa_additional_documents_qs,
+            label=_("Add more document(s)"),
+            required=False,
+            widget=Autocomplete(
+                use_ac=AdditionalDocumentsAutocomplete,
+                attrs={
+                    "component_id": "id_qa_additional_documents",
+                    "id": "id_qa_additional_documents__textinput",
+                },
+            ),
+        )
+
+        # Set up queryset for qa_excluded_documents
+        if self.instance and self.instance.pk:
+            ids = [obj.id for obj in self.instance.qa_excluded_documents.all()]
+            qa_excluded_documents_qs = annotate_and_order_documents(
+                Document.objects.filter(id__in=ids)
+            )
+        else:
+            qa_excluded_documents_qs = Document.objects.none()
+
+        self.fields["qa_excluded_documents"] = PermissiveModelMultipleChoiceField(
+            queryset=qa_excluded_documents_qs,
+            label=_("Exclude document(s)"),
+            required=False,
+            widget=Autocomplete(
+                use_ac=ExcludedDocumentsAutocomplete,
+                attrs={
+                    "component_id": "id_qa_excluded_documents",
+                    "id": "id_qa_excluded_documents__textinput",
                 },
             ),
         )
 
         self.fields["qa_data_sources"].required = False
         self.fields["qa_documents"].required = False
+        self.fields["qa_additional_documents"].required = False
+        self.fields["qa_excluded_documents"].required = False
+
+        def _model_value(field_name):
+            if self.is_bound:
+                return self.data.get(field_name)
+            return getattr(self.instance, field_name, None)
+
+        def _is_reasoning_model(model_id):
+            model = MODELS_BY_ID.get(model_id)
+            return bool(model and model.reasoning)
+
+        def _is_gpt5(model_id):
+            return bool(model_id and str(model_id).startswith("gpt-5"))
+
+        chat_model = _model_value("chat_model")
+        summarize_model = _model_value("summarize_model")
+        qa_model = _model_value("qa_model")
+        translate_model = _model_value("translate_model")
+
+        # Initial UI state flags used by templates to avoid flash on first paint
+        self.show_chat_reasoning_effort = _is_reasoning_model(chat_model)
+        self.show_chat_verbosity = _is_gpt5(chat_model)
+        self.show_chat_temperature = not self.show_chat_reasoning_effort
+
+        self.show_summarize_reasoning_effort = _is_reasoning_model(summarize_model)
+        self.show_summarize_verbosity = _is_gpt5(summarize_model)
+
+        self.show_qa_reasoning_effort = _is_reasoning_model(qa_model)
+        self.show_qa_verbosity = _is_gpt5(qa_model)
+
+        self.show_translate_prompt = bool(
+            translate_model and "gpt" in str(translate_model)
+        )
+        self.show_translate_glossary = not self.show_translate_prompt
 
     def save(self, commit=True):
         # Get the PK, if any
@@ -535,6 +798,8 @@ class ChatOptionsForm(ModelForm):
         if pk and original_library_id != library_id:
             instance.qa_data_sources.clear()
             instance.qa_documents.clear()
+            instance.qa_additional_documents.clear()
+            instance.qa_excluded_documents.clear()
             instance.qa_mode = "rag"
             instance.qa_scope = "all"
             instance.qa_process_mode = "combined_docs"
@@ -543,6 +808,12 @@ class ChatOptionsForm(ModelForm):
         if not (pk and original_library_id != library_id):
             instance.qa_data_sources.set(self.cleaned_data["qa_data_sources"])
             instance.qa_documents.set(self.cleaned_data["qa_documents"])
+            instance.qa_additional_documents.set(
+                self.cleaned_data["qa_additional_documents"]
+            )
+            instance.qa_excluded_documents.set(
+                self.cleaned_data["qa_excluded_documents"]
+            )
         return instance
 
 
@@ -573,7 +844,6 @@ class PresetForm(forms.ModelForm):
             "name_fr",
             "description_en",
             "description_fr",
-            "accessible_to",
             "sharing_option",
         ]
 
@@ -595,18 +865,24 @@ class PresetForm(forms.ModelForm):
             "sharing_option": forms.RadioSelect(attrs={"class": "form-check-input"}),
         }
 
-    accessible_to = forms.ModelMultipleChoiceField(
-        queryset=User.objects.all(),
+    accessible_to = UserOrTeamMultipleChoiceField(
         label="Email",
         required=False,
         widget=widgets.Autocomplete(
-            name="accessible_to",
+            use_ac=SharingAccessibleToAutocomplete,
             options={
-                "item_value": User.id,
-                "item_label": User.email,
-                "multiselect": True,
-                "minimum_search_length": 2,
-                "model": User,
+                "component_id": "id_accessible_to",
+            },
+        ),
+    )
+
+    editable_by = UserOrTeamMultipleChoiceField(
+        label=_("Editors"),
+        required=False,
+        widget=widgets.Autocomplete(
+            use_ac=SharingEditableByAutocomplete,
+            options={
+                "component_id": "id_editable_by",
             },
         ),
     )
@@ -614,6 +890,23 @@ class PresetForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         user = kwargs.pop("user", None)
         super().__init__(*args, **kwargs)
+        self.user = user
+        # Populate initial values for user+team sharing fields
+        if self.instance.pk:
+            user_ids = list(self.instance.accessible_to.values_list("id", flat=True))
+            team_ids = [
+                f"team:{tid}"
+                for tid in self.instance.accessible_to_teams.values_list(
+                    "id", flat=True
+                )
+            ]
+            self.fields["accessible_to"].initial = user_ids + team_ids
+            user_ids = list(self.instance.editable_by.values_list("id", flat=True))
+            team_ids = [
+                f"team:{tid}"
+                for tid in self.instance.editable_by_teams.values_list("id", flat=True)
+            ]
+            self.fields["editable_by"].initial = user_ids + team_ids
         if self.instance.pk and not user.has_perm(
             "chat.edit_preset_sharing", self.instance
         ):
@@ -622,7 +915,10 @@ class PresetForm(forms.ModelForm):
             self.fields["existing_sharing_option"] = forms.CharField(
                 widget=forms.HiddenInput(), initial=self.instance.sharing_option
             )
-        elif user and is_group_member("Otto admin")(user):
+        elif user and (
+            is_group_member(settings.OTTO_ADMIN_GROUP)(user)
+            or is_group_member(settings.OTTO_PUBLIC_SHARING_ADMIN_GROUP)(user)
+        ):
             self.fields["sharing_option"].choices = [
                 ("private", _("Make private")),
                 ("everyone", _("Share with everyone")),
@@ -633,6 +929,28 @@ class PresetForm(forms.ModelForm):
                 ("private", _("Make private")),
                 ("others", _("Share with others")),
             ]
+
+    def clean(self):
+        cleaned_data = super().clean()
+
+        # Defense-in-depth: even if someone forges the POST, only Otto admins and
+        # Public sharing admins may set presets to org-wide visibility.
+        sharing_option = cleaned_data.get("sharing_option")
+        if sharing_option == "everyone":
+            user = getattr(self, "user", None)
+            allowed = bool(
+                user
+                and (
+                    is_group_member(settings.OTTO_ADMIN_GROUP)(user)
+                    or is_group_member(settings.OTTO_PUBLIC_SHARING_ADMIN_GROUP)(user)
+                )
+            )
+            if not allowed:
+                raise forms.ValidationError(
+                    _("You do not have permission to share presets with everyone.")
+                )
+
+        return cleaned_data
 
 
 class UploadForm(FileFormMixin, forms.Form):
@@ -645,7 +963,7 @@ class UploadForm(FileFormMixin, forms.Form):
             try:
                 try:
                     content_type = metadata[str(f)].get("type", "")
-                except:
+                except Exception:
                     content_type = ""
                 # Check if the file is already stored on the server
                 file_hash = generate_hash(f)

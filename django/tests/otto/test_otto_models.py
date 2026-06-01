@@ -1,6 +1,9 @@
+from django.conf import settings
+from django.contrib.auth.models import Group
+
 import pytest
 
-from otto.models import Feedback, Pilot, SecurityLabel
+from otto.models import Feedback, OttoStatus, SecurityLabel
 
 
 @pytest.mark.django_db
@@ -18,17 +21,6 @@ def test_maximumof():
     assert SecurityLabel.maximum_of(acronyms_empty) == SecurityLabel.objects.get(
         acronym_en="UC"
     )
-
-
-@pytest.mark.django_db
-def test_user_pilot_name(basic_user):
-    user = basic_user(accept_terms=True)
-    assert user.pilot_name == "N/A"
-
-    pilot = Pilot.objects.create(user=user, name="Test Pilot")
-    user.pilot = pilot
-    user.save()
-    assert user.pilot_name == "Test Pilot"
 
 
 @pytest.mark.django_db
@@ -53,3 +45,21 @@ def test_get_feedback_stats(basic_user, basic_feedback):
     assert stats["resolved"] == 1
     assert stats["most_active"]["app"] == "Otto"
     assert stats["most_active"]["feedback_count"] == 3
+
+
+@pytest.mark.django_db
+def test_otto_status_singleton_outside_request_context_is_quiet(capsys):
+    status = OttoStatus.objects.singleton()
+
+    assert status.pk == 1
+    assert capsys.readouterr().out == ""
+
+
+@pytest.mark.django_db
+def test_user_is_admin_outside_request_context_is_quiet(all_apps_user, capsys):
+    user = all_apps_user()
+    admin_group, _ = Group.objects.get_or_create(name=settings.OTTO_ADMIN_GROUP)
+    user.groups.add(admin_group)
+
+    assert user.is_admin is True
+    assert capsys.readouterr().out == ""

@@ -1,0 +1,12 @@
+# Default Otto administration cost group
+# This cost group is accessible to all admins and is used for system-level costs
+# such as legislation loading and other administrative tasks
+- model: otto.CostGroup
+  pk: 1
+  fields:
+    cost_group_id: otto-admin
+    name: Otto administration
+    name_fr: Administration d'Otto
+    lex_file_number: null
+    active: true
+    monthly_max: 999

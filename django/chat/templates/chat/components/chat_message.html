@@ -3,6 +3,8 @@
 
 <div class="message-outer {% if message.is_bot %}bot{% elif not file_upload and not message.num_files %}user{% endif %} {% if message.awaiting_response %}awaiting-response{% endif %} {% if swap_oob %}show-all{% endif %}"
      id="message_{{ message.id }}"
+     data-is-bot="{{ message.is_bot }}"
+     data-has-files="{% if message.num_files %}true{% else %}false{% endif %}"
      {% if swap_oob %}hx-swap-oob="true"{% endif %}>
   <div class="message-meta text-muted">
     <span class="message-author me-1">
@@ -36,8 +38,25 @@
         <div class="message-text">{% include "chat/components/file_upload_progress.html" %}</div>
       {% elif message.num_files or message.is_bot and message.parent and message.parent.num_files and message.mode == "translate" and "azure" in message.chat.options.translate_model %}
         <div class="message-text">{% include "chat/components/message_files.html" %}</div>
+        <div id="cost-warning-buttons-{{ message.id }}"></div>
       {% elif message.is_bot %}
         <div class="message-text">
+          {# Reasoning summary widget - shown separately from main message #}
+          {% if reasoning_steps or message.details.reasoning_steps or reasoning_steps_json or message.reasoning_steps_json %}
+            {% if reasoning_steps_json or message.reasoning_steps_json %}
+              {# For final SSE swap and saved messages, store data in script tag #}
+              <script id="reasoning-data-{{ message.id }}" type="application/json">{{ reasoning_steps_json|default:message.reasoning_steps_json|safe }}</script>
+            {% endif %}
+            <div class="reasoning-summary"
+                 id="reasoning-{{ message.id }}"
+                 {% if reasoning_steps %}data-reasoning="{{ reasoning_steps|safe }}"{% endif %}
+                 data-is-reasoning="false"
+                 data-thinking-text="{% trans 'Thinking' %}"
+                 data-show-reasoning-text="{% trans 'Show processing steps' %}"
+                 data-generating-text="{% trans 'Generating final response' %}"
+                 data-reasoning-steps-text="{% trans 'Processing steps' %}"
+                 data-empty-reasoning-text="{% trans 'Processing steps will appear here shortly.' %}"></div>
+          {% endif %}
           <div class="markdown-text" data-md="{{ message.json }}">
             {% if message.text == "" %}
               {% include "chat/components/default_error_messages.html" %}
@@ -52,11 +71,11 @@
         <div class="message-text">{{ message.text|escape }}</div>
       {% endif %}
       <div class="row">
-        <div class="message-show-all col mt-2" style="line-height:1.75rem">
-          <a class="text-body fw-semibold small"
-             href="#"
-             onclick="this.closest('.message-outer').classList.add('show-all'); return false;">{% trans "Show all..." %}<i class="bi bi-chevron-down ms-1 small"></i></a>
-        </div>
+        <a class="message-show-all text-body"
+           href="#"
+           onclick="this.closest('.message-outer').classList.add('show-all'); return false;">
+        {% trans "Show all..." %}<i class="bi bi-chevron-down ms-1 small"></i></a>
+
         {% if message.has_sources %}
           {% include "chat/components/message_sources.html" %}
         {% endif %}
@@ -68,7 +87,8 @@
     <div hx-get="{% url 'user_cost' %}"
          hx-swap="outerHTML"
          hx-target="#cost-bar-outer"
-         hx-trigger='load delay:100ms'></div>
+         hx-trigger='load delay:100ms'
+         hx-request='{"timeout": 15000}'></div>
   {% endif %}
 </div>
 
@@ -81,6 +101,10 @@
           data-pagetitle='{% with chat=message.chat %}{% include "chat/components/chat_title.html" %}{% endwith %}'>
       {{ message.chat.title }}
     </span>
+  {% endif %}
+  {# Update screen reader with "Done." followed by the message content #}
+  {% if message.is_bot and plain_message_text %}
+    <span id="chat-sr-message" hx-swap-oob="true">{% trans "Done." %} {{ plain_message_text }}</span>
   {% endif %}
 
 {% endif %}

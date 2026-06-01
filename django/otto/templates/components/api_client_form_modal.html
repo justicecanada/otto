@@ -1,0 +1,72 @@
+{% load i18n %}
+
+<form action="{% if client %}{% url 'manage_api_client_form_edit' client.pk %}{% else %}{% url 'manage_api_client_form' %}{% endif %}"
+      method="post"
+      hx-post="{% if client %}{% url 'manage_api_client_form_edit' client.pk %}{% else %}{% url 'manage_api_client_form' %}{% endif %}"
+      hx-target="#api-client-form"
+      hx-swap="innerHTML"
+      hx-indicator="#modal-spinner"
+      onsubmit="this.querySelectorAll('[disabled]').forEach(e => e.disabled = false);">
+  {% csrf_token %}
+  <div class="modal-body">
+    <div class="mb-3">
+      <label class="form-label" for="id_name">{% trans "Client name" %}</label>
+      {{ form.name }}
+      {% if form.name.errors %}<div class="text-danger small">{{ form.name.errors }}</div>{% endif %}
+      {% if form.name.help_text %}<div class="form-text">{{ form.name.help_text }}</div>{% endif %}
+    </div>
+    <div hx-disinherit="*">
+      <div class="mb-3">
+        <label class="form-label">{% trans "Owner" %}</label>
+        {{ form.owner.errors }}
+        {{ form.owner }}
+      </div>
+    </div>
+    <div class="mb-3">
+      <label class="form-label" for="id_description">{% trans "Description" %}</label>
+      {{ form.description }}
+      {% if form.description.errors %}<div class="text-danger small">{{ form.description.errors }}</div>{% endif %}
+    </div>
+    <div class="mb-3">
+      <label class="form-label d-block">{% trans "Allowed endpoint scopes" %}</label>
+      {% if form.scopes.errors %}<div class="text-danger small mb-2">{{ form.scopes.errors }}</div>{% endif %}
+      <div class="border rounded p-3 bg-light-subtle">{{ form.scopes }}</div>
+      {% if form.scopes.help_text %}<div class="form-text">{{ form.scopes.help_text }}</div>{% endif %}
+      {% if scope_details %}
+        <ul class="small text-muted ps-3 mt-2 mb-0">
+          {% for scope_detail in scope_details %}
+            <li>
+              <strong>{{ scope_detail.label }}</strong>: {{ scope_detail.description }}
+            </li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    </div>
+    <div class="mb-3">
+      <label class="form-label" for="id_allowed_ips">{% trans "Allowed IP ranges" %}</label>
+      {{ form.allowed_ips }}
+      {% if form.allowed_ips.errors %}<div class="text-danger small">{{ form.allowed_ips.errors }}</div>{% endif %}
+      {% if form.allowed_ips.help_text %}<div class="form-text">{{ form.allowed_ips.help_text }}</div>{% endif %}
+    </div>
+    <div class="form-check mb-3">
+      {{ form.is_active }}
+      <label class="form-check-label" for="id_is_active">{% trans "Active" %}</label>
+      {% if form.is_active.errors %}<div class="text-danger small">{{ form.is_active.errors }}</div>{% endif %}
+    </div>
+    {% if form.non_field_errors %}
+      <div class="alert alert-danger">
+        {% for error in form.non_field_errors %}<p class="mb-0">{{ error }}</p>{% endfor %}
+      </div>
+    {% endif %}
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Close" %}</button>
+    <button type="submit" class="btn btn-primary">
+      {% if client %}
+        {% trans "Save changes" %}
+      {% else %}
+        {% trans "Create client" %}
+      {% endif %}
+    </button>
+  </div>
+</form>

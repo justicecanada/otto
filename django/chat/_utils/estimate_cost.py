@@ -6,6 +6,8 @@ from structlog import get_logger
 from otto.models import CostType
 from otto.utils.common import cad_cost
 
+from librarian.models import Document
+
 logger = get_logger(__name__)
 
 EST_CHARS_PER_TOKEN = 4
@@ -16,14 +18,22 @@ def _estimate_tokens_from_text(text: str) -> int:
     return len(text) // EST_CHARS_PER_TOKEN
 
 
-def _estimate_file_size_tokens(file_size: int) -> int:
-    """Estimate token count based on file size."""
-    return file_size // 5  # Very rough estimate
-
-
 def _calculate_cost_for_units(cost_type_name: str, unit_count: int) -> Decimal:
     """Calculate cost for a given number of units and cost type short name."""
-    cost_type = CostType.objects.get(short_name=cost_type_name)
+    try:
+        cost_type = CostType.objects.get(short_name=cost_type_name)
+    except CostType.DoesNotExist:
+        # TODO: add proper pricing support for all new models/providers.
+        # For now, if we don't have a CostType configured (e.g., experimental
+        # models like cohere-command-a or gpt-oss-120b), skip cost estimation
+        # rather than raising and breaking the UI.
+        logger.warning(
+            "missing_cost_type",
+            cost_type_name=cost_type_name,
+            unit_count=unit_count,
+        )
+        return Decimal("0")
+
     return (unit_count * cost_type.unit_cost) / cost_type.unit_quantity
 
 
@@ -37,48 +47,15 @@ def _estimate_cost_of_string(text: str, cost_type: str) -> Decimal:
     return _calculate_cost_for_units(cost_type, count)
 
 
-def _estimate_file_tokens(file: Any) -> int:
-    """Estimate token count for a file, with special handling for PDFs."""
-    if file.text:
-        return _estimate_tokens_from_text(file.text)
-
-    # If file doesn't have text yet, estimate based on file type
-    try:
-        # Special handling for PDFs - try to get page count
-        if (
-            file.saved_file.content_type == "application/pdf"
-            or file.filename.lower().endswith(".pdf")
-        ):
-            try:
-                import pymupdf
-
-                with file.saved_file.file.open("rb") as pdf_file:
-                    doc = pymupdf.open(stream=pdf_file.read())
-                    page_count = doc.page_count
-                    doc.close()
-                    # Estimate ~300 tokens per page (conservative estimate)
-                    return page_count * 300
-            except Exception as pdf_error:
-                logger.warning(
-                    f"Failed to get page count for PDF {file.filename}: {pdf_error}"
-                )
-                # Fall back to file size estimation
-                return _estimate_file_size_tokens(file.saved_file.file.size)
-        else:
-            # For non-PDF files, use file size estimation
-            return _estimate_file_size_tokens(file.saved_file.file.size)
-    except Exception:
-        # If we can't estimate, use a conservative high estimate
-        return 5000  # Conservative default: 5000 tokens
-
-
 def _get_translate_cost_type(chat: Any, user_message: Any) -> str:
     """Determine the appropriate cost type for translation mode."""
-    if chat.options.translate_model == "gpt":
-        return "gpt-4.1-mini-in"
-    elif chat.options.translate_model == "azure_custom":
+    translate_model = chat.options.translate_model
+
+    if "gpt" in translate_model:
+        return f"{translate_model}-in"
+    elif translate_model == "azure_custom":
         return "translate-custom"
-    elif chat.options.translate_model == "azure":
+    elif translate_model == "azure":
         # Check if user message has files attached
         if user_message.sorted_files.exists():
             return "translate-file"
@@ -93,7 +70,19 @@ def _estimate_qa_documents_cost(chat: Any, model: str) -> Decimal:
 
     # Gather the documents based on scope
     if chat.options.qa_scope == "documents":
-        docs = chat.options.qa_documents.all()
+        docs = list(chat.options.qa_documents.all())
+    elif chat.options.qa_scope == "data_sources":
+        docs_qs = (
+            Document.objects.filter(data_source__in=chat.options.qa_data_sources.all())
+            | chat.options.qa_additional_documents.all()
+        ).distinct()
+
+        excluded_document_ids = chat.options.qa_excluded_documents.values_list(
+            "id", flat=True
+        )
+        docs_qs = docs_qs.exclude(id__in=excluded_document_ids)
+
+        docs = list(docs_qs)
     else:
         if chat.options.qa_scope == "all":
             data_sources = chat.options.qa_library.sorted_data_sources
@@ -137,10 +126,6 @@ def _estimate_file_processing_cost(files: List[Any], cost_type: str) -> Decimal:
         if file.text:
             # If file already has extracted text, use it for cost estimation
             cost += _estimate_cost_of_string(file.text, cost_type)
-        else:
-            # Estimate based on file properties
-            estimated_tokens = _estimate_file_tokens(file)
-            cost += _calculate_cost_for_units(cost_type, estimated_tokens)
 
     return cost
 
@@ -177,6 +162,8 @@ def estimate_cost_of_request(
     Returns:
         Decimal: Estimated cost in CAD
     """
+    from chat._llm.models import get_model
+
     user_message = response_message.parent
     mode = chat.options.mode
     cost = Decimal("0")
@@ -200,14 +187,35 @@ def estimate_cost_of_request(
         # Get the appropriate model based on mode
         if mode == "qa":
             model = chat.options.qa_model
+            reasoning_effort = chat.options.qa_reasoning_effort
         elif mode == "summarize":
             model = chat.options.summarize_model
+            reasoning_effort = chat.options.summarize_reasoning_effort
         elif mode == "chat":
             model = chat.options.chat_model
+            reasoning_effort = chat.options.chat_reasoning_effort
         else:
             model = chat.options.chat_model  # fallback
+            reasoning_effort = "minimal"
 
-        cost += _calculate_cost_for_units(model + "-out", response_estimation_count)
+        # Check if model is a reasoning model and adjust token estimate
+        llm_config = get_model(model)
+        total_response_tokens = response_estimation_count
+        if llm_config and llm_config.reasoning:
+            # Reasoning models produce additional reasoning tokens based on effort level
+            # These are charged at output token rates
+            reasoning_multipliers = {
+                "none": 0.00,  # No additional reasoning tokens
+                "minimal": 0.05,  # 5% additional reasoning tokens
+                "low": 0.25,  # 25% additional reasoning tokens
+                "medium": 0.50,  # 50% additional reasoning tokens
+                "high": 1.00,  # 100% additional reasoning tokens (doubles output)
+            }
+            multiplier = reasoning_multipliers.get(reasoning_effort, 0.05)
+            reasoning_tokens = int(response_estimation_count * multiplier)
+            total_response_tokens = response_estimation_count + reasoning_tokens
+
+        cost += _calculate_cost_for_units(model + "-out", total_response_tokens)
         # Testing has shown that for non-translation modes, estimation is 20% below actual
         cost = cost + (cost * Decimal("0.2"))
 
@@ -218,24 +226,23 @@ def _estimate_translate_mode_cost(chat: Any, user_message: Any) -> Decimal:
     """Estimate cost for translate mode (GPT: tokens, Azure: characters)."""
     cost = Decimal("0")
     files = user_message.sorted_files.all()
+    translate_model = chat.options.translate_model
 
-    if chat.options.translate_model == "gpt":
+    if "gpt" in translate_model:
         # User message cost (input tokens)
         input_tokens = _estimate_tokens_from_text(user_message.text)
-        cost += _calculate_cost_for_units("gpt-4.1-mini-in", input_tokens)
+        cost += _calculate_cost_for_units(f"{translate_model}-in", input_tokens)
         # Bot response cost (output tokens, same as input)
-        cost += _calculate_cost_for_units("gpt-4.1-mini-out", input_tokens)
+        cost += _calculate_cost_for_units(f"{translate_model}-out", input_tokens)
 
         # Files: cost for input and output tokens
         for file in files:
             if file.text:
                 file_tokens = _estimate_tokens_from_text(file.text)
-            else:
-                file_tokens = _estimate_file_tokens(file)
-            cost += _calculate_cost_for_units("gpt-4.1-mini-in", file_tokens)
-            cost += _calculate_cost_for_units("gpt-4.1-mini-out", file_tokens)
+                cost += _calculate_cost_for_units(f"{translate_model}-in", file_tokens)
+                cost += _calculate_cost_for_units(f"{translate_model}-out", file_tokens)
 
-    elif "azure" in chat.options.translate_model:
+    elif "azure" in translate_model:
         # User message cost (input characters)
         input_chars = len(user_message.text)
         cost_type = _get_translate_cost_type(chat, user_message)
@@ -245,10 +252,7 @@ def _estimate_translate_mode_cost(chat: Any, user_message: Any) -> Decimal:
         for file in files:
             if file.text:
                 file_chars = len(file.text)
-            else:
-                file_tokens = _estimate_file_tokens(file)
-                file_chars = file_tokens * EST_CHARS_PER_TOKEN
-            cost += _calculate_cost_for_units(cost_type, file_chars)
+                cost += _calculate_cost_for_units(cost_type, file_chars)
 
     return cost
 

@@ -1,40 +1,15 @@
 import asyncio
 
 from django.utils import timezone
-from django.utils.translation import gettext_lazy as _
 
 import pytest
 from asgiref.sync import sync_to_async
-from bs4 import BeautifulSoup as bs
 
 from chat.llm import OttoLLM
 from chat.models import Chat, Message
-from chat.utils import (
-    fix_source_links,
-    get_chat_history_sections,
-    htmx_stream,
-    summarize_long_text_async,
-    url_to_text,
-    wrap_llm_response,
-)
-from otto.models import User
+from chat.utils import fix_source_links, get_chat_history_sections, htmx_stream
 
 pytest_plugins = ("pytest_asyncio",)
-
-
-def test_url_to_text():
-    # Test that a URL with a valid article returns the article text
-    url = "https://en.wikipedia.org/wiki/Ottawa"
-    text = url_to_text(url)
-    assert text
-    assert len(text) > 100
-    assert "Ottawa" in text
-    assert "Canada" in text
-
-    # Test that a URL with an invalid article returns an empty string
-    url = "http://aofwgyauhwfg.awfognahwofg/"
-    text = url_to_text(url)
-    assert text == ""
 
 
 def extract_data_md_content(wrapped_response):
@@ -50,7 +25,6 @@ def extract_data_md_content(wrapped_response):
 
 
 def test_fix_source_links():
-
     # test internal link where we need to clean the link text because of a resulting double slash when merging
     # (e.g. https://travel.gc.ca/travelling/advisories instead of https://travel.gc.ca//travelling/advisories)
     source_url = "https://travel.gc.ca/"
@@ -144,6 +118,9 @@ async def test_htmx_stream_response_stream(all_apps_user):
     # Iterate over the response_stream generator
     final_output = ""
     async for yielded_output in response_stream:
+        # Skip the final "done" event
+        if yielded_output.startswith("event: done"):
+            continue
         # Output should start with "data: " for Server-Sent Events
         assert yielded_output.startswith("data: ")
         # Output should end with a double newline
@@ -174,6 +151,9 @@ async def test_htmx_stream_response_str(all_apps_user):
     # Iterate over the response_stream generator
     final_output = ""
     async for yielded_output in response_stream:
+        # Skip the final "done" event
+        if yielded_output.startswith("event: done"):
+            continue
         # Output should start with "data: " for Server-Sent Events
         assert yielded_output.startswith("data: ")
         # Output should end with a double newline
@@ -196,14 +176,23 @@ async def test_htmx_stream_response_generator(all_apps_user):
             self.name = name
             self.text = text
 
+    async def fake_summarize(text):
+        """Fake async generator that yields a mock summary."""
+        yield f"Summary of: {text[:20]}..."
+
     async def stream_generator():
+        """
+        Async generator that yields file names and summaries.
+        Uses fake summaries instead of actual LLM calls to avoid network requests.
+        """
         files = [
-            FakeFile("file1.txt", "This is the first file"),
-            FakeFile("file2.txt", "This is the second file"),
+            FakeFile("file1.txt", "Summary of first file"),
+            FakeFile("file2.txt", "Summary of second file"),
         ]
         for i, file in enumerate(files):
             yield f"**{file.name}**\n"
-            summary = await summarize_long_text_async(file.text, llm)
+            await asyncio.sleep(0.01)  # Simulate async processing
+            summary = file.text  # Use fake summary directly
             if i < len(files) - 1:
                 yield f"{summary}\n\n-----\n"
             else:
@@ -223,6 +212,9 @@ async def test_htmx_stream_response_generator(all_apps_user):
     # Iterate over the response_stream generator
     final_output = ""
     async for yielded_output in response_stream:
+        # Skip the final "done" event
+        if yielded_output.startswith("event: done"):
+            continue
         # Output should start with "data: " for Server-Sent Events
         assert yielded_output.startswith("data: ")
         # Output should end with a double newline
@@ -261,6 +253,9 @@ async def test_htmx_stream_response_replacer(basic_user):
     final_output = ""
     first = True
     async for yielded_output in response_stream:
+        # Skip the final "done" event
+        if yielded_output.startswith("event: done"):
+            continue
         if first:
             assert "first thing" in yielded_output
             first = False
@@ -280,56 +275,100 @@ async def test_htmx_stream_response_replacer(basic_user):
 
 
 @pytest.mark.asyncio
-async def test_combine_response_generators():
-    from chat.utils import combine_response_generators
-
+@pytest.mark.django_db()
+async def test_htmx_stream_logs_stream_summary(all_apps_user, monkeypatch):
     llm = OttoLLM()
 
-    # The function should take a list of (sync) generators and a list of titles
-    # and combine the output of the generators into a single stream
-    # By the end, it will have output all the text from all the generators
-    # With text from generator 1, then a divider, then text from generator 2, etc.
-    def stream_generator1():
+    async def stream_generator():
         yield "first thing"
         yield "second thing"
 
-    def stream_generator2():
-        yield "third thing"
-        yield "fourth thing"
+    user = await sync_to_async(all_apps_user)("test_user_stream_log")
+    chat = await sync_to_async(Chat.objects.create)(user=user)
+    message = await sync_to_async(Message.objects.create)(chat=chat, text="Hello")
 
-    def stream_generator3():
-        yield "fifth thing"
-        yield "sixth thing"
+    captured = []
 
-    titles = ["Title 1", "Title 2", "Title 3"]
-    generators = [stream_generator1(), stream_generator2(), stream_generator3()]
-    response_stream = combine_response_generators(generators, titles, query="", llm=llm)
-    final_output = ""
-    async for yielded_output in response_stream:
-        final_output = yielded_output
-    assert "first thing" in final_output
-    assert "fifth thing" in final_output
-    assert "Title 1" in final_output
-    # Check the ordering
-    assert final_output.index("Title 1") < final_output.index("first thing")
-    assert final_output.index("first thing") < final_output.index("second thing")
-    assert final_output.index("second thing") < final_output.index("Title 2")
-    assert final_output.index("Title 2") < final_output.index("third thing")
-    assert final_output.index("third thing") < final_output.index("fourth thing")
-    assert final_output.index("fourth thing") < final_output.index("Title 3")
-    assert final_output.index("Title 3") < final_output.index("fifth thing")
-    assert final_output.index("fifth thing") < final_output.index("sixth thing")
+    def fake_info(event, **kwargs):
+        captured.append((event, kwargs))
+
+    monkeypatch.setattr("chat.utils.logger.info", fake_info)
+
+    response_stream = htmx_stream(
+        chat,
+        message.id,
+        response_replacer=stream_generator(),
+        wrap_markdown=False,
+        llm=llm,
+    )
+
+    async for _ in response_stream:
+        pass
+
+    stream_events = [
+        payload for payload in captured if payload[0] == "legacy_sse_stream_completed"
+    ]
+    assert len(stream_events) == 1
+    _, event_kwargs = stream_events[0]
+    assert event_kwargs["response_char_count"] == len("second thing")
+    assert event_kwargs["generation_stopped"] is False
+    assert event_kwargs["query_info_count"] == 0
+    assert event_kwargs["reasoning_step_count"] == 0
+    assert event_kwargs["stream_duration_ms"] >= 0
+
+
+@pytest.mark.asyncio
+@pytest.mark.django_db()
+async def test_htmx_stream_logs_request_classification(all_apps_user, monkeypatch):
+    llm = OttoLLM()
+
+    async def stream_generator():
+        yield "classification payload"
+
+    user = await sync_to_async(all_apps_user)("test_user_stream_classification")
+    chat = await sync_to_async(Chat.objects.create)(user=user)
+    message = await sync_to_async(Message.objects.create)(chat=chat, text="Hello")
+
+    captured = []
+
+    def fake_info(event, **kwargs):
+        captured.append((event, kwargs))
+
+    monkeypatch.setattr("chat.utils.logger.info", fake_info)
+
+    response_stream = htmx_stream(
+        chat,
+        message.id,
+        response_replacer=stream_generator(),
+        wrap_markdown=False,
+        llm=llm,
+        stream_context={
+            "route": "chat:response",
+            "workload_kind": "summarize",
+            "processing_wait_ms": 9000,
+            "document_count": 1,
+        },
+    )
+
+    async for _ in response_stream:
+        pass
+
+    events = [
+        payload for payload in captured if payload[0] == "legacy_sse_request_classified"
+    ]
+    assert len(events) == 1
+    _, event_kwargs = events[0]
+    assert event_kwargs["route"] == "chat:response"
+    assert event_kwargs["workload_kind"] == "summarize"
+    assert event_kwargs["request_phase"] == "wait_heavy"
+    assert event_kwargs["processing_wait_ms"] == 9000
 
 
 @pytest.mark.asyncio
 async def test_combine_response_replacers():
     from chat.utils import combine_response_replacers
 
-    # This one takes in async generators
-    # The function should take a list of generators and a list of titles
-    # and combine the output of the generators into a single stream
-    # By the end, it will have output all the text from all the generators
-    # With text from generator 1, then a divider, then text from generator 2, etc.
+    # Test with multiple generators (status-based streaming)
     async def stream_generator1():
         yield "first thing"
         yield "second thing"
@@ -345,19 +384,106 @@ async def test_combine_response_replacers():
     titles = ["Title 1", "Title 2", "Title 3"]
     generators = [stream_generator1(), stream_generator2(), stream_generator3()]
     response_stream = combine_response_replacers(generators, titles)
-    final_output = ""
+
+    # Collect all outputs
+    all_outputs = []
     async for yielded_output in response_stream:
-        final_output = yielded_output
-    assert "second thing" in final_output
-    assert "fifth thing" not in final_output
-    assert "sixth thing" in final_output
-    assert "Title 1" in final_output
-    # Check the ordering
-    assert final_output.index("Title 1") < final_output.index("second thing")
-    assert final_output.index("second thing") < final_output.index("Title 2")
-    assert final_output.index("Title 2") < final_output.index("fourth thing")
-    assert final_output.index("fourth thing") < final_output.index("Title 3")
-    assert final_output.index("Title 3") < final_output.index("sixth thing")
+        all_outputs.append(yielded_output)
+
+    # For multiple docs, should yield {"streaming": True, ...} during processing
+    streaming_outputs = [o for o in all_outputs if o.get("streaming")]
+    assert len(streaming_outputs) > 0, "Should yield streaming status during processing"
+
+    # Final output should have the combined final_text
+    final_output = all_outputs[-1]
+    assert "final_text" in final_output
+    final_text = final_output["final_text"]
+
+    # Final text should contain all the final values from each generator (replacer semantics)
+    assert "second thing" in final_text  # Final value from generator 1
+    assert "fourth thing" in final_text  # Final value from generator 2
+    assert "sixth thing" in final_text  # Final value from generator 3
+    assert "Title 1" in final_text
+    assert "Title 2" in final_text
+    assert "Title 3" in final_text
+
+    # Check the ordering in final text
+    assert final_text.index("Title 1") < final_text.index("second thing")
+    assert final_text.index("second thing") < final_text.index("Title 2")
+    assert final_text.index("Title 2") < final_text.index("fourth thing")
+    assert final_text.index("fourth thing") < final_text.index("Title 3")
+    assert final_text.index("Title 3") < final_text.index("sixth thing")
+
+
+@pytest.mark.asyncio
+async def test_combine_response_replacers_logs_batch_summary(monkeypatch):
+    from chat.utils import combine_response_replacers
+
+    async def stream_generator1():
+        yield "first thing"
+        yield "second thing"
+
+    async def stream_generator2():
+        yield "third thing"
+        yield "fourth thing"
+
+    captured = []
+
+    def fake_info(event, **kwargs):
+        captured.append((event, kwargs))
+
+    monkeypatch.setattr("chat.utils.logger.info", fake_info)
+
+    response_stream = combine_response_replacers(
+        [stream_generator1(), stream_generator2()], ["Title 1", "Title 2"]
+    )
+
+    async for _ in response_stream:
+        pass
+
+    events = [
+        payload
+        for payload in captured
+        if payload[0] == "combine_response_batch_completed"
+    ]
+    assert len(events) == 1
+    _, event_kwargs = events[0]
+    assert event_kwargs["doc_count"] == 2
+    assert event_kwargs["title_count"] == 2
+    assert event_kwargs["total_chars"] == len("second thing") + len("fourth thing")
+
+
+@pytest.mark.asyncio
+async def test_combine_response_replacers_single_doc():
+    from chat.utils import combine_response_replacers
+
+    # Test with single generator (direct streaming - no status messages)
+    async def stream_generator():
+        yield "first thing"
+        yield "second thing"
+
+    titles = ["Title 1"]
+    generators = [stream_generator()]
+    response_stream = combine_response_replacers(generators, titles)
+
+    # Collect all outputs
+    all_outputs = []
+    async for yielded_output in response_stream:
+        all_outputs.append(yielded_output)
+
+    # For single doc, should yield {"text": ...} during streaming (actual content)
+    text_outputs = [o for o in all_outputs if o.get("text")]
+    assert len(text_outputs) > 0, "Should yield text during streaming for single doc"
+
+    # Should also have final_text at the end for consistency
+    final_output = all_outputs[-1]
+    assert "final_text" in final_output
+    assert "Title 1" in final_output["final_text"]
+    assert "second thing" in final_output["final_text"]
+
+    # Streaming text should show content progressively
+    assert "Title 1" in text_outputs[0]["text"]
+    assert "first thing" in text_outputs[0]["text"]
 
 
 @pytest.mark.asyncio
@@ -378,7 +504,7 @@ async def test_combine_batch_generators():
 
     async def stream_generator3():
         yield "fifth thing"
-        yield _("**No relevant sources found.**")
+        yield "sixth thing"
 
     titles = ["Title 1", "Title 2", "Title 3"]
     generators = [stream_generator1(), stream_generator2(), stream_generator3()]
@@ -393,40 +519,130 @@ async def test_combine_batch_generators():
     # Batches should be [[first, second], [third]]
     assert len(batch_generators) == 2
 
-    response_stream = combine_batch_generators(batch_generators)
+    response_stream = combine_batch_generators(batch_generators, total_count=3)
 
-    final_output = ""
+    # Collect all outputs
+    all_outputs = []
     async for yielded_output in response_stream:
-        if yielded_output != "<|batchboundary|>":
-            final_output = yielded_output
+        all_outputs.append(yielded_output)
 
-    assert "second thing" in final_output
-    assert "third thing" not in final_output
-    assert "fifth thing" not in final_output
+    # For multiple docs, should yield text status messages during streaming
+    text_outputs = [o for o in all_outputs if isinstance(o, dict) and o.get("text")]
+    boundary_outputs = [o for o in all_outputs if o == "<|batchboundary|>"]
+
+    assert len(text_outputs) > 0, "Should yield text outputs"
+    assert len(boundary_outputs) == 2, "Should yield 2 batch boundaries"
+
+    # Get the final text output (last one with text)
+    final_output = ""
+    for o in reversed(all_outputs):
+        if isinstance(o, dict) and o.get("text"):
+            final_output = o["text"]
+            break
+
+    # Final output should contain combined text from all batches
+    assert "second thing" in final_output  # Final value from generator 1
+    assert "fourth thing" in final_output  # Final value from generator 2
+    assert "sixth thing" in final_output  # Final value from generator 3
     assert "Title 1" in final_output
+    assert "Title 2" in final_output
+    assert "Title 3" in final_output
 
-    # Check the ordering
+    # Check the ordering in final text
     assert final_output.index("Title 1") < final_output.index("second thing")
     assert final_output.index("second thing") < final_output.index("Title 2")
     assert final_output.index("Title 2") < final_output.index("fourth thing")
     assert final_output.index("fourth thing") < final_output.index("Title 3")
-    assert final_output.index("Title 3") < final_output.index(
-        "**No relevant sources found.**"
+    assert final_output.index("Title 3") < final_output.index("sixth thing")
+
+
+@pytest.mark.asyncio
+async def test_combine_batch_generators_logs_stream_summary(monkeypatch):
+    from chat.utils import (
+        combine_batch_generators,
+        combine_response_replacers,
+        create_batches,
     )
 
-    # Test pruning using single batch with no title
-    pruning_generators = [stream_generator3()]
-    pruning_test_stream = combine_batch_generators(pruning_generators, pruning=True)
+    async def stream_generator1():
+        yield "first thing"
+        yield "second thing"
 
-    # First, it should yield values from the generator
-    assert await pruning_test_stream.__anext__() == "fifth thing"
-    assert await pruning_test_stream.__anext__() == _("**No relevant sources found.**")
-    # Afterwards, should yield an empty string from irrelevant batch
-    assert await pruning_test_stream.__anext__() == ""
-    # Then the batch boundary token
-    assert await pruning_test_stream.__anext__() == "<|batchboundary|>"
-    # Finally, return pruning message due to empty final stream
-    assert await pruning_test_stream.__anext__() == _("**No relevant sources found.**")
+    async def stream_generator2():
+        yield "third thing"
+        yield "fourth thing"
+
+    titles = ["Title 1", "Title 2"]
+    generators = [stream_generator1(), stream_generator2()]
+    title_batches = create_batches(titles, 1)
+    generator_batches = create_batches(generators, 1)
+    batch_generators = [
+        combine_response_replacers(batch_responses, batch_titles)
+        for batch_responses, batch_titles in zip(generator_batches, title_batches)
+    ]
+
+    captured = []
+
+    def fake_info(event, **kwargs):
+        captured.append((event, kwargs))
+
+    monkeypatch.setattr("chat.utils.logger.info", fake_info)
+
+    response_stream = combine_batch_generators(batch_generators, total_count=2)
+    async for _ in response_stream:
+        pass
+
+    events = [
+        payload
+        for payload in captured
+        if payload[0] == "combine_batch_stream_completed"
+    ]
+    assert len(events) == 1
+    _, event_kwargs = events[0]
+    assert event_kwargs["batch_count"] == 2
+    assert event_kwargs["total_document_count"] == 2
+    assert event_kwargs["total_chars"] == len("second thing") + len("fourth thing")
+
+
+@pytest.mark.asyncio
+async def test_combine_batch_generators_single_doc():
+    from chat.utils import (
+        combine_batch_generators,
+        combine_response_replacers,
+    )
+
+    # Single document case - should stream directly without status messages
+    async def stream_generator():
+        yield "first thing"
+        yield "second thing"
+
+    titles = ["Title 1"]
+    generators = [stream_generator()]
+    batch_generators = [combine_response_replacers(generators, titles)]
+
+    response_stream = combine_batch_generators(batch_generators, total_count=1)
+
+    # Collect all outputs
+    all_outputs = []
+    async for yielded_output in response_stream:
+        all_outputs.append(yielded_output)
+
+    # For single doc, should pass through text directly (no status messages like "Processing...")
+    text_outputs = [o for o in all_outputs if isinstance(o, dict) and o.get("text")]
+    boundary_outputs = [o for o in all_outputs if o == "<|batchboundary|>"]
+
+    assert len(text_outputs) > 0, "Should yield text outputs"
+    assert len(boundary_outputs) == 1, "Should yield 1 batch boundary"
+
+    # Should stream content directly, not status messages
+    # The first text output should have actual document content, not "Processing..."
+    assert "Title 1" in text_outputs[0]["text"]
+    assert "Processing" not in text_outputs[0]["text"]
+
+    # Final text should have the content
+    final_text = text_outputs[-1]["text"]
+    assert "second thing" in final_text
+    assert "Title 1" in final_text
 
 
 @pytest.mark.django_db
@@ -480,3 +696,41 @@ def test_get_chat_history_sections(client, all_apps_user):
     assert [c.id for c in sections[4]["chats"]] == [chat_last_30_days.id]
     assert sections[5]["label"] == "Older"
     assert [c.id for c in sections[5]["chats"]] == [chat_older.id]
+
+
+@pytest.mark.asyncio
+async def test_summarize_chat_stream_context_length_error():
+    """Test that summarize_chat_stream returns a helpful error for overly long text."""
+    from chat.utils import summarize_chat_stream
+
+    # Create a mock LLM with a very small context window for testing
+    class MockLLM:
+        max_input_tokens = 100  # Very small for testing
+
+        async def chat_stream(self, chat_history):
+            # This should never be called since the context check should catch it first
+            raise AssertionError(
+                "chat_stream should not be called for overly long text"
+            )
+            yield {}
+
+    llm = MockLLM()
+    # Create text that exceeds the context limit (100 * 0.75 = 75 tokens max)
+    # Each word is roughly 1 token, so 200 words should exceed
+    very_long_text = "word " * 200
+
+    responses = []
+    async for response in summarize_chat_stream(llm, very_long_text):
+        responses.append(response)
+
+    # Should get exactly one response with the error message
+    assert len(responses) == 1
+    response = responses[0]
+    assert isinstance(response, dict)
+    assert "text" in response
+    error_text = response["text"]
+    # Verify the error message contains helpful information
+    assert "Error" in error_text
+    assert "too long" in error_text
+    assert "tokens" in error_text
+    assert "GPT-4.1" in error_text or "model" in error_text

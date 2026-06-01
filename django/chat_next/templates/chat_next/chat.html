@@ -1,0 +1,144 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% load static %}
+{% load rules %}
+
+{% block body_classes %}chat{% endblock %}
+
+{% block page_css %}
+  <script src="{% static 'thirdparty/driver.js.iife.1.3.4.js' %}"></script>
+  <link rel="stylesheet"
+        href="{% static 'thirdparty/css/driver.1.3.4.css' %}" />
+  <link rel="stylesheet" href="{% static 'chat_next/css/style.css' %}">
+  <link rel="stylesheet" href="{% static 'librarian/style.css' %}">
+  <script src="{% static 'file_form/file_form.min.js' %}"></script>
+
+{% endblock %}
+
+{% block page_script %}
+  {% has_perm "chat.upload_large_files" request.user as can_upload_large_files %}
+  <script src="{% static 'thirdparty/htmx_ext_sse.js' %}"></script>
+  <script>
+    const chat_id = "{{ chat.id }}";
+    {% comment %} Use values from OttoStatus singleton passed in context. A None value means "no limit"; templates convert that to Number.MAX_VALUE for JS. {% endcomment %}
+    {% if chat_max_upload_size %}
+    const CHAT_MAX_UPLOAD_SIZE = {{ chat_max_upload_size }};
+    {% else %}
+    const CHAT_MAX_UPLOAD_SIZE = Number.MAX_VALUE;
+    {% endif %}
+    {% if librarian_max_upload_size %}
+    const LIBRARIAN_MAX_UPLOAD_SIZE = {{ librarian_max_upload_size }};
+    {% else %}
+    const LIBRARIAN_MAX_UPLOAD_SIZE = Number.MAX_VALUE;
+    {% endif %}
+    {% if azure_translation_max_upload_size %}
+    const AZURE_TRANSLATION_MAX_UPLOAD_SIZE = {{ azure_translation_max_upload_size }};
+    {% endif %}
+    const CHAT_UPLOAD_TOO_LARGE = '{% trans "File too large (max 10MB)" %}'.replace('10', (CHAT_MAX_UPLOAD_SIZE===Number.MAX_VALUE? '∞' : (CHAT_MAX_UPLOAD_SIZE/1000000)));
+    const LIBRARIAN_UPLOAD_TOO_LARGE = '{% trans "File too large (max 10MB)" %}'.replace('10', (LIBRARIAN_MAX_UPLOAD_SIZE===Number.MAX_VALUE? '∞' : (LIBRARIAN_MAX_UPLOAD_SIZE/1000000)));
+    const AZURE_TRANSLATION_UPLOAD_TOO_LARGE = '{% trans "File too large (max 40MB)" %}'.replace('40', (AZURE_TRANSLATION_MAX_UPLOAD_SIZE===Number.MAX_VALUE? '∞' : (AZURE_TRANSLATION_MAX_UPLOAD_SIZE/1000000)));
+    const CANCEL_UPLOAD_WARNING = '{% trans "This could cancel your file upload. Are you sure you want to continue?" %}';
+    {% if push_url %}
+    // Update URL without redirect when coming from new_chat views
+    history.replaceState(null, '', '{{ push_url }}');
+    {% endif %}
+    const CHAT_NEXT_I18N = {
+      thinking: '{% trans "Thinking..." %}',
+      show_processing_steps: '{% trans "Show processing steps" %}',
+      generating_final_response: '{% trans "Generating final response" %}',
+      processing_steps: '{% trans "Processing steps" %}',
+      processing_steps_empty: '{% trans "If the model provides reasoning steps, they will be shown here shortly." %}',
+      processing_steps_empty_fallback: '{% trans "Processing steps will appear here shortly." %}',
+      approval_required: '{% trans "⚠️ Approval Required" %}',
+      action_required_title: '{% trans "⚠️ Action Required" %}',
+      approved_by_user: '{% trans "Approved by user" %}',
+      denied_by_user: '{% trans "Denied by user" %}',
+      approve: '{% trans "Approve" %}',
+      approve_at_cost: '{% trans "Continue at estimated cost" %}',
+      deny: '{% trans "Deny" %}',
+      auto_approve_disables_libraries: '{% trans "Auto-approve (disables libraries)" %}',
+      approving: '{% trans "Approving..." %}',
+      denying: '{% trans "Denying..." %}',
+      show_output: '{% trans "Show output" %}',
+      image_loading: '{% trans "Image loading..." %}',
+      file_pending: '{% trans "File will be available when response completes" %}',
+      copy: '{% trans "Copy" %}',
+      copy_as_markdown: '{% trans "Copy as markdown" %}',
+      copy_as_rich_text: '{% trans "Copy as rich text" %}',
+      copy_options: '{% trans "Copy options" %}',
+      sse_connection_lost: '{% trans "Connection lost. The response may be incomplete." %}',
+      retry: '{% trans "Retry" %}'
+    };
+    window.CHAT_NEXT_I18N = CHAT_NEXT_I18N;
+  </script>
+  {% include "chat_next/components/chat_tour_steps.html" %}
+  {% include "chat_next/components/chat_tour_script.html" %}
+{% endblock %}
+
+{% block page_title %}
+  {% include "chat_next/components/chat_title.html" %}
+{% endblock %}
+
+{% block content_container %}
+  <main id="chat-outer" class="{{ mode }}">
+    {% include "chat_next/components/file_dropzone.html" %}
+    <div id="chat-flexbox" class="d-flex justify-content-between mb-3">
+      {% include 'chat_next/components/chat_history_sidebar.html' %}
+      <div id="left-sidebar-backdrop"
+           class="chat-sidebar-backdrop"
+           aria-hidden="true"></div>
+      <div id="chat-container" class="flex-grow-1">
+        <div id="chat-content-container" class="container px-5 position-relative">
+          {% if pinned_messages %}
+            <div id="pinned-messages-container" class="pb-1 pt-3 border-bottom">
+              {% with messages=pinned_messages %}
+                {% include 'chat_next/components/chat_messages.html' %}
+              {% endwith %}
+            </div>
+          {% endif %}
+          <div id="messages-container"
+               class="{% if pinned_messages %}pt-2{% else %}pt-3{% endif %} px-2 print-target">
+            {% if not chat_messages and not pinned_messages %}
+              {% include 'chat_next/components/chat_welcome.html' %}
+            {% endif %}
+            {% include 'chat_next/components/chat_messages.html' %}
+          </div>
+          {# Screen reader live region for announcing Otto responses #}
+          <div class="visually-hidden" aria-live="polite" aria-atomic="true">
+            <span id="chat-sr-message"></span>
+          </div>
+        </div>
+        {% include 'chat_next/components/chat_input.html' %}
+      </div>
+    </div>
+  </main>
+
+  {# For modals below, contents ("inner" template) are loaded through HTMX #}
+  {% include "chat_next/modals/shared/modal.html" %}
+  {% include "chat_next/modals/chat_tour_modal.html" %}
+  {% include "chat_next/modals/tool_output_modal_outer.html" %}
+
+  <script defer src="{% static 'thirdparty/markdown-it.min.js' %}"></script>
+  <script defer src="{% static 'thirdparty/katex.min.js' %}"></script>
+  <script defer src="{% static 'thirdparty/markdown-it-katex.js' %}"></script>
+  <script defer src="{% static 'thirdparty/highlight.js' %}"></script>
+  <script defer src="{% static 'thirdparty/jszip-3.10.1.min.js' %}"></script>
+  <script defer src="{% static 'thirdparty/docx-preview-0.3.7.min.js' %}"></script>
+  <script defer src="{% static 'thirdparty/turndown.js' %}"></script>
+  <script defer src="{% static 'thirdparty/turndown-plugin-gfm.js' %}"></script>
+
+  <script defer src="{% static 'chat_next/js/scripts.js' %}"></script>
+  <script defer src="{% static 'chat_next/js/reasoningWidget.js' %}"></script>
+  <script defer src="{% static 'chat_next/js/filePreview.js' %}"></script>
+  <script defer src="{% static 'librarian/scripts.js' %}"></script>
+  <script defer src="{% static 'chat_next/js/paste.js' %}"></script>
+
+
+  <link rel="stylesheet" href="{% static 'chat_next/css/highlightjs.css' %}">
+  <link rel="stylesheet" href="{% static 'thirdparty/css/katex.min.css' %}">
+
+  <link rel="stylesheet" href="{% static 'file_form/file_form.css' %}">
+  <link rel="stylesheet"
+        href="{% static 'chat_next/css/print.css' %}"
+        media="print">
+{% endblock %}

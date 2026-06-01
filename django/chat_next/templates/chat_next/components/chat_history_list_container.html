@@ -1,0 +1,25 @@
+{% load i18n %}
+
+<div class="px-2 pt-0 pb-2 d-flex flex-column flex-grow-1"
+     id="chat-history-list"
+     {% if search %}data-search-active="true"{% endif %}>
+  <div class="px-2">{% include 'chat_next/components/chat_history_list_inner.html' %}</div>
+  <div class="chat-sidebar-footer-actions mt-auto">
+    <button type="button"
+            class="btn btn-none w-100 position-relative text-start"
+            id="delete-all-chats"
+            hx-target="#chat-history-list"
+            hx-post="{% url 'chat_next:delete_all_chats' %}"
+            hx-indicator="#delete-spinner"
+            hx-disabled-elt="this"
+            hx-confirm='{% trans "Are you sure you want to delete all chats? This action is irreversible." %}'>
+      <i class="bi bi-trash me-2"></i>
+      <span>{% trans "Delete all chats" %}</span>
+      <div id="delete-spinner"
+           class="spinner position-absolute top-50 end-0 translate-middle-y me-3">
+        <span class="spinner-border spinner-border-sm ms-2" aria-hidden="true"></span>
+        <span class="visually-hidden" role="status">{% trans "Loading" %}</span>
+      </div>
+    </button>
+  </div>
+</div>

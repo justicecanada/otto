@@ -3,12 +3,15 @@ import datetime
 # settings
 from django.core.management.base import BaseCommand
 from django.db.models import Q
+from django.utils import timezone
 
 from django_extensions.management.utils import signalcommand
 
-from librarian.models import LibraryUserRole
 from otto.models import Notification
-from otto.settings import LIBRARY_RETENTION_DAYS
+from otto.rules import GLOBAL_SKILL_DEFAULTS_LIBRARY_NAME_EN
+from otto.settings import LIBRARY_RETENTION_DAYS, LIBRARY_WARN_BEFORE_DELETION_DAYS
+
+from librarian.models import LibraryUserRole
 
 
 class Command(BaseCommand):
@@ -24,30 +27,31 @@ class Command(BaseCommand):
 
     @signalcommand
     def handle(self, *args, **options):
-
         if options["days"]:
             deletion_date = (
-                datetime.datetime.now() + datetime.timedelta(days=options["days"])
-            ).strftime(f"%Y-%m-%d")
+                timezone.now() + datetime.timedelta(days=options["days"])
+            ).strftime("%Y-%m-%d")
             days_since_accessed = LIBRARY_RETENTION_DAYS - options["days"]
-            notify_from = datetime.datetime.now() - datetime.timedelta(
-                days_since_accessed
-            )
+            notify_from = timezone.now() - datetime.timedelta(days=days_since_accessed)
         else:
             deletion_date = (
-                datetime.datetime.now() + datetime.timedelta(days=5)
-            ).strftime(f"%Y-%m-%d")
-            days_since_accessed = LIBRARY_RETENTION_DAYS - 5
-            notify_from = datetime.datetime.now() - datetime.timedelta(
-                days=days_since_accessed
+                timezone.now()
+                + datetime.timedelta(days=LIBRARY_WARN_BEFORE_DELETION_DAYS)
+            ).strftime("%Y-%m-%d")
+            days_since_accessed = (
+                LIBRARY_RETENTION_DAYS - LIBRARY_WARN_BEFORE_DELETION_DAYS
             )
+            notify_from = timezone.now() - datetime.timedelta(days=days_since_accessed)
 
         user_roles = (
             LibraryUserRole.objects.filter(
                 library__accessed_at__date=notify_from.date(),
                 library__is_default_library=False,
                 library__is_personal_library=False,
+                library__is_skill_library=False,
+                library__is_public=False,
             )
+            .exclude(library__name_en=GLOBAL_SKILL_DEFAULTS_LIBRARY_NAME_EN)
             .filter(Q(role="admin") | Q(role="contributor"))
             .order_by("library")
         )
@@ -59,8 +63,8 @@ class Command(BaseCommand):
                 user=user,
                 heading_en="Q&A library deletion",
                 heading_fr="Suppression de la bibliothèque de questions et réponses",
-                text_en=f"The Q&A library {library_name} has not been accessed for 25 days. It will be automatically deleted on {deletion_date}. To prevent deletion, select the library in Q&A mode and ask a question.",
-                text_fr=f"La bibliothèque de questions et réponses, {library_name}, n'a pas été consultée depuis 25 jours. Elle sera automatiquement supprimée le {deletion_date}. Pour éviter la suppression, sélectionnez la bibliothèque en mode Q&R et posez une question",
+                text_en=f"The Q&A library {library_name} has not been accessed for {days_since_accessed} days. It will be automatically deleted on {deletion_date}. To prevent deletion, select the library in Q&A mode and ask a question.",
+                text_fr=f"La bibliothèque de questions et réponses, {library_name}, n'a pas été consultée depuis {days_since_accessed} jours. Elle sera automatiquement supprimée le {deletion_date}. Pour éviter la suppression, sélectionnez la bibliothèque en mode Q&R et posez une question",
                 category="warning",
             )
 

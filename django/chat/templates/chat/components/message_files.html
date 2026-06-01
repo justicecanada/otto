@@ -3,8 +3,9 @@
 {% comment %}
   Check if message.text already contains rendered file content to avoid duplication.
   This happens when errors occur and the generator yields pre-rendered file status.
+  We check for both English and French versions of the translated string.
 {% endcomment %}
-{% if message.text and "files translated:" in message.text %}
+{% if message.text and "files translated:" in message.text or message.text and "fichiers traduits" in message.text %}
   {% comment %}Message text already contains rendered file content, just display it{% endcomment %}
   {{ message.text|safe }}
 {% else %}

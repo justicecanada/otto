@@ -5,8 +5,6 @@ particularly focusing on file processing and summarization.
 """
 
 import os
-import time
-import uuid
 
 from django.contrib.auth import get_user_model
 from django.core.files.base import ContentFile
@@ -17,7 +15,7 @@ from asgiref.sync import async_to_sync
 from structlog import get_logger
 
 from chat.models import Chat, ChatFile, Message
-from chat.responses import summarize_response
+from chat.responses import chat_response, summarize_response
 from librarian.models import SavedFile
 
 logger = get_logger(__name__)
@@ -51,6 +49,7 @@ def create_test_chat_with_multiple_pdfs(
     title="Load Test Chat - Multiple Files",
     file_count=3,
     pdf_filename="example.pdf",
+    summarize_model="gpt-4.1-nano",
 ):
     """
     Helper function to create a test chat with multiple uploaded PDF files.
@@ -59,7 +58,9 @@ def create_test_chat_with_multiple_pdfs(
     # Create a chat for summarization
     chat = Chat.objects.create(user=user, title=title)
     chat.options.mode = "summarize"
-    chat.options.summarize_model = "gpt-4.1-nano"  # Use cheapest model for load testing
+    if summarize_model:
+        # Use cheapest model for load testing unless overridden.
+        chat.options.summarize_model = summarize_model
     chat.options.save()
 
     # Create user message
@@ -93,19 +94,49 @@ def create_test_chat_with_multiple_pdfs(
     for i in range(file_count):
         # Create SavedFile
         saved_file = SavedFile.objects.create(content_type="application/pdf")
-        filename = f"load_test_{i+1}_{pdf_filename}"
+        filename = f"load_test_{i + 1}_{pdf_filename}"
         saved_file.file.save(filename, ContentFile(pdf_content))
         saved_file.generate_hash()
         saved_files.append(saved_file)
 
         # Create ChatFile to associate with the message
-        chat_file = ChatFile.objects.create(
+        ChatFile.objects.create(
             message=user_message,
             filename=filename,
             saved_file=saved_file,
         )
 
     return chat, user_message, response_message, saved_files
+
+
+def create_test_chat_for_chat_mode(
+    user,
+    message_text="Hello",
+    title="Load Test Chat - Chat Mode",
+    chat_model=None,
+):
+    """
+    Helper function to create a test chat in chat mode.
+    Returns tuple of (chat, user_message, response_message).
+    """
+    chat = Chat.objects.create(user=user, title=title)
+    chat.options.mode = "chat"
+    if chat_model:
+        chat.options.chat_model = chat_model
+    chat.options.save()
+
+    user_message = Message.objects.create(
+        chat=chat,
+        text=message_text,
+        is_bot=False,
+        mode="chat",
+    )
+
+    response_message = Message.objects.create(
+        chat=chat, text="", is_bot=True, mode="chat", parent=user_message
+    )
+
+    return chat, user_message, response_message
 
 
 def measure_streaming_response_performance(response_func, *args, **kwargs):
@@ -144,7 +175,12 @@ def measure_streaming_response_performance(response_func, *args, **kwargs):
         }
 
 
-def load_test_summarize_pdf(request, file_count=1, pdf_filename="example.pdf"):
+def load_test_summarize_pdf(
+    request,
+    file_count=1,
+    pdf_filename="example.pdf",
+    summarize_model="gpt-4.1-nano",
+):
     """
     Load test for the summarize_response function with PDF file(s).
     This simulates the most memory-intensive operation in the chat app.
@@ -154,19 +190,28 @@ def load_test_summarize_pdf(request, file_count=1, pdf_filename="example.pdf"):
         file_count: Number of files to include in the test (default: 1)
         pdf_filename: Name of the PDF file to use (default: "example.pdf")
     """
-    # Use the first existing user
-    test_user = User.objects.first()
+    # Prefer the real request user (closer to production cost attribution),
+    # but fall back to any existing user for non-auth load tests.
+    # NOTE: This still bypasses the full HTMX upload/chat_message flow.
+    test_user = (
+        request.user
+        if getattr(request, "user", None) and request.user.is_authenticated
+        else User.objects.first()
+    )
     if not test_user:
         return HttpResponseServerError("No users found in the database")
 
     try:
-        # Create test chat with PDF(s) using the multiple files helper
+        # Create test chat with PDF(s) using the multiple files helper.
+        # By default, force summarize_model to gpt-4.1-nano for cost control
+        # unless a different model is supplied.
         chat, user_message, response_message, saved_files = (
             create_test_chat_with_multiple_pdfs(
                 test_user,
                 f"Load Test Chat - {file_count} x {pdf_filename}",
                 file_count,
                 pdf_filename,
+                summarize_model=summarize_model,
             )
         )
 
@@ -195,4 +240,52 @@ def load_test_summarize_pdf(request, file_count=1, pdf_filename="example.pdf"):
 
     except Exception as e:
         logger.exception(f"Error in load_test_summarize_pdf: {e}")
+        return HttpResponseServerError(f"Load test failed: {str(e)}")
+
+
+def load_test_chat_stream(request, message_text="Hello", chat_model=None):
+    """
+    Load test for chat_response streaming (closest to the real chat SSE path).
+
+    Args:
+        request: Django request object
+        message_text: Message content for the test user message
+        chat_model: Optional override for chat.options.chat_model
+    """
+    test_user = (
+        request.user
+        if getattr(request, "user", None) and request.user.is_authenticated
+        else User.objects.first()
+    )
+    if not test_user:
+        return HttpResponseServerError("No users found in the database")
+
+    try:
+        chat, user_message, response_message = create_test_chat_for_chat_mode(
+            test_user,
+            message_text=message_text,
+            title="Load Test Chat - Chat Streaming",
+            chat_model=chat_model,
+        )
+
+        result = measure_streaming_response_performance(
+            chat_response,
+            chat,
+            response_message,
+            False,
+            request=request,
+        )
+
+        chat.delete()
+
+        if result["success"]:
+            return HttpResponse(
+                f"Chat streaming load test completed in {result['total_time']:.2f} seconds. "
+                f"Generated {result['content_length']} characters in {result['chunk_count']} chunks."
+            )
+        return HttpResponseServerError(
+            f"Chat streaming failed after {result['total_time']:.2f} seconds: {result['error']}"
+        )
+    except Exception as e:
+        logger.exception(f"Error in load_test_chat_stream: {e}")
         return HttpResponseServerError(f"Load test failed: {str(e)}")

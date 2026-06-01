@@ -1,0 +1,41 @@
+{% load i18n %}
+
+{# Context picker dropdown - positioned relative to #context-button #}
+<div id="context-picker"
+     class="d-none"
+     role="dialog"
+     aria-label="{% trans 'Add context' %}">
+  <div class="context-picker-header d-flex align-items-center">
+    <div class="context-picker-search flex-grow-1">
+      <input type="text"
+             id="context-picker-search"
+             class="form-control form-control-sm"
+             placeholder="{% trans 'Mention tools, libraries, documents...' %}"
+             autocomplete="off">
+    </div>
+    <button type="button"
+            id="context-picker-close"
+            class="btn btn-sm btn-link text-muted px-2"
+            aria-label="{% trans 'Close' %}"
+            title="{% trans 'Close' %}">
+      <i class="bi bi-x-lg"></i>
+    </button>
+  </div>
+  <div id="context-picker-results" class="context-picker-results">
+    <div class="context-picker-loading text-center text-muted py-3">
+      <span class="spinner-border spinner-border-sm"></span>
+    </div>
+  </div>
+</div>
+
+<script>
+  window.CONTEXT_PICKER_LABELS = {
+    tool: "{% trans 'Tools' %}",
+    library: "{% trans 'Libraries' %}",
+    folder: "{% trans 'Folders' %}",
+    document: "{% trans 'Documents' %}",
+    skill: "{% trans 'Skills' %}",
+    noItems: "{% trans 'No items found' %}",
+    loadError: "{% trans 'Error loading items' %}",
+  };
+</script>

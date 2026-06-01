@@ -6,6 +6,10 @@ register = template.Library()
 
 @register.simple_tag
 def get_librarian_modal_url(item_type, item_id):
+    # Return empty string for temp objects (with None id)
+    if item_id is None:
+        return ""
+
     url_mapping = {
         "library": "librarian:modal_view_library",
         "data_source": "librarian:modal_view_data_source",

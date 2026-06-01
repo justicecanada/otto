@@ -30,9 +30,9 @@ def test_mark_sentences():
     )
 
     result = mark_sentences(text, good_matches)
-    assert (
-        result == expected_output
-    ), f"Expected: {escape(expected_output)}, but got: {escape(result)}"
+    assert result == expected_output, (
+        f"Expected: {escape(expected_output)}, but got: {escape(result)}"
+    )
 
 
 @pytest.mark.django_db
@@ -73,9 +73,9 @@ def test_highlight_claims():
         )
 
         result = highlight_claims(claims_list, text)
-        assert (
-            result == expected_output
-        ), f"Expected: {expected_output}, but got: {result}"
+        assert result == expected_output, (
+            f"Expected: {expected_output}, but got: {result}"
+        )
 
 
 def test_highlight_claims_with_no_matches():
@@ -104,9 +104,9 @@ def test_highlight_claims_with_no_matches():
         )
 
         result = highlight_claims(claims_list, text)
-        assert (
-            result == expected_output
-        ), f"Expected: {expected_output}, but got: {result}"
+        assert result == expected_output, (
+            f"Expected: {expected_output}, but got: {result}"
+        )
 
 
 def test_highlight_claims_with_threshold():
@@ -146,9 +146,9 @@ def test_highlight_claims_with_threshold():
         )
 
         result = highlight_claims(claims_list, text, threshold=0.7)
-        assert (
-            result == expected_output
-        ), f"Expected: {expected_output}, but got: {result}"
+        assert result == expected_output, (
+            f"Expected: {expected_output}, but got: {result}"
+        )
 
 
 @pytest.mark.django_db
@@ -165,5 +165,16 @@ def test_extract_claims_from_llm_tags_present():
         "Here is another fact.",
         "This is a quote: 'To be or not to be.'",
     ]
-    result = extract_claims_from_llm(llm_response_text)
+    with patch("chat.utils.OttoLLM") as MockOttoLLM:
+        mock_llm = MockOttoLLM.return_value
+        # Mock .complete to return the expected claim tags
+        mock_llm.complete.return_value = (
+            "<claim>This is a factual statement.</claim>"
+            "<claim>Here is another fact.</claim>"
+            "<claim>This is a quote: 'To be or not to be.'</claim>"
+            "This is an analysis and should not be included."
+        )
+        # Mock .create_costs to do nothing
+        mock_llm.create_costs.return_value = None
+        result = extract_claims_from_llm(llm_response_text)
     assert result == expected_claims, f"Expected: {expected_claims}, but got: {result}"

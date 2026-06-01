@@ -1,15 +1,11 @@
-from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect
-from django.urls import reverse
 
-from otto.utils.decorators import app_access_required
+from otto.utils.decorators import otto_user_required
 
 from .models import LawSearch
 
 
-@app_access_required("laws")
-@login_required
 def clear_search_history(request):
     """Clear all search history for the current user."""
     if request.method == "POST":
@@ -37,7 +33,7 @@ def clear_search_history(request):
     return redirect("laws:index")
 
 
-@app_access_required("laws")
+@otto_user_required
 def view_search(request, search_id):
     """View a specific search from history by re-running the search."""
     search_obj = get_object_or_404(LawSearch, id=search_id, user=request.user)
@@ -45,9 +41,10 @@ def view_search(request, search_id):
     from django.http import QueryDict
     from django.shortcuts import render
 
+    from otto.models import OttoStatus
+
     from laws.forms import LawSearchForm
     from laws.views import search as laws_search
-    from otto.models import OttoStatus
 
     # If this is an HTMX request, it means we are replaying the search to get results
     if request.headers.get("HX-Request"):
@@ -92,8 +89,6 @@ def view_search(request, search_id):
     return render(request, "laws/laws.html", context=context)
 
 
-@app_access_required("laws")
-@login_required
 def delete_search(request, search_id):
     """Delete a single search history entry."""
     if request.method in ("DELETE", "POST"):
