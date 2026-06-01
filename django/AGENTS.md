@@ -1,16 +1,12 @@
----
-applyTo: "django/**"
----
-
 # Django App Development
 
-Use this guidance for work in `django/**` unless a more specific instruction file applies.
+Use this guidance for work in `django/**` unless a more specific `AGENTS.md` applies, such as `django/chat/AGENTS.md` or `django/chat_next/AGENTS.md`.
 
 ## Assistant App Default
 
 - Assume work on the AI assistant should happen in `django/chat_next/**` unless the user explicitly asks to modify legacy `django/chat/**`.
 - Do not modify the legacy `chat` app unless the user clearly requests changes there.
-- When work is specifically in `django/chat_next/**` or `django/chat/**`, also follow the more specific app instruction file for that directory.
+- When work is specifically in `django/chat_next/**` or `django/chat/**`, also follow the more specific app `AGENTS.md` for that directory.
 
 ## Commands and Project Structure
 
@@ -73,6 +69,13 @@ Use this guidance for work in `django/**` unless a more specific instruction fil
 
 - For SSE views, exhaust the `StreamingHttpResponse` generator in the test before asserting on content.
 - Check nearby tests and `conftest.py` before inventing new patterns.
+
+## Local browser testing
+
+- Otto supports a local-only browser auth fallback controlled by `ENABLE_BROWSER_TEST_AUTH` in `django/.env`.
+- Enable it explicitly for your workspace when needed, for example during local setup.
+- Use the "Developer browser sign-in" action on the welcome and login-issue pages.
+- **Never enable this outside local development.**
 
 ## Working Style
 

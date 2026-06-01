@@ -8210,5 +8210,489 @@
     "File not ready.": {
         "fr": "",
         "fr_auto": "Le dossier n’est pas prêt."
+    },
+    "Imported skill": {
+        "fr": "",
+        "fr_auto": "Compétence importée"
+    },
+    "The imported skill is missing the required 'name' field.": {
+        "fr": "",
+        "fr_auto": "La compétence importée manque du champ « nom » requis."
+    },
+    "The imported skill is missing the required 'description' field.": {
+        "fr": "",
+        "fr_auto": "La compétence importée manque du champ « description » requis."
+    },
+    "The imported skill is missing instruction content below the frontmatter.": {
+        "fr": "",
+        "fr_auto": "La compétence importée manque de contenu d’instruction sous le frontmatter."
+    },
+    "The uploaded file is not a valid ZIP archive.": {
+        "fr": "",
+        "fr_auto": "Le fichier téléchargé n’est pas une archive ZIP valide."
+    },
+    "This ZIP does not contain a supported SKILL.md file. Expected one SKILL.md, Skill.md, or skill.md file.": {
+        "fr": "",
+        "fr_auto": "Ce ZIP ne contient pas de fichier SKILL.md pris en charge. Je m’attendais à un fichier SKILL.md, Skill.md ou skill.md."
+    },
+    "This ZIP contains more than one SKILL.md file. Otto round 1 only supports importing a single skill per upload.": {
+        "fr": "",
+        "fr_auto": "Ce ZIP contient plus d’un fichier SKILL.md. La première manche d’Otto ne permet d’importer qu’une seule compétence par téléversement."
+    },
+    "This ZIP appears to contain a multi-level skill bundle. Otto round 1 only supports a single skill at the ZIP root or in one top-level folder.": {
+        "fr": "",
+        "fr_auto": "Ce code postal semble contenir un ensemble de compétences multi-niveaux. La première manche d’Otto ne supporte qu’une seule compétence à la racine ZIP ou dans un dossier de premier niveau."
+    },
+    "Supporting files from the bundle will be added to the skill's files folder and should be treated as context for adaptation.": {
+        "fr": "",
+        "fr_auto": "Les fichiers de support du bundle seront ajoutés au dossier fichiers de la compétence et devraient être traités comme contexte pour l’adaptation."
+    },
+    "Bundled scripts can be kept as supporting files, but Otto will not execute them automatically. Any usable logic would need explicit adaptation to OpenAI Code Interpreter.": {
+        "fr": "",
+        "fr_auto": "Les scripts groupés peuvent être conservés comme fichiers de soutien, mais Otto ne les exécutera pas automatiquement. Toute logique utilisable nécessiterait une adaptation explicite à OpenAI Code Interpreter."
+    },
+    "This bundle includes MCP connector configuration, which Otto does not support for imported skills.": {
+        "fr": "",
+        "fr_auto": "Ce paquet inclut la configuration des connecteurs MCP, qu’Otto ne supporte pas pour les compétences importées."
+    },
+    "This bundle includes CLAUDE.md guidance. Otto will import it only as a supporting file; it is not applied automatically.": {
+        "fr": "",
+        "fr_auto": "Ce forfait comprend CLAUDE.md guides. Otto ne l’importe qu’en tant que fichier de soutien; elle n’est pas appliquée automatiquement."
+    },
+    "Could not decode '{filename}' as a text skill file.": {
+        "fr": "",
+        "fr_auto": "Je n’ai pas pu décoder '{namefichier}' comme un fichier de compétence textuelle."
+    },
+    "'{filename}' must start with YAML frontmatter delimited by --- markers.": {
+        "fr": "",
+        "fr_auto": "« {namefichier » doit commencer par un frontmatter YAML délimité par --- marqueurs."
+    },
+    "The YAML frontmatter in '{filename}' could not be parsed.": {
+        "fr": "",
+        "fr_auto": "Le frontmatter YAML dans « {namefichier » ne pouvait pas être analysé."
+    },
+    "The YAML frontmatter in '{filename}' must be a mapping of keys and values.": {
+        "fr": "",
+        "fr_auto": "Le frontmatter YAML dans « {filename] » doit être une correspondance de clés et de valeurs."
+    },
+    "Claude/Codex SKILL.md bundle": {
+        "fr": "",
+        "fr_auto": "Faisceau SKILL.md Claude/Codex"
+    },
+    "Claude/Codex SKILL.md file": {
+        "fr": "",
+        "fr_auto": "Fichier SKILL.md Claude/Codex"
+    },
+    "This skill was imported from a {source_label} and may require adaptation for Otto.": {
+        "fr": "",
+        "fr_auto": "Cette compétence a été importée d’un {source_label} et peut nécessiter une adaptation pour Otto."
+    },
+    "Review the skill description, body, and context hints and make any changes needed for Otto.": {
+        "fr": "",
+        "fr_auto": "Révise la description des compétences, le corps et les indices contextuels et fais les changements nécessaires pour Otto."
+    },
+    "If the imported skill references supporting files in the skill folder, adapt the instructions so Otto can use them through context hints and skill files rather than local bundle-path assumptions.": {
+        "fr": "",
+        "fr_auto": "Si la compétence importée fait référence à des fichiers de support dans le dossier de compétences, adaptez les instructions pour qu’Otto puisse les utiliser via des indices contextuels et des fichiers de compétences plutôt que par des hypothèses locales de chemin de bundle."
+    },
+    "If certain functionality cannot be implemented in Otto, explain that clearly to the user.": {
+        "fr": "",
+        "fr_auto": "Si certaines fonctionnalités ne peuvent pas être implémentées dans Otto, expliquez-le clairement à l’utilisateur."
+    },
+    "Ask the user for input if any adaptation decision requires a choice.": {
+        "fr": "",
+        "fr_auto": "Demandez à l’utilisateur un avis si une décision d’adaptation nécessite un choix."
+    },
+    "Bundled scripts may exist only as supporting context files; Otto will not execute them automatically. If any part can reasonably be adapted to the OpenAI Code Interpreter tool, explain or implement that adaptation carefully.": {
+        "fr": "",
+        "fr_auto": "Les scripts regroupés peuvent exister uniquement comme fichiers contextuels de support; Otto ne les exécutera pas automatiquement. Si une partie peut raisonnablement être adaptée à l’outil OpenAI Code Interpreter, expliquez ou mettez en œuvre cette adaptation avec soin."
+    },
+    "MCP connectors and imported connector configuration are not supported in Otto, so remove or rewrite those parts of the skill.": {
+        "fr": "",
+        "fr_auto": "Les connecteurs MCP et la configuration de connecteurs importés ne sont pas pris en charge dans Otto, donc retirez ou réécrivez ces parties de la compétence."
+    },
+    "Any CLAUDE.md guidance was imported only as supporting context, not as automatically applied runtime behavior.": {
+        "fr": "",
+        "fr_auto": "Toute directive CLAUDE.md était importée uniquement comme contexte de soutien, et non comme comportement d’exécution appliqué automatiquement."
+    },
+    "Do not assume arbitrary shell execution or direct MCP access. Work within Otto's existing tool and context-hint model.": {
+        "fr": "",
+        "fr_auto": "Ne supposez pas une exécution arbitraire du shell ou un accès direct au MCP. Travailler dans le cadre de l’outil existant d’Otto et du modèle d’indices contextuels."
+    },
+    "There was an error importing the bundle's supporting files.": {
+        "fr": "",
+        "fr_auto": "Il y a eu une erreur lors de l’importation des fichiers de support du bundle."
+    },
+    "Importing supporting files...": {
+        "fr": "",
+        "fr_auto": "Importation de fichiers de soutien..."
+    },
+    "Processing extracted supporting files for the imported bundle...": {
+        "fr": "",
+        "fr_auto": "Traitement des fichiers de support extraits pour le paquet importé..."
+    },
+    "Supporting files from the imported bundle are available in Skill files.": {
+        "fr": "",
+        "fr_auto": "Les fichiers de support du pack importé sont disponibles dans les fichiers Compétences."
+    },
+    "Imported skills stay private and disabled until you review and adapt them for Otto.": {
+        "fr": "",
+        "fr_auto": "Les compétences importées restent privées et désactivées jusqu’à ce que vous les évaluiez et adaptiez pour Otto."
+    },
+    "Supporting files from the uploaded bundle are being imported into Skill files in the background.": {
+        "fr": "",
+        "fr_auto": "Les fichiers de support du pack téléchargé sont importés dans des fichiers Skill en arrière-plan."
+    },
+    "Skill imported successfully. Review it and consider refining it with Skill Creator before enabling it.": {
+        "fr": "",
+        "fr_auto": "Compétence importée avec succès. Relisez-le et envisagez de l’affiner avec Skill Creator avant de l’activer."
+    },
+    "Please choose a SKILL.md or ZIP file.": {
+        "fr": "",
+        "fr_auto": "Veuillez choisir un fichier SKILL.md ou ZIP."
+    },
+    "Unsupported file. Upload a SKILL.md-style markdown file or a ZIP bundle containing one supported skill.": {
+        "fr": "",
+        "fr_auto": "Fichier non supporté. Téléversez un fichier markdown de style SKILL.md ou un paquet ZIP contenant une compétence prise en charge."
+    },
+    "Loading DOCX preview...": {
+        "fr": "",
+        "fr_auto": "Chargement de l’aperçu DOCX..."
+    },
+    "DOCX preview could not be rendered in the browser.": {
+        "fr": "",
+        "fr_auto": "L’aperçu DOCX n’a pas pu être rendu dans le navigateur."
+    },
+    "Download the file instead.": {
+        "fr": "",
+        "fr_auto": "Télécharge le fichier à la place."
+    },
+    "Imported bundle files": {
+        "fr": "",
+        "fr_auto": "Fichiers bundle importés"
+    },
+    "%(success)s ready, %(processing)s processing, %(errors)s errors, out of %(total)s extracted files.": {
+        "fr": "",
+        "fr_auto": "%(succès)s prêts,%(traitement)s en traitement,%(erreurs)s erreurs, des fichiers extraits de%(total)."
+    },
+    "Already have a skill file?": {
+        "fr": "",
+        "fr_auto": "Vous avez déjà un dossier de compétences?"
+    },
+    "Import SKILL.md or .zip": {
+        "fr": "",
+        "fr_auto": "Importez SKILL.md ou .zip"
+    },
+    "Refine with Skill Creator": {
+        "fr": "",
+        "fr_auto": "Affiner avec Créateur de compétences"
+    },
+    "Converting .doc to .docx...": {
+        "fr": "",
+        "fr_auto": "Convertir .doc en .docx..."
+    },
+    "Processed file": {
+        "fr": "",
+        "fr_auto": "Fichier traité"
+    },
+    "Original file": {
+        "fr": "",
+        "fr_auto": "Fichier original"
+    },
+    "Source URL": {
+        "fr": "",
+        "fr_auto": "Source URL"
+    },
+    "The file '{filename}' has an unsupported format ({content_type}). Supported formats include: PDF, Word (DOC and DOCX), PowerPoint, Excel, images, HTML, plain text, Markdown, CSV, ZIP archives, and email files (MSG, EML).": {
+        "fr": "",
+        "fr_auto": "Le fichier '{name}' a un format non pris en charge ({content_type}). Les formats pris en charge incluent : PDF, Word (DOC et DOCX), PowerPoint, Excel, images, HTML, texte brut, Markdown, CSV, archives ZIP et fichiers courriel (MSG, EML)."
+    },
+    "This file has an unsupported format ({content_type}). Supported formats include: PDF, Word (DOC and DOCX), PowerPoint, Excel, images, HTML, plain text, Markdown, CSV, ZIP archives, and email files (MSG, EML).": {
+        "fr": "",
+        "fr_auto": "Ce fichier a un format non pris en charge ({content_type}). Les formats pris en charge incluent : PDF, Word (DOC et DOCX), PowerPoint, Excel, images, HTML, texte brut, Markdown, CSV, archives ZIP et fichiers courriel (MSG, EML)."
+    },
+    "Could not convert legacy Word (.doc) file.": {
+        "fr": "",
+        "fr_auto": "Impossible de convertir un fichier Word (.doc) hérité."
+    },
+    "Original file missing from storage.": {
+        "fr": "",
+        "fr_auto": "Fichier original manquant du stockage."
+    },
+    "Client registered and initial bearer token issued.": {
+        "fr": "",
+        "fr_auto": "Jeton au porteur enregistré par le client et jeton porteur initial émis."
+    },
+    "Scopes: %(scopes)s": {
+        "fr": "",
+        "fr_auto": "Champs de portée :%(scopes)s"
+    },
+    "Allowed IPs: %(ips)s": {
+        "fr": "",
+        "fr_auto": "IP autorisées :%(ips)s"
+    },
+    "Bearer token rotated.": {
+        "fr": "",
+        "fr_auto": "Le jeton porteur tournait."
+    },
+    "Client configuration updated.": {
+        "fr": "",
+        "fr_auto": "Configuration du client mise à jour."
+    },
+    "Scopes added: %(scopes)s": {
+        "fr": "",
+        "fr_auto": "Objectifs ajoutés :%(scopes)s"
+    },
+    "Scopes removed: %(scopes)s": {
+        "fr": "",
+        "fr_auto": "Scopes supprimés :%(scopes)s"
+    },
+    "Allowed IPs added: %(ips)s": {
+        "fr": "",
+        "fr_auto": "IP autorisées ajoutées :%(ips)s"
+    },
+    "Allowed IPs removed: %(ips)s": {
+        "fr": "",
+        "fr_auto": "IP autorisées supprimées :%(ips)s"
+    },
+    "Owner changed from %(old)s to %(new)s.": {
+        "fr": "",
+        "fr_auto": "Le propriétaire est passé de%(anciens)s à%(nouveau)s."
+    },
+    "Active status changed from %(old)s to %(new)s.": {
+        "fr": "",
+        "fr_auto": "Le statut actif est passé de%(ancien)s à%(nouveau)s."
+    },
+    "active": {
+        "fr": "",
+        "fr_auto": "Actifs"
+    },
+    "inactive": {
+        "fr": "",
+        "fr_auto": "Inactif"
+    },
+    "%(field)s changed from %(old)s to %(new)s.": {
+        "fr": "",
+        "fr_auto": "%(champ)s sont passés de%(anciens)s à%(nouveau)s."
+    },
+    "API client created. Copy the bearer token now — it will not be shown again.": {
+        "fr": "",
+        "fr_auto": "Client API créé. Copiez le jeton porteur maintenant — il ne sera plus affiché."
+    },
+    "API client created": {
+        "fr": "",
+        "fr_auto": "Création d’un client API"
+    },
+    "Copy this bearer token now and store it securely. Otto only shows the full secret once.": {
+        "fr": "",
+        "fr_auto": "Copiez ce jeton porteur maintenant et stockez-le en toute sécurité. Otto ne montre le secret complet qu’une seule fois."
+    },
+    "API client updated.": {
+        "fr": "",
+        "fr_auto": "Client API mis à jour."
+    },
+    "API client secret rotated.": {
+        "fr": "",
+        "fr_auto": "API client secret tourné."
+    },
+    "API client secret rotated": {
+        "fr": "",
+        "fr_auto": "API client secret tourné"
+    },
+    "Copy the new bearer token now. The previous token is no longer valid.": {
+        "fr": "",
+        "fr_auto": "Copiez le nouveau jeton de porteur maintenant. Le jeton précédent n’est plus valide."
+    },
+    "Client name": {
+        "fr": "",
+        "fr_auto": "Nom du client"
+    },
+    "Use a descriptive name, such as ‘JusTipedia nightly sync’ or ‘Reporting dashboard integration’.": {
+        "fr": "",
+        "fr_auto": "Utilisez un nom descriptif, comme « JusTipedia nightly sync » ou « Intégration du tableau de bord de rapports »."
+    },
+    "Owner": {
+        "fr": "",
+        "fr_auto": "Propriétaire"
+    },
+    "Allowed endpoint scopes": {
+        "fr": "",
+        "fr_auto": "Champs de terminaison autorisés"
+    },
+    "Scopes determine which API endpoint families the machine may call.": {
+        "fr": "",
+        "fr_auto": "Les portées déterminent quelles familles de terminaux API la machine peut appeler."
+    },
+    "Allowed IP ranges": {
+        "fr": "",
+        "fr_auto": "Plages IP autorisées"
+    },
+    "Optional. Enter one IP address or CIDR range per line. Leave blank to allow any source IP.": {
+        "fr": "",
+        "fr_auto": "Optionnel. Entrez une adresse IP ou une plage CIDR par ligne. Laissez le bouton vide pour autoriser toute IP source."
+    },
+    "An API client with this name already exists.": {
+        "fr": "",
+        "fr_auto": "Un client API portant ce nom existe déjà."
+    },
+    "'%(value)s' is not a valid IP address or CIDR range.": {
+        "fr": "",
+        "fr_auto": "«%(valeur) » n’est pas une adresse IP valide ni une plage CIDR."
+    },
+    "Enter a valid IP address or CIDR range.": {
+        "fr": "",
+        "fr_auto": "Entrez une adresse IP valide ou une plage CIDR."
+    },
+    "Created": {
+        "fr": "",
+        "fr_auto": "Création"
+    },
+    "Secret rotated": {
+        "fr": "",
+        "fr_auto": "Rotation secrète"
+    },
+    "Create client": {
+        "fr": "",
+        "fr_auto": "Créer un client"
+    },
+    "Bearer token": {
+        "fr": "",
+        "fr_auto": "Jeton porteur"
+    },
+    "Store this token securely now. Otto only shows the complete secret once.": {
+        "fr": "",
+        "fr_auto": "Stockez ce jeton en toute sécurité. Otto ne montre le secret complet qu’une seule fois."
+    },
+    "Copy token": {
+        "fr": "",
+        "fr_auto": "Jeton de copie"
+    },
+    "Manage API clients": {
+        "fr": "",
+        "fr_auto": "Gérer les clients API"
+    },
+    "API clients": {
+        "fr": "",
+        "fr_auto": "API clients"
+    },
+    "API clients - Otto": {
+        "fr": "",
+        "fr_auto": "API clients - Otto"
+    },
+    "Register machine clients here to issue bearer tokens, assign endpoint scopes, restrict source IPs, and review a change audit trail.": {
+        "fr": "",
+        "fr_auto": "Enregistrez ici des clients machines pour émettre des jetons porteurs, attribuer des champs de terminaison, restreindre les IP sources et revoir une trace d’audit des modifications."
+    },
+    "Human users continue to use Otto's regular permissions. Machine clients must present a bearer token and are checked against their configured scopes and optional IP allowlist.": {
+        "fr": "",
+        "fr_auto": "Les utilisateurs humains continuent d’utiliser les permissions habituelles d’Otto. Les clients machines doivent présenter un jeton porteur et sont vérifiés par rapport à leurs scopes configurés et à leur liste d’IP optionnelle."
+    },
+    "Store this token securely now. Otto does not display the full secret again after this page is closed or refreshed.": {
+        "fr": "",
+        "fr_auto": "Stockez ce jeton en toute sécurité. Otto ne réaffiche pas le secret complet après la fermeture ou la mise à jour de cette page."
+    },
+    "Back to Manage users": {
+        "fr": "",
+        "fr_auto": "Retour à la gestion des utilisateurs"
+    },
+    "Register machine client": {
+        "fr": "",
+        "fr_auto": "Client machine à registres"
+    },
+    "Clients": {
+        "fr": "",
+        "fr_auto": "Clients"
+    },
+    "Audit trail": {
+        "fr": "",
+        "fr_auto": "Trace d’audit"
+    },
+    "Client": {
+        "fr": "",
+        "fr_auto": "Client"
+    },
+    "Scopes": {
+        "fr": "",
+        "fr_auto": "Champs d’application"
+    },
+    "Allowed IPs": {
+        "fr": "",
+        "fr_auto": "IP autorisées"
+    },
+    "Last used": {
+        "fr": "",
+        "fr_auto": "Dernière utilisation"
+    },
+    "Inactive": {
+        "fr": "",
+        "fr_auto": "Inactif"
+    },
+    "No scopes assigned": {
+        "fr": "",
+        "fr_auto": "Aucune lunette assignée"
+    },
+    "Any IP": {
+        "fr": "",
+        "fr_auto": "N’importe quelle propriété intellectuelle"
+    },
+    "Never": {
+        "fr": "",
+        "fr_auto": "Jamais"
+    },
+    "Rotate this bearer token? The current token will stop working immediately.": {
+        "fr": "",
+        "fr_auto": "Faire tourner ce jeton porteur? Le jeton actuel cessera de fonctionner immédiatement."
+    },
+    "Rotate token": {
+        "fr": "",
+        "fr_auto": "Faire pivoter le jeton"
+    },
+    "No machine clients have been registered yet.": {
+        "fr": "",
+        "fr_auto": "Aucun client machine n’a encore été enregistré."
+    },
+    "Showing all recorded audit event. Newest first.": {
+        "fr": "",
+        "fr_auto": "Affichage de tous les événements d’audit enregistrés. Les plus récents d’abord."
+    },
+    "When": {
+        "fr": "",
+        "fr_auto": "Quand"
+    },
+    "Event": {
+        "fr": "",
+        "fr_auto": "Événement"
+    },
+    "Actor": {
+        "fr": "",
+        "fr_auto": "Acteur"
+    },
+    "System": {
+        "fr": "",
+        "fr_auto": "Système"
+    },
+    "No audit events have been recorded yet.": {
+        "fr": "",
+        "fr_auto": "Aucun événement d’audit n’a encore été enregistré."
+    },
+    "Audit trail pages": {
+        "fr": "",
+        "fr_auto": "Pages de traces d’audit"
+    },
+    "API client": {
+        "fr": "",
+        "fr_auto": "Client API"
+    },
+    "API Clients": {
+        "fr": "",
+        "fr_auto": "API clients"
+    },
+    "Read user activity reporting API": {
+        "fr": "",
+        "fr_auto": "Lire l’API de rapports d’activité utilisateur"
+    },
+    "Allows access to user activity summary and per-user reporting endpoints.": {
+        "fr": "",
+        "fr_auto": "Permet d’accéder au résumé des activités des utilisateurs et aux terminaux de rapports par utilisateur."
     }
 }
