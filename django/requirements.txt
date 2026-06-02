@@ -41,7 +41,7 @@ azure-storage-blob==12.28.0
 msgraph-sdk==1.55.0
 
 # LLM-related ------------------------------------------------------------------
-llama-index==0.14.19
+llama-index==0.14.22
 llama-index-llms-azure-openai==0.5.3
 llama-index-vector-stores-postgres==0.7.2
 llama-index-embeddings-azure-openai==0.5.2
