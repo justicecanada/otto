@@ -48,7 +48,7 @@ llama-index-embeddings-azure-openai==0.5.2
 openai==2.31.0
 
 # Document extraction ----------------------------------------------------------
-beautifulsoup4==4.13.4
+beautifulsoup4==4.14.3
 markdownify==1.1.0
 Markdown==3.8.1
 bleach==6.3.0
