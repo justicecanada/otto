@@ -1,0 +1,52 @@
+{% load i18n %}
+
+<div class="modal modal-xl fade"
+     id="skills-modal"
+     tabindex="0"
+     aria-label='{% trans "Skills Browser" %}'
+     aria-hidden="true">
+  <div class="modal-dialog full-size-fixed-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">{% trans "Skills" %}</h5>
+        <button type="button"
+                class="btn-close"
+                data-bs-dismiss="modal"
+                aria-label='{% trans "Close" %}'></button>
+      </div>
+      <div id="skills-browser-state" class="d-none">
+        <input type="hidden" name="q" id="skill-filter-search-hidden" value="">
+        <input type="hidden"
+               name="sharing"
+               id="skill-filter-sharing-hidden"
+               value="">
+        <input type="hidden" name="tag" id="skill-filter-tag-hidden" value="">
+        <input type="hidden"
+               name="featured"
+               id="skill-filter-featured-hidden"
+               value="">
+        <input type="hidden"
+               name="enabled"
+               id="skill-filter-enabled-hidden"
+               value="">
+        <input type="hidden"
+               name="sort"
+               id="skill-filter-sort-hidden"
+               value="popular">
+        <input type="hidden"
+               name="sort_user_selected"
+               id="skill-filter-sort-user-set-hidden"
+               value="">
+        <input type="hidden"
+               name="show_all_tags"
+               id="skill-filter-show-all-tags-hidden"
+               value="">
+      </div>
+      <div id="skills-modal-body">
+        <div class="text-center py-5">
+          <span class="spinner-border spinner-border-sm"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

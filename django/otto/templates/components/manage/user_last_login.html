@@ -1,0 +1,7 @@
+{% comment %}ISO date is for sorting to work properly{% endcomment %}
+<span class="d-none">{{ last_login }}</span>
+{% if last_login %}
+  {{ last_login }}
+{% else %}
+  -
+{% endif %}

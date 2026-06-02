@@ -1,0 +1,100 @@
+{% load i18n %}
+{% load rules %}
+
+<form id="cost-dashboard-form"
+      hx-get="{% url 'cost_dashboard' %}"
+      hx-trigger="change from:select, change from:#start_date, change from:#end_date, change from:#id_specific_cost_groups__textinput"
+      hx-target="#cost-dashboard-outer"
+      hx-push-url="true"
+      hx-select="#cost-dashboard-outer">
+  <fieldset class="form-group">
+    <div class="row mb-1">
+      <legend class="col-form-label col-1 fw-semibold">{% trans "Chart:" %}</legend>
+      <div class="col-lg-1">
+        <label class="col-form-label" for="x_axis">{{ form.x_axis.label_tag }}</label>
+      </div>
+      <div class="col-lg-2">{{ form.x_axis }}</div>
+
+      <div class="col-lg-auto">
+        <label class="col-form-label" for="group">{{ form.group.label_tag }}</label>
+      </div>
+      <div class="col-lg-2">{{ form.group }}</div>
+
+      <div class="col-lg-auto">
+        <label class="col-form-label" for="bar_chart_type">{% trans "Bar chart type:" %}</label>
+      </div>
+      <div class="col-lg-2">
+        <select class="form-select" id="bar_chart_type" name="bar_chart_type">
+          {% for option_id, option in bar_chart_type_options.items %}
+            <option value="{{ option_id }}"
+                    {% if option_id == bar_chart_type %}selected{% endif %}>{{ option }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+  </fieldset>
+  <fieldset class="form-group">
+    <div class="row mb-1">
+      <legend class="col-form-label col-1 fw-semibold">{% trans "Filter:" %}</legend>
+      <div class="col-lg-1 visually-hidden">
+        <label class="col-form-label me-0" for="cost_group">{{ form.cost_group.label_tag }}</label>
+      </div>
+      <div class="col-lg-3">
+        {{ form.cost_group }}
+        <div id="cost-specific-cost_groups-container"
+             class="mt-1 mb-2"
+             style="display: {% if form.cost_group.value == 'specific' %}block{% else %}none{% endif %}"
+             hx-disinherit="*">{{ form.specific_cost_groups }}</div>
+      </div>
+
+      <div class="col-lg-1 visually-hidden">
+        <label class="col-form-label me-0" for="feature">{{ form.feature.label_tag }}</label>
+      </div>
+      <div class="col-lg-3">{{ form.feature }}</div>
+
+      <div class="col-lg-auto visually-hidden">
+        <label class="col-form-label me-0" for="cost_type">{{ form.cost_type.label_tag }}</label>
+      </div>
+      <div class="col-lg-4">{{ form.cost_type }}</div>
+
+    </div>
+  </fieldset>
+  <fieldset class="form-group">
+    <div class="row mb-1">
+      <legend class="col-form-label col-1 fw-semibold">{% trans "Dates:" %}</legend>
+      <div class="col-lg-1 visually-hidden">
+        <label class="col-form-label" for="date_group">{{ form.date_group.label_tag }}</label>
+      </div>
+      <div class="col-lg-3">{{ form.date_group }}</div>
+      {% if form.date_group.value == "custom" %}
+        <div class="col-lg-1">
+          <label class="col-form-label" for="start_date">{% trans "Start:" %}</label>
+        </div>
+        <div class="col-lg-2">
+          <input class="form-control"
+                 type="date"
+                 id="start_date"
+                 name="start_date"
+                 value="{{ start_date|date:'Y-m-d' }}">
+        </div>
+        <div class="col-lg-1">
+          <label class="col-form-label" for="end_date">{% trans "End:" %}</label>
+        </div>
+        <div class="col-lg-2">
+          <input class="form-control"
+                 type="date"
+                 id="end_date"
+                 name="end_date"
+                 value="{{ end_date|date:'Y-m-d' }}">
+        </div>
+      {% endif %}
+    </div>
+  </fieldset>
+  <a id="download-link"
+     class="btn btn-outline-dark btn-sm"
+     href="#"
+     onclick="event.preventDefault(); downloadCsv(); return false;">
+    <i class="bi bi-download"></i>
+    {% trans "Download CSV for selected dates (filters disabled)" %}
+  </a>
+</form>

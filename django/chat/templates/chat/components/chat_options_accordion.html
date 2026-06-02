@@ -12,10 +12,10 @@
   {% include 'chat/components/options_3_translate.html' with options_section_id='translate' %}
 </div>
 
+{% if preset_loaded %}
+  {% include 'chat/components/preset_header.html' with swap=True preset_dirty=preset_dirty %}
+{% endif %}
+
 {% include "chat/components/chat_label_script.html" %}
 
-<script>
-  updateLibraryModalButton();
-  updateAutocompleteLibraryid('id_qa_data_sources__textinput');
-  updateAutocompleteLibraryid('id_qa_documents__textinput');
-</script>
+<script>initializeChatOptionsConditionalUI();</script>

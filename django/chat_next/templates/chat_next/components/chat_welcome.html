@@ -1,0 +1,171 @@
+{% load i18n %}
+
+<div id="no-messages-placeholder" class="d-flex justify-content-center">
+  <div id="chat-welcome" class="d-flex flex-column w-100">
+    <div id="chat-welcome-alert-area">
+      <div class="alert alert-warning">
+        <div class="row">
+          <div class="col-auto pe-0">
+            <svg class="flex-shrink-0 bi me-2"
+                 width="24"
+                 height="24"
+                 role="img"
+                 aria-label='{% trans "Warning" %}:'>
+              <use xlink:href="#exclamation-triangle-fill"></use>
+            </svg>
+          </div>
+          <div class="col ps-1">
+            <h5 class="text-align-center mb-3">{% trans "Safe use of the AI Assistant (new)" %}</h5>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col">
+            {% if environment == "prod" %}
+              <p>
+                <strong>{% trans "Protected B approved:" %}</strong>
+                {% trans "Use with unclassified, Protected A or" %}
+                <abbr title="{% trans 'Specific legislation may impose additional requirements pertaining to certain classes of sensitive information that are considered Protected B. In such cases, the use of Otto should be considered on a case-by-case basis.' %}">{% trans "Protected B" %}</abbr>
+                {% trans "information only." %}
+              </p>
+            {% else %}
+              <p>
+                <strong>{% trans "Unclassified only:" %}</strong>
+                {% trans "This is a development / testing environment. Use unclassified information only." %}
+              </p>
+            {% endif %}
+            <p>
+              <strong>{% trans "Approve queries:" %}</strong>
+              {% trans "If asked, ensure external queries do not include Protected, Classified or privileged information." %}
+            </p>
+            <p>
+              <strong>{% trans "Limited legal content:" %}</strong>
+              {% trans "Canadian case law and legislation is limited to specific jurisdictions." %}
+            </p>
+            <p>
+              <strong>{% trans "Human review required:" %}</strong>
+              {% trans "AI can make mistakes. Verify the output if you intend to rely upon it." %}
+            </p>
+            <p>
+              <strong>{% trans "Not for legal advice:" %}</strong>
+              {% trans "Only legal professionals can critically analyze client matters and provide legal advice." %}
+            </p>
+            <p>
+              <strong>{% trans "Not for decision-making:" %}</strong>
+              {% trans "Do not use for making or assisting in making" %}
+              <abbr title="{% trans 'Administrative decisions are decisions affecting individuals, their rights, privileges or interests.' %}">{% trans "administrative decisions" %}</abbr>.
+            </p>
+            <p class="mb-0">
+              <strong>{% trans "Information management:" %}</strong>
+              {% trans "Unpinned chats and" %}
+              <abbr title="{% trans 'Libraries visible to all JUS users and files referenced by skills are exempt from auto-deletion.' %}">{% trans "most libraries" %}</abbr>
+              {% trans "are deleted after 90 days of inactivity." %}
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {# Demo prompts — always show core suggestions, rotate the rest #}
+    <div id="demo-prompts">
+      <p class="small mb-2">
+        <i class="bi bi-magic me-1"></i>{% trans "Try one of these to get started:" %}
+      </p>
+      <div id="demo-prompts-grid" class="d-flex flex-wrap gap-2">
+        {# Populated by JS below with core prompts plus a random rotating subset #}
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  const ALWAYS_PROMPTS = [
+    {
+      icon: 'bi-question-circle',
+      label: '{% trans "What can you help me with?" %}',
+      prompt: '{% trans "What can you help me with? Give me an overview of your tools and skills." %}',
+    },
+    {
+      icon: 'bi-search',
+      label: '{% trans "Search legislation and case law" %}',
+      prompt: '{% trans "What Canadian case law and legislation databases can you search? How does legal research work here?" %}',
+    },
+  ];
+  
+  const ROTATING_PROMPTS = [
+    {
+      icon: 'bi-file-earmark-word',
+      label: '{% trans "Generate a document" %}',
+      prompt: '{% trans "I need you to create a Word document. What kind of documents can you generate?" %}',
+    },
+    {
+      icon: 'bi-bar-chart',
+      label: '{% trans "Analyze data or create a chart" %}',
+      prompt: '{% trans "I have data I need to analyze. Can you create charts and do calculations?" %}',
+    },
+    {
+      icon: 'bi-collection',
+      label: '{% trans "Ask questions about my documents" %}',
+      prompt: '{% trans "I want to upload documents and ask questions about them. How do I use document libraries?" %}',
+    },
+    {
+      icon: 'bi-lightbulb',
+      label: '{% trans "Create a skill" %}',
+      prompt: '{% trans "I want to create a custom skill for a recurring workflow. Guide me through it." %}',
+    },
+    {
+      icon: 'bi-lightbulb',
+      label: '{% trans "Migrate an existing preset" %}',
+      prompt: '{% trans "Migrate my existing presets to Skills." %}',
+    },
+  ];
+
+  const MAX_VISIBLE_PROMPTS = 4;
+
+  function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
+  const rotatingSlots = Math.max(0, MAX_VISIBLE_PROMPTS - ALWAYS_PROMPTS.length);
+  const selected = [
+    ...ALWAYS_PROMPTS,
+    ...shuffle([...ROTATING_PROMPTS]).slice(0, rotatingSlots),
+  ];
+  const grid = document.getElementById('demo-prompts-grid');
+  if (!grid) return;
+
+  function setDemoPromptButtonsDisabled(disabled) {
+    grid.querySelectorAll('.demo-prompt-btn').forEach(function(button) {
+      button.disabled = disabled;
+      button.setAttribute('aria-disabled', disabled ? 'true' : 'false');
+    });
+  }
+
+  selected.forEach(function(item) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'btn btn-outline-dark btn-sm demo-prompt-btn text-start';
+    btn.innerHTML = '<i class="bi ' + item.icon + ' me-1"></i>' + item.label;
+    btn.addEventListener('click', function() {
+      if (btn.disabled) {
+        return;
+      }
+
+      const promptInput = document.getElementById('chat-prompt');
+      const sendButton = document.getElementById('send-button');
+      if (promptInput && sendButton) {
+        setDemoPromptButtonsDisabled(true);
+        promptInput.value = item.prompt;
+        promptInput.dispatchEvent(new Event('input', {bubbles: true}));
+        promptInput.focus();
+        requestAnimationFrame(function() { sendButton.click(); });
+      }
+    });
+    grid.appendChild(btn);
+  });
+})();
+</script>

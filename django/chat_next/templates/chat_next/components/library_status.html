@@ -1,0 +1,53 @@
+{% load i18n %}
+
+{% comment %}
+Library processing status display for file uploads.
+Used via HTMX polling from user messages with uploaded files.
+{% endcomment %}
+
+{% if status == "no_docs" %}
+  <div class="library-status text-muted small d-none"
+       id="library-status-{{ message_id }}"
+       hx-get="{% url 'chat_next:library_status' message_id %}"
+       hx-trigger="load delay:1s"
+       hx-swap="outerHTML">
+    <span class="visually-hidden">.</span>
+  </div>
+
+{% elif status == "processing" %}
+  <div class="library-status text-muted small d-none"
+       id="library-status-{{ message_id }}"
+       hx-get="{% url 'chat_next:library_status' message_id %}"
+       hx-trigger="load delay:1s"
+       hx-swap="outerHTML">
+    <span class="visually-hidden">.</span>
+  </div>
+
+{% elif status == "complete" %}
+  <div class="library-status small" id="library-status-{{ message_id }}">
+    {% if new_docs > 0 %}
+      <span class="text-success">
+        <i class="bi bi-check-circle me-1"></i>
+        {% blocktrans count counter=new_docs %}{{ new_docs }} new document ready for Q&A.{% plural %}{{ new_docs }} new documents ready for Q&A.{% endblocktrans %}
+      </span>
+    {% endif %}
+    {% if duplicates > 0 %}
+      <span class="text-muted">
+        <i class="bi bi-info-circle me-1"></i>
+        {% blocktrans count counter=duplicates %}{{ duplicates }} document already in library.{% plural %}{{ duplicates }} documents already in library.{% endblocktrans %}
+      </span>
+    {% endif %}
+    {% if errors > 0 %}
+      <span class="text-danger">
+        <i class="bi bi-exclamation-triangle me-1"></i>
+        {% blocktrans count counter=errors %}{{ errors }} document failed to process.{% plural %}{{ errors }} documents failed to process.{% endblocktrans %}
+      </span>
+    {% endif %}
+    {% if new_docs == 0 and duplicates == 0 and errors == 0 %}
+      <span class="text-muted">
+        <i class="bi bi-info-circle me-1"></i>
+        {% trans "No new documents added." %}
+      </span>
+    {% endif %}
+  </div>
+{% endif %}

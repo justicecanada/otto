@@ -45,7 +45,7 @@
               type="button"
               data-bs-toggle="tooltip"
               data-bs-html="true"
-              data-bs-title='{% trans "<strong>Top excerpts:</strong> Use most relevant excerpts from selected documents. <em>Fast, cheap.</em><br><br><strong>Full documents:</strong> Use full text of selected documents. <em>More comprehensive, but slower and more expensive.</em>" %}'
+              data-bs-title='{% trans "<strong>Top excerpts (Retrieval Augmented Generation):</strong> Use most relevant excerpts from selected documents. <em>Fast, cheap.</em><br><br><strong>Full documents:</strong> Use full text of selected documents. <em>More comprehensive, but slower and more expensive.</em>" %}'
               id="rag_info">
         <i class="bi-info-circle-fill text-secondary small"></i>
       </button>
@@ -77,12 +77,28 @@
     <div class="px-3">{{ options_form.qa_model }}</div>
   </div>
 
-  <div id="qa-reasoning-effort-container" style="display: none;">
+  <div id="qa-reasoning-effort-container"
+       {% if not options_form.show_qa_reasoning_effort %}class="d-none"{% endif %}>
     <div class="px-3 mt-2">
       <label class="col-form-label col-form-label-sm"
              for="{{ options_form.qa_reasoning_effort.auto_id }}">{% trans "Reasoning effort" %}</label>
     </div>
     <div class="px-3">{{ options_form.qa_reasoning_effort }}</div>
+  </div>
+
+  <div id="qa-verbosity-container"
+       {% if not options_form.show_qa_verbosity %}class="d-none"{% endif %}>
+    <div class="px-3 mt-2">
+      <label class="col-form-label col-form-label-sm"
+             for="{{ options_form.qa_verbosity.auto_id }}">{% trans "Verbosity" %}</label>
+    </div>
+    <div class="px-3">{{ options_form.qa_verbosity }}</div>
+  </div>
+
+  <div class="mx-3 mt-3 form-switch form-check">
+    {{ options_form.qa_history }}
+    <label class="form-check-label small ms-1"
+           for="{{ options_form.qa_history.auto_id }}">{% trans "Use chat history & optimize queries" %}</label>
   </div>
 
   <div class="px-3 mt-3">
@@ -102,7 +118,5 @@
   {{ options_form.qa_vector_ratio }}
   {{ options_form.qa_granular_toggle }}
   {{ options_form.qa_source_order }}
-  {{ options_form.qa_prune }}
-  {{ options_form.qa_rewrite }}
   {{ options_form.qa_granularity }}
 {% endblock %}

@@ -1,0 +1,16 @@
+{% load i18n %}
+
+{% if team_memberships %}
+  {% for membership in team_memberships %}
+    <span class="badge {% if membership.role == 'admin' %}bg-primary{% else %}bg-info text-dark{% endif %} me-1 mb-1">
+      {{ membership.team.name }}
+      {% if membership.role == 'admin' %}
+        ({% trans "admin" %})
+      {% else %}
+        ({% trans "member" %})
+      {% endif %}
+    </span>
+  {% endfor %}
+{% else %}
+  <span class="text-muted">&mdash;</span>
+{% endif %}

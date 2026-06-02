@@ -15,7 +15,8 @@
   <div id="top-nav-search-results"
        hx-get="{% url 'search_inner' %}"
        hx-trigger='load delay:200ms'
-       hx-swap="innerHTML"></div>
+       hx-swap="innerHTML"
+       hx-request='{"timeout": 15000}'></div>
 </div>
 
 <script>

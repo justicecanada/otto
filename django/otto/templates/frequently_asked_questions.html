@@ -28,23 +28,6 @@
           </div>
         </div>
       </div>
-      {% if is_pilot_environment %}
-        <div class="accordion-item">
-          <h2 class="accordion-header">
-            <button class="accordion-button collapsed"
-                    type="button"
-                    data-bs-toggle="collapse"
-                    data-bs-target="#question2"
-                    aria-expanded="false"
-                    aria-controls="question2">{% trans "What is the Otto Pro-B Pilot?" %}</button>
-          </h2>
-          <div id="question2" class="accordion-collapse collapse">
-            <div class="accordion-body">
-              {% blocktrans %}Justice's Business Analytics Centre (BAC) is launching a limited user pilot in a Protected B environment. The pilot includes ~625 users split into 65 distinct pilot groups with specific use cases covering all types of Justice work. The pilot will run for approximately 8 months. Following its conclusion, results and feedback will be used to refine the tools, which will then be deployed to all JUS employees.{% endblocktrans %}
-            </div>
-          </div>
-        </div>
-      {% endif %}
       <div class="accordion-item">
         <h2 class="accordion-header">
           <button class="accordion-button collapsed"
@@ -128,7 +111,7 @@
                 {% trans "Due to the nature of the AI and the data used for training, Otto may occasionally generate hallucinations or irrelevant information. Human verification of output is required if the output is to be relied upon." %}
               </li>
               <li>
-                {% trans "Otto is not a repository for information of business value.  It is for transitory information only.  Document libraries and chats are deleted after 30 days of inactivity." %}
+                {% trans "Otto is not a repository for information of business value. It is for transitory information only. Unless pinned, chats are deleted after 90 days of inactivity (opening a chat resets the clock). Except for document libraries that are visible to all JUS users, libraries are deleted after 90 days of inactivity (making changes to the library or using it for Q&A resets the clock)." %}
               </li>
             </ul>
           </div>

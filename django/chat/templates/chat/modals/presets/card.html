@@ -1,6 +1,4 @@
 {% load i18n %}
-{% load rules %}
-{% has_perm "chat.edit_preset" user preset as can_edit_preset %}
 
 <li class="card {{ preset.options.mode }}"
     tabindex="0"
@@ -12,7 +10,7 @@
     <h6 class="card-title my-auto text-truncate me-2"
         title="{{ preset.name_auto }}">{{ preset.name_auto }}</h6>
     <div class="d-flex align-items-center">
-      {% if can_edit_preset %}
+      {% if preset.can_edit %}
         {% include "chat/modals/presets/edit_icon.html" %}
       {% endif %}
       {% include "chat/modals/presets/default_icon.html" %}

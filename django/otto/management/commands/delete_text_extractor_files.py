@@ -1,5 +1,3 @@
-import os
-import time
 from datetime import datetime, timedelta
 
 from django.core.management.base import BaseCommand
@@ -7,7 +5,8 @@ from django.core.management.base import BaseCommand
 from django_extensions.management.utils import signalcommand
 
 from otto.secure_models import AccessKey
-from text_extractor.models import OutputFile, UserRequest
+
+from text_extractor.models import UserRequest
 
 
 class Command(BaseCommand):
@@ -19,7 +18,7 @@ class Command(BaseCommand):
         cutoff = now - timedelta(hours=24)
         access_key = AccessKey(bypass=True)
 
-        # Filter and delete old user requests
+        # Filter and delete old user requests (cascade will delete InputFiles automatically)
         old_requests = UserRequest.objects.filter(
             access_key=access_key, created_at__lt=cutoff
         )

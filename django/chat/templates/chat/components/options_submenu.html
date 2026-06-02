@@ -1,9 +1,7 @@
 <div class="accordion-item {{ options_section_id }}">
   <h5 class="accordion-header">
-    <button class="accordion-button fw-semibold py-2 px-3 collapsed"
+    <button class="accordion-button fw-semibold py-2 px-3{% if options_form.mode.value != options_section_id %} collapsed{% endif %}"
             type="button"
-            data-bs-toggle="collapse"
-            data-bs-target="#options-accordion-{{ options_section_id }}"
             aria-expanded="{% if options_form.mode.value == options_section_id %}true{% else %}false{% endif %}"
             aria-controls="options-accordion-{{ options_section_id }}"
             onclick="handleModeChange('{{ options_section_id }}', this)">
@@ -11,8 +9,7 @@
     </button>
   </h5>
   <div id="options-accordion-{{ options_section_id }}"
-       class="accordion-collapse collapse{% if swap or options_form.mode.value == options_section_id %} show{% endif %}"
-       data-bs-parent="#options-accordion"
+       class="accordion-collapse collapse{% if options_form.mode.value == options_section_id %} show{% endif %}"
        {% if swap %}hx-swap-oob="true" hx-ext="morph"{% endif %}>
     <div class="accordion-body p-0 pb-2">
       {% block accordion_body %}{% endblock %}

@@ -1,9 +1,7 @@
-import time
 import urllib.parse
 import uuid
 
 from django.conf import settings
-from django.contrib.auth.decorators import login_required
 from django.core.cache import cache
 from django.http import HttpResponse, StreamingHttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -17,9 +15,11 @@ from llama_index.core.vector_stores.types import MetadataFilter, MetadataFilters
 from structlog import get_logger
 from structlog.contextvars import bind_contextvars
 
-from chat.llm import OttoLLM
 from otto.models import OttoStatus
-from otto.utils.decorators import app_access_required, budget_required
+from otto.priorities import HIGH
+from otto.utils.decorators import budget_required, otto_user_required
+
+from chat.llm import OttoLLM
 
 from .forms import LawSearchForm
 from .models import Law
@@ -60,7 +60,7 @@ md = markdown.Markdown(extensions=["fenced_code", "nl2br", "tables"], tab_length
 app_name = "laws"
 
 
-@app_access_required(app_name)
+@otto_user_required
 def index(request):
     context = {
         "active_app": "laws",
@@ -80,7 +80,9 @@ def source(request, source_id):
         law = Law.objects.filter(node_id_en=source_node["metadata"]["doc_id"]).first()
     else:
         law = Law.objects.filter(node_id_fr=source_node["metadata"]["doc_id"]).first()
-    other_lang_node = get_other_lang_node(source_id)
+    other_lang_node = get_other_lang_node(
+        source_id.replace("Constitution-", "Constitution ")
+    )
     nodes = [source_node, other_lang_node]
     if other_lang_node is None:
         nodes = [source_node]
@@ -98,7 +100,7 @@ def source(request, source_id):
     if law.short_title_en == "THE CONSTITUTION ACTS, 1867 to 1982":
         url_suffix = ""
     else:
-        url_suffix = f"{'FullText' if lang=='eng' else 'TexteComplet'}.html#{source_node['metadata']['lims_id']}"
+        url_suffix = f"{'FullText' if lang == 'eng' else 'TexteComplet'}.html#{source_node['metadata']['lims_id']}"
     context = {
         "source_node": source_node,
         "other_lang_node": other_lang_node,
@@ -111,17 +113,18 @@ def source(request, source_id):
     return render(request, "laws/source_details.html", context=context)
 
 
-@app_access_required(app_name)
 def get_answer_column(request, query_uuid):
     """Renders the answer column partial."""
     context = {"query_uuid": query_uuid}
     return render(request, "laws/_answer_column.html", context)
 
 
-@app_access_required(app_name)
 @budget_required
 def answer(request, query_uuid):
-    bind_contextvars(feature="laws_query")
+    user_id = request.user.id
+    active_cost_group = request.user.get_active_cost_group(request)
+    cost_group_id = active_cost_group.id if active_cost_group else None
+    bind_contextvars(feature="laws_query", user_id=user_id, cost_group_id=cost_group_id)
     from llama_index.core.schema import MetadataMode
 
     query_info = cache.get(query_uuid)
@@ -146,7 +149,7 @@ def answer(request, query_uuid):
     model = query_info["model"]
     max_tokens = query_info["context_tokens"]
 
-    llm = OttoLLM(deployment=model, temperature=0)
+    llm = OttoLLM(deployment=model, temperature=0.3, priority=HIGH)
     if not sources:
         generator = iter([_("Error generating AI response.")])
     else:
@@ -181,13 +184,13 @@ def answer(request, query_uuid):
                             sources[parent_index].node.get_content(
                                 metadata_mode=MetadataMode.LLM
                             ),
-                            "gpt-4o",
+                            "gpt-4.1",
                         )
                         if total_tokens + parent_tokens <= max_tokens:
                             source = sources.pop(parent_index)
             source_tokens = num_tokens(
                 source.node.get_content(metadata_mode=MetadataMode.LLM),
-                "gpt-4o",
+                "gpt-4.1",
             )
             if total_tokens + source_tokens <= max_tokens:
                 trimmed_sources.append(source)
@@ -198,8 +201,8 @@ def answer(request, query_uuid):
         logger.info("\n\n\nSources passed to LLM:")
         for source in trimmed_sources:
             logger.info(source.node.metadata["display_metadata"])
-            logger.info(f'Section ID: {source.node.metadata["section_id"]}')
-            logger.info(f'Parent ID: {source.node.metadata["parent_id"]}')
+            logger.info(f"Section ID: {source.node.metadata['section_id']}")
+            logger.info(f"Parent ID: {source.node.metadata['parent_id']}")
         sources = trimmed_sources
         logger.info("\n\n\n")
 
@@ -218,10 +221,13 @@ def answer(request, query_uuid):
     )
 
 
-@app_access_required(app_name)
+@otto_user_required
 @budget_required
 def search(request, law_search=None):
-    bind_contextvars(feature="laws_query")
+    user_id = request.user.id
+    active_cost_group = request.user.get_active_cost_group(request)
+    cost_group_id = active_cost_group.id if active_cost_group else None
+    bind_contextvars(feature="laws_query", user_id=user_id, cost_group_id=cost_group_id)
     query_uuid = None
     if request.method != "POST":
         return redirect("laws:index")
@@ -574,12 +580,9 @@ def search(request, law_search=None):
     return response
 
 
-@app_access_required(app_name)
-@login_required
 def download_results(request, search_id):
     """Return a text file attachment containing the query and raw markdown of results."""
     logger.info("download_results called for search_id=%s", search_id)
-    from .search_history.views import view_search
 
     law_search = get_object_or_404(LawSearch, id=search_id, user=request.user)
     query_uuid = law_search.query_uuid
@@ -656,7 +659,6 @@ def download_results(request, search_id):
 
 
 def sources_to_html(sources):
-
     return [
         {
             "node_id": (

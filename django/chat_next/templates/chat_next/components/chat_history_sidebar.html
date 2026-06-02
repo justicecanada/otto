@@ -1,0 +1,253 @@
+{% load i18n %}
+<div id="left-sidebar"
+     class="chat-sidebar bg-light"
+     aria-label='{% trans "Chat history" %}'>
+  <div class="chat-sidebar-shell border-end h-100 overflow-hidden">
+    <div class="chat-sidebar-collapsed"
+         aria-label='{% trans "Collapsed sidebar" %}'>
+      <button type="button"
+              id="left-sidebar-toggle"
+              class="btn btn-none chat-sidebar-collapsed-btn"
+              aria-controls="left-sidebar"
+              aria-label='{% trans "Expand chat history sidebar" %}'
+              title="{% trans 'Expand sidebar' %}"
+              onClick="scrollToListItem();">
+        <i class="bi bi-layout-sidebar" aria-hidden="true"></i>
+      </button>
+      <a id="left-sidebar-collapsed-new-chat"
+         class="btn btn-none chat-sidebar-collapsed-btn"
+         href="{% url 'chat_next:new_chat' %}"
+         aria-label='{% trans "New chat" %}'
+         title="{% trans 'New chat' %}">
+        <i class="bi bi-plus-square" aria-hidden="true"></i>
+      </a>
+      <button type="button"
+              id="left-sidebar-collapsed-libraries"
+              class="btn btn-none chat-sidebar-collapsed-btn"
+              data-bs-toggle="modal"
+              data-bs-target="#chat-next-modal"
+              hx-get="{% url 'chat_next:modal_libraries' chat_id=chat.id %}"
+              hx-target="#chat-next-modal-content"
+              hx-indicator="#librarian-modal-spinner"
+              hx-swap="innerHTML"
+              hx-trigger="click"
+              aria-label='{% trans "Libraries" %}'
+              title="{% trans 'Libraries' %}">
+        <i class="bi bi-collection" aria-hidden="true"></i>
+      </button>
+      <button type="button"
+              id="left-sidebar-collapsed-skills"
+              class="btn btn-none chat-sidebar-collapsed-btn"
+              data-bs-toggle="modal"
+              data-bs-target="#chat-next-modal"
+              hx-get="{% url 'chat_next:get_skills' chat_id=chat.id %}"
+              hx-target="#chat-next-modal-content"
+              hx-swap="innerHTML"
+              hx-trigger="click"
+              aria-label='{% trans "Skills" %}'
+              title="{% trans 'Skills' %}">
+        <i class="bi bi-lightbulb" aria-hidden="true"></i>
+      </button>
+      <button type="button"
+              id="left-sidebar-collapsed-settings"
+              class="btn btn-none chat-sidebar-collapsed-btn"
+              data-bs-toggle="modal"
+              data-bs-target="#chat-next-modal"
+              hx-get="{% url 'chat_next:settings_modal' chat_id=chat.id %}"
+              hx-target="#chat-next-modal-content"
+              hx-swap="innerHTML"
+              hx-trigger="click"
+              aria-label='{% trans "Settings" %}'
+              title="{% trans 'Settings' %}">
+        <i class="bi bi-gear" aria-hidden="true"></i>
+      </button>
+    </div>
+    <div id="left-sidebar-scroll"
+         class="chat-sidebar-scroll h-100 overflow-y-auto overflow-x-hidden d-flex flex-column">
+      <div id="new-chat-button-outer">
+        <div class="offcanvas-header d-flex align-items-center gap-2 pt-2 px-1 pb-1">
+          <a class="btn btn-outline-dark new-chat-btn fw-semibold flex-grow-1 text-start"
+             id="new-chat-button"
+             href="{% url 'chat_next:new_chat' %}">
+            <i class="bi bi-plus-square me-1"></i>
+            <span>{% trans "New chat" %}</span>
+          </a>
+          <button type="button"
+                  id="chat-search-toggle"
+                  class="btn btn-none d-flex align-items-center justify-content-center py-0 px-1 text-secondary"
+                  aria-label="{% trans 'Show search' %}">
+            <i class="bi bi-search" aria-hidden="true"></i>
+          </button>
+          <button type="button"
+                  class="btn btn-none d-flex align-items-center justify-content-center p-0 pe-2 text-secondary"
+                  id="close-left-sidebar"
+                  aria-controls="left-sidebar"
+                  aria-label='{% trans "Close" %}'>
+            <i class="bi bi-layout-sidebar" aria-hidden="true"></i>
+          </button>
+        </div>
+        {% include 'chat_next/components/chat_search.html' %}
+        <input type="hidden"
+               name="current_chat_id"
+               id="current-chat-hidden-field"
+               value="{{ chat.id }}">
+        <div class="chat-sidebar-actions px-1 pb-2">
+          <div>
+            <button type="button"
+                    id="editLibrariesButton"
+                    class="btn btn-none w-100 text-start"
+                    data-bs-toggle="modal"
+                    data-bs-target="#chat-next-modal"
+                    hx-get="{% url 'chat_next:modal_libraries' chat_id=chat.id %}"
+                    hx-target="#chat-next-modal-content"
+                    hx-indicator="#librarian-modal-spinner"
+                    hx-swap="innerHTML"
+                    hx-trigger="click"
+                    title="{% trans 'Libraries' %}">
+              <i class="bi bi-collection me-1" aria-hidden="true"></i>
+              <span>{% trans "Libraries" %}</span>
+            </button>
+            <button type="button"
+                    id="editSkillsButton"
+                    class="btn btn-none w-100 text-start"
+                    data-bs-toggle="modal"
+                    data-bs-target="#chat-next-modal"
+                    hx-get="{% url 'chat_next:get_skills' chat_id=chat.id %}"
+                    hx-target="#chat-next-modal-content"
+                    hx-swap="innerHTML"
+                    hx-trigger="click"
+                    title="{% trans 'Skills' %}">
+              <i class="bi bi-lightbulb me-1" aria-hidden="true"></i>
+              <span>{% trans "Skills" %}</span>
+            </button>
+            <button type="button"
+                    id="editSettingsButton"
+                    class="btn btn-none w-100 text-start"
+                    data-bs-toggle="modal"
+                    data-bs-target="#chat-next-modal"
+                    hx-get="{% url 'chat_next:settings_modal' chat_id=chat.id %}"
+                    hx-target="#chat-next-modal-content"
+                    hx-swap="innerHTML"
+                    hx-trigger="click"
+                    title="{% trans 'Settings' %}">
+              <i class="bi bi-gear me-1" aria-hidden="true"></i>
+              <span>{% trans "Settings" %}</span>
+            </button>
+          </div>
+        </div>
+      </div>
+      {% include 'chat_next/components/chat_history_list_container.html' with chat_history_sections=chat_history_sections search=search current_chat_id=chat.id %}
+    </div>
+  </div>
+</div>
+
+{% block page_script %}
+  <script>
+  document.addEventListener('DOMContentLoaded', () => {
+    scrollToListItem();
+    const toggleBtn = document.getElementById('chat-search-toggle');
+    const container = document.getElementById('chat-search-container');
+    const input = document.getElementById('chat-history-search-input');
+    const clearBtn = document.getElementById('chat-search-clear');
+    
+    if (toggleBtn && container && input) {
+      // Helper function to update button state based on search visibility
+      const updateButtonState = () => {
+        const searchVisible = container.style.display !== 'none';
+        if (searchVisible) {
+          toggleBtn.classList.remove('text-secondary');
+          toggleBtn.classList.add('text-dark');
+        } else {
+          toggleBtn.classList.remove('text-dark');
+          toggleBtn.classList.add('text-secondary');
+        }
+      };
+
+      // Add hover effects that respect the current state
+      toggleBtn.addEventListener('mouseenter', () => {
+        const searchVisible = container.style.display !== 'none';
+        if (!searchVisible) {
+          toggleBtn.classList.remove('text-secondary');
+          toggleBtn.classList.add('text-dark');
+        }
+      });
+
+      toggleBtn.addEventListener('mouseleave', () => {
+        updateButtonState(); // Restore proper state based on search visibility
+      });
+
+      // Helper function to hide search and reset state
+      const hideSearchAndReset = () => {
+        container.style.display = 'none';
+        input.value = '';
+        const url = new URL(window.location);
+        url.searchParams.delete('search');
+        url.hash = ''; // Remove hash fragment
+        window.history.replaceState({}, '', url); 
+        // Clear all search highlights from messages
+        const messagesContainer = document.querySelector('#messages-container');
+        if (messagesContainer) {
+          unmarkInElement(messagesContainer);
+        }
+        // Trigger HTMX to reload full list
+        input.dispatchEvent(new Event('keyup', { bubbles: true }));
+        toggleBtn.setAttribute('aria-label', '{% trans 'Show search' %}');
+        updateButtonState(); // Update button state
+      };
+
+      // Helper function to show search
+      const showSearch = () => {
+        container.style.display = '';
+        input.focus();
+        toggleBtn.setAttribute('aria-label', '{% trans 'Hide search' %}');
+        updateButtonState(); // Update button state
+      };
+
+      // If arriving with ?search= in URL, apply it and show search box
+      const params = new URLSearchParams(window.location.search);
+      const initialSearch = params.get('search');
+      if (initialSearch) {
+        showSearch();
+        input.value = initialSearch;
+        // If server already rendered search results, skip triggering HTMX to avoid flicker
+        const listEl = document.getElementById('chat-history-list');
+        const alreadySearchRendered = listEl && listEl.dataset && listEl.dataset.searchActive === 'true';
+        if (!alreadySearchRendered) {
+          input.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+      } else {
+        // Initialize button state for when search is not visible
+        updateButtonState();
+      }
+
+      toggleBtn.addEventListener('click', () => {
+        const visible = container.style.display !== 'none';
+        if (!visible) {
+          showSearch();
+        } else {
+          hideSearchAndReset();
+        }
+      });
+
+      input.addEventListener('input', () => {
+        // If cleared manually (e.g., backspace to empty), trigger HTMX to restore full list
+        if (!input.value) {
+          // Let HTMX send the request (empty query) to search endpoint which should return full list
+          input.dispatchEvent(new Event('keyup', { bubbles: true }));
+        }
+      });
+
+      if (clearBtn) {
+        clearBtn.addEventListener('click', hideSearchAndReset);
+      }
+
+      // Pressing "escape" within the input box hides it
+      input.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') {
+          hideSearchAndReset();
+        }
+      });
+    }
+  });
+  </script>
+{% endblock %}

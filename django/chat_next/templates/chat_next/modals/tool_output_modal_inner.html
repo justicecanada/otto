@@ -1,0 +1,56 @@
+{% load i18n %}
+<div class="p-3">
+  {% if input_html %}
+    <p class="small fw-semibold mb-1">{% trans "Input" %}</p>
+    <div class="message-text">{{ input_html|safe }}</div>
+    <hr class="my-3">
+  {% endif %}
+  <div id="tool-output-output-anchor"></div>
+  <p class="small fw-semibold mb-1">{% trans "Output" %}</p>
+  <div class="message-text">{{ output_html|safe }}</div>
+</div>
+
+<script>
+(function () {
+  // Set the modal title from the step title passed via data attribute
+  const titleEl = document.getElementById('tool-output-modal-title');
+  if (titleEl) {
+      titleEl.textContent = "{{ modal_title|escapejs }}";
+  }
+
+  // Render .markdown-text elements (wrap_llm_response output)
+  const inner = document.getElementById('tool-output-modal-inner');
+  if (!inner) return;
+
+  inner.querySelectorAll('.markdown-text').forEach(function (el) {
+    let text = el.dataset.md;
+    try { text = JSON.parse(text); } catch (_) { text = false; }
+    if (text && typeof md !== 'undefined') {
+      el.innerHTML = md.render(text);
+      if (typeof copyCodeButtonHTML !== 'undefined') {
+        el.querySelectorAll('pre code').forEach(function (block) {
+          block.insertAdjacentHTML('beforebegin', copyCodeButtonHTML);
+        });
+      }
+    }
+  });
+
+  // Scroll modal body to the output section once modal is fully shown
+  const modalEl = document.getElementById('tool-output-modal');
+  function scrollToOutput() {
+    modalEl.removeEventListener('shown.bs.modal', scrollToOutput);
+    const anchor = document.getElementById('tool-output-output-anchor');
+    if (anchor) {
+      anchor.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }
+  if (modalEl) {
+    modalEl.addEventListener('shown.bs.modal', scrollToOutput);
+    // If modal is already shown (re-click while open), scroll immediately
+    if (modalEl.classList.contains('show')) {
+      const anchor = document.getElementById('tool-output-output-anchor');
+      if (anchor) anchor.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }
+})();
+</script>

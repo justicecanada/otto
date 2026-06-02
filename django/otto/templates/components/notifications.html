@@ -8,6 +8,7 @@
           hx-get="{% url 'notifications' %}"
           hx-trigger="load delay:100ms, click"
           hx-swap="none"
+          hx-request='{"timeout": 15000}'
           title="{% trans 'Notifications' %}"
           id="notifications-toggle">{% include 'components/notifications_bell.html' %}</button>
   <ul class="dropdown-menu dropdown-menu-end" id="notifications-ul">

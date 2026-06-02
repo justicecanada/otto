@@ -4,9 +4,13 @@ Template for updating document list items and, optionally, selected document sta
 
 {% load i18n %}
 
-{# Swapped out of band #}
-{% if selected_document and selected_document.celery_task_id %}
+{# Swapped out of band - always update if document is selected, regardless of celery_task_id #}
+{# This ensures we catch the final status update even after the task completes #}
+{% if selected_document %}
   {% include "librarian/components/document_status.html" with document=selected_document swap="true" %}
+{% endif %}
+{% if show_data_source_status and data_source_status_summary %}
+  {% include "librarian/components/data_source_status.html" with swap="true" %}
 {% endif %}
 {% include "librarian/components/poller.html" %}
 
@@ -23,4 +27,9 @@ Template for updating document list items and, optionally, selected document sta
   {% if blocked_count is not None %}
     <span id="librarian-blocked-count" hx-swap-oob="true">{{ blocked_count }}</span>
   {% endif %}
+{% endif %}
+
+{# Update document count out-of-band #}
+{% if total_document_count is not None %}
+  <span id="librarian-document-count" hx-swap-oob="true">{{ total_document_count }}</span>
 {% endif %}

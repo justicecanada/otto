@@ -1,58 +1,363 @@
 {% load i18n %}
+{% load rules %}
 
-<div>
-  <!-- Full tab list (visible on wide screens) -->
-  <ul id="app-tabs-list" class="nav nav-pills ms-4">
-    <li class="nav-item">
-      <a class="nav-link {% if active_app == 'chat' %}active{% endif %}"
-         href="{% url 'chat:new_chat' %}"
-         aria-current="{% if active_app == 'chat' %}page{% endif %}">
-        <i class="bi bi-chat-right small me-1"
-           style="position:relative;
-                  top:1px"></i>
-      {% trans "AI Assistant" %}</a>
-    </li>
-    <li class="nav-item ms-1">
-      <a class="nav-link {% if active_app == 'laws' %}active{% endif %}"
-         href="{% url 'laws:index' %}"
-         aria-current="{% if active_app == 'laws' %}page{% endif %}">
-        <i class="bi bi-search small me-1"></i>
-      {% trans "Legislation Search" %}</a>
-    </li>
-    <li class="nav-item ms-1">
-      <a class="nav-link {% if active_app == 'text_extractor' %}active{% endif %}"
-         href="{% url 'text_extractor:index' %}"
-         aria-current="{% if active_app == 'text_extractor' %}page{% endif %}">
-        <i class="bi bi-text-left small me-1"></i>
-      {% trans "Text Extractor" %}</a>
-    </li>
-  </ul>
+{% trans "classic" as classic_label %}
+{% trans "new" as new_label %}
+{% has_perm "otto.can_access_chat_next" request.user as can_access_chat_next %}
 
-  <!-- Compact dropdown (visible on small screens) -->
-  <div id="app-tabs-dropdown" class="dropdown d-inline-block ms-2">
-    <button class="btn btn-link nav-link dropdown-toggle p-0 text-muted"
-            type="button"
-            id="appTabsDropdownBtn"
-            data-bs-toggle="dropdown"
-            aria-expanded="false">
-      <span class="visually-hidden">{% trans "show app list" %}</span>
-    </button>
-    <ul class="dropdown-menu" aria-labelledby="appTabsDropdownBtn">
-      <li>
-        <a class="dropdown-item" href="{% url 'chat:new_chat' %}">
-          <i class="bi bi-chat-right small me-1"></i>
-        {% trans "AI Assistant" %}</a>
+<div id="app-tabs-container"
+     data-active-app="{{ active_app|default:'' }}"
+     data-default-ai="{{ request.user.default_ai_assistant|default:'chat' }}"
+     data-save-url="{% url 'set_default_ai_assistant' %}"
+     data-chat-url="{% url 'chat:new_chat' %}"
+     data-chat-next-url="{% if can_access_chat_next %}{% url 'chat_next:new_chat' %}{% endif %}"
+     data-label-classic="{{ classic_label }}"
+     data-label-new="{{ new_label }}">
+  {% with default_ai=request.user.default_ai_assistant|default:'chat' %}
+    <!-- Full tab list (visible on wide screens) -->
+    <ul id="app-tabs-list" class="nav nav-pills ms-4">
+      <li class="nav-item dropdown">
+        <div class="btn-group">
+          <a class="nav-link {% if active_app == 'chat' or active_app == 'chat_next' %}active{% endif %} rounded-end-0"
+             id="main-ai-link"
+             href="{% if can_access_chat_next and active_app == 'chat_next' %}{% url 'chat_next:new_chat' %}{% elif active_app == 'chat' %}{% url 'chat:new_chat' %}{% elif can_access_chat_next and default_ai == 'chat_next' %}{% url 'chat_next:new_chat' %}{% else %}{% url 'chat:new_chat' %}{% endif %}"
+             aria-current="{% if active_app == 'chat' or active_app == 'chat_next' %}page{% endif %}">
+            <i id="main-ai-icon"
+               class="bi {% if can_access_chat_next and active_app == 'chat_next' %}bi-chat-right-text{% elif active_app == 'chat' %}bi-chat-right{% elif can_access_chat_next and default_ai == 'chat_next' %}bi-chat-right-text{% else %}bi-chat-right{% endif %} small me-1"
+               style="position:relative;
+                      top:1px"></i>
+            {% trans "AI Assistant" %}
+            {% if can_access_chat_next and active_app == 'chat_next' %}
+              <em id="main-ai-variant" class="text-muted">({{ new_label }})</em>
+            {% elif can_access_chat_next and active_app == 'chat' %}
+              <em id="main-ai-variant" class="text-muted">({{ classic_label }})</em>
+            {% elif can_access_chat_next and default_ai == 'chat_next' %}
+              <em id="main-ai-variant" class="text-muted">({{ new_label }})</em>
+            {% elif can_access_chat_next %}
+              <em id="main-ai-variant" class="text-muted">({{ classic_label }})</em>
+            {% endif %}
+          </a>
+          {% if can_access_chat_next %}
+            <button class="btn nav-link dropdown-toggle dropdown-toggle-split {% if active_app == 'chat' or active_app == 'chat_next' %}active{% endif %} rounded-start-0 px-2"
+                    type="button"
+                    id="aiAssistantDropdownBtn"
+                    data-bs-toggle="dropdown"
+                    data-bs-auto-close="true"
+                    aria-expanded="false"
+                    aria-label="{% trans 'show AI Assistant versions' %}"></button>
+            <ul class="dropdown-menu">
+              <li>
+                <div class="dropdown-item d-flex align-items-center justify-content-between gap-2"
+                     id="ai-assistant-selector">
+                  <a class="text-decoration-none text-reset flex-grow-1 {% if active_app == 'chat' %}fw-semibold{% endif %}"
+                     href="{% url 'chat:new_chat' %}">
+                    <i class="bi bi-chat-right small me-1"></i>
+                    {% trans "AI Assistant" %}
+                    {% if can_access_chat_next %}<em class="text-muted">({{ classic_label }})</em>{% endif %}
+                  </a>
+                  <form method="post"
+                        action="{% url 'set_default_ai_assistant' %}"
+                        data-default-ai-form="true">
+                    {% csrf_token %}
+                    <input type="hidden" name="assistant" value="chat">
+                    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                    <button type="submit"
+                            class="btn btn-link p-0 border-0 d-inline-flex align-items-center gap-1"
+                            data-default-ai-check="true"
+                            title="{% trans 'Set as default assistant' %}">
+                      <i data-check-icon="chat"
+                         class="bi {% if default_ai == 'chat' %}bi-star-fill small{% else %}bi-star small text-secondary{% endif %}"
+                         {% if default_ai == 'chat' %}style="color: var(--app-color-yellow-1);"{% endif %}></i>
+                    </button>
+                  </form>
+                </div>
+              </li>
+              <li>
+                <div class="dropdown-item d-flex align-items-center justify-content-between gap-2"
+                     id="ai-assistant-selector">
+                  <a class="text-decoration-none text-reset flex-grow-1 {% if active_app == 'chat_next' %}fw-semibold{% endif %}"
+                     href="{% url 'chat_next:new_chat' %}">
+                    <i class="bi bi-chat-right-text small me-1"></i>
+                    {% trans "AI Assistant" %}
+                    {% if can_access_chat_next %}<em class="text-muted">({{ new_label }})</em>{% endif %}
+                  </a>
+                  <form method="post"
+                        action="{% url 'set_default_ai_assistant' %}"
+                        data-default-ai-form="true">
+                    {% csrf_token %}
+                    <input type="hidden" name="assistant" value="chat_next">
+                    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                    <button type="submit"
+                            class="btn btn-link p-0 border-0 d-inline-flex align-items-center gap-1"
+                            data-default-ai-check="true"
+                            title="{% trans 'Set as default assistant' %}">
+                      <i data-check-icon="chat_next"
+                         class="bi {% if default_ai == 'chat_next' %}bi-star-fill small{% else %}bi-star small text-secondary{% endif %}"
+                         {% if default_ai == 'chat_next' %}style="color: var(--app-color-yellow-1);"{% endif %}></i>
+                    </button>
+                  </form>
+                </div>
+              </li>
+            </ul>
+          {% endif %}
+        </div>
       </li>
-      <li>
-        <a class="dropdown-item" href="{% url 'laws:index' %}">
+      <li class="nav-item ms-1">
+        <a class="nav-link {% if active_app == 'laws' %}active{% endif %}"
+           href="{% url 'laws:index' %}"
+           aria-current="{% if active_app == 'laws' %}page{% endif %}">
           <i class="bi bi-search small me-1"></i>
         {% trans "Legislation Search" %}</a>
       </li>
-      <li>
-        <a class="dropdown-item" href="{% url 'text_extractor:index' %}">
+      <li class="nav-item ms-1">
+        <a class="nav-link {% if active_app == 'text_extractor' %}active{% endif %}"
+           href="{% url 'text_extractor:index' %}"
+           aria-current="{% if active_app == 'text_extractor' %}page{% endif %}">
           <i class="bi bi-text-left small me-1"></i>
         {% trans "Text Extractor" %}</a>
       </li>
     </ul>
-  </div>
+
+    <!-- Compact dropdown (visible on small screens) -->
+    <div id="app-tabs-dropdown"
+         class="dropdown d-inline-flex align-items-center ms-1">
+      <button class="btn btn-link nav-link dropdown-toggle d-inline-flex align-items-center gap-1 px-2 py-1 text-muted"
+              type="button"
+              id="appTabsDropdownBtn"
+              data-bs-toggle="dropdown"
+              data-bs-auto-close="true"
+              aria-expanded="false"
+              aria-label="{% trans 'show app list' %}">
+        <span class="visually-hidden">{% trans "show app list" %}</span>
+      </button>
+      <ul class="dropdown-menu" aria-labelledby="appTabsDropdownBtn">
+        <li>
+          <div class="dropdown-item d-flex align-items-center justify-content-between gap-2"
+               id="ai-assistant-selector">
+            <a class="text-decoration-none text-reset flex-grow-1 {% if active_app == 'chat' %}fw-semibold{% endif %}"
+               href="{% url 'chat:new_chat' %}">
+              <i class="bi bi-chat-right small me-1"></i>
+              {% trans "AI Assistant" %}
+              {% if can_access_chat_next %}<em class="text-muted">({{ classic_label }})</em>{% endif %}
+            </a>
+            <form method="post"
+                  action="{% url 'set_default_ai_assistant' %}"
+                  data-default-ai-form="true">
+              {% csrf_token %}
+              <input type="hidden" name="assistant" value="chat">
+              <input type="hidden" name="next" value="{{ request.get_full_path }}">
+              <button type="submit"
+                      class="btn btn-link p-0 border-0 d-inline-flex align-items-center gap-1"
+                      data-default-ai-check="true"
+                      title="{% trans 'Set as default assistant' %}">
+                <i data-check-icon="chat"
+                   class="bi {% if default_ai == 'chat' %}bi-star-fill small{% else %}bi-star small text-secondary{% endif %}"
+                   {% if default_ai == 'chat' %}style="color: var(--app-color-yellow-1);"{% endif %}></i>
+              </button>
+            </form>
+          </div>
+        </li>
+        {% if can_access_chat_next %}
+          <li>
+            <div class="dropdown-item d-flex align-items-center justify-content-between gap-2"
+                 id="ai-assistant-selector">
+              <a class="text-decoration-none text-reset flex-grow-1 {% if active_app == 'chat_next' %}fw-semibold{% endif %}"
+                 href="{% url 'chat_next:new_chat' %}">
+                <i class="bi bi-chat-right-text small me-1"></i>
+                {% trans "AI Assistant" %} <em class="text-muted">({{ new_label }})</em>
+              </a>
+              <form method="post"
+                    action="{% url 'set_default_ai_assistant' %}"
+                    data-default-ai-form="true">
+                {% csrf_token %}
+                <input type="hidden" name="assistant" value="chat_next">
+                <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                <button type="submit"
+                        class="btn btn-link p-0 border-0 d-inline-flex align-items-center gap-1"
+                        data-default-ai-check="true"
+                        title="{% trans 'Set as default assistant' %}">
+                  <i data-check-icon="chat_next"
+                     class="bi {% if default_ai == 'chat_next' %}bi-star-fill small{% else %}bi-star small text-secondary{% endif %}"
+                     {% if default_ai == 'chat_next' %}style="color: var(--app-color-yellow-1);"{% endif %}></i>
+                </button>
+              </form>
+            </div>
+          </li>
+        {% endif %}
+        <li>
+          <a class="dropdown-item" href="{% url 'laws:index' %}">
+            <i class="bi bi-search small me-1"></i>
+          {% trans "Legislation Search" %}</a>
+        </li>
+        <li>
+          <a class="dropdown-item" href="{% url 'text_extractor:index' %}">
+            <i class="bi bi-text-left small me-1"></i>
+          {% trans "Text Extractor" %}</a>
+        </li>
+      </ul>
+    </div>
+  {% endwith %}
+
+  <script>
+    (function() {
+      const container = document.getElementById("app-tabs-container");
+      if (!container || container.dataset.initialized === "true") return;
+      container.dataset.initialized = "true";
+
+      const saveUrl = container.dataset.saveUrl;
+      const chatUrl = container.dataset.chatUrl;
+      const chatNextUrl = container.dataset.chatNextUrl;
+      const canAccessChatNext = !!chatNextUrl;
+      const labelClassic = container.dataset.labelClassic;
+      const labelNew = container.dataset.labelNew;
+      const activeApp = container.dataset.activeApp;
+
+      const isChatContext = activeApp === "chat" || activeApp === "chat_next";
+
+      const applyCheckIcons = (selectedAssistant) => {
+        container.querySelectorAll("[data-check-icon]").forEach((icon) => {
+          const assistant = icon.dataset.checkIcon;
+          if (assistant === selectedAssistant) {
+            icon.className = "bi bi-star-fill small";
+            icon.style.color = "var(--app-color-yellow-1)";
+          } else {
+            icon.className = "bi bi-star small text-secondary";
+            icon.style.color = "";
+          }
+        });
+
+      };
+
+      const applyMainTitleIfNeeded = (selectedAssistant) => {
+        if (isChatContext) return;
+
+        const link = document.getElementById("main-ai-link");
+        const icon = document.getElementById("main-ai-icon");
+        const variant = document.getElementById("main-ai-variant");
+        if (!link || !icon || !variant) return;
+
+        if (selectedAssistant === "chat_next" && canAccessChatNext) {
+          link.href = chatNextUrl;
+          icon.className = "bi bi-chat-right-text small me-1";
+          variant.textContent = `(${labelNew})`;
+        } else {
+          link.href = chatUrl;
+          icon.className = "bi bi-chat-right small me-1";
+          variant.textContent = `(${labelClassic})`;
+        }
+      };
+
+      const tabsList = document.getElementById("app-tabs-list");
+      const topNavRight = document.getElementById("top-right-nav");
+
+      const tabsListIsVisible = () => {
+        if (!tabsList) return false;
+        return window.getComputedStyle(tabsList).display !== "none";
+      };
+
+      const tabsAreWrapped = () => {
+        if (!tabsList) return false;
+
+        const tabItems = tabsList.querySelectorAll(":scope > li");
+        if (!tabItems.length) return false;
+
+        const firstTop = tabItems[0].offsetTop;
+        return Array.from(tabItems).some((item) => Math.abs(item.offsetTop - firstTop) > 1);
+      };
+
+      const updateProgrammaticTabCollapse = () => {
+        if (!tabsList) return;
+
+        // Temporarily remove force-collapse so we can accurately measure wrapping.
+        container.classList.remove("app-tabs-force-collapsed");
+
+        // If CSS has already switched us to compact mode (mobile breakpoint), do nothing.
+        if (!tabsListIsVisible()) return;
+
+        if (tabsAreWrapped()) {
+          container.classList.add("app-tabs-force-collapsed");
+        }
+      };
+
+      let collapseUpdateRafId = null;
+      const scheduleProgrammaticTabCollapseUpdate = () => {
+        if (collapseUpdateRafId) return;
+
+        collapseUpdateRafId = window.requestAnimationFrame(() => {
+          collapseUpdateRafId = null;
+          updateProgrammaticTabCollapse();
+        });
+      };
+
+      const getCsrfToken = (form) => {
+        const csrfInput = form.querySelector("input[name='csrfmiddlewaretoken']");
+        return csrfInput ? csrfInput.value : "";
+      };
+
+      const saveDefaultAssistant = async (assistant, csrfToken) => {
+        const body = new URLSearchParams({
+          assistant,
+          next: window.location.pathname + window.location.search,
+        });
+
+        const headers = new Headers({
+          "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+          "X-Requested-With": "XMLHttpRequest",
+        });
+        if (csrfToken) {
+          headers.set("X-CSRFToken", csrfToken);
+        }
+
+        return fetch(saveUrl, {
+          method: "POST",
+          headers,
+          body,
+        });
+      };
+
+      container.querySelectorAll("form[data-default-ai-form='true']").forEach((form) => {
+        form.querySelectorAll("button[data-default-ai-check='true']").forEach((button) => {
+          button.addEventListener("click", (event) => {
+            event.stopPropagation();
+          });
+        });
+
+        form.addEventListener("submit", async (event) => {
+          event.preventDefault();
+
+          const assistantInput = form.querySelector("input[name='assistant']");
+          const assistant = assistantInput ? assistantInput.value : "";
+          if (!(assistant === "chat" || assistant === "chat_next")) return;
+          if (assistant === "chat_next" && !canAccessChatNext) return;
+
+          try {
+            const response = await saveDefaultAssistant(assistant, getCsrfToken(form));
+            if (!response.ok) return;
+
+            container.dataset.defaultAi = assistant;
+            applyCheckIcons(assistant);
+            applyMainTitleIfNeeded(assistant);
+          } catch (error) {
+            console.error("Failed to save default assistant", error);
+          }
+        });
+      });
+
+      scheduleProgrammaticTabCollapseUpdate();
+      window.addEventListener("resize", scheduleProgrammaticTabCollapseUpdate);
+
+      if ("ResizeObserver" in window) {
+        const resizeObserver = new ResizeObserver(() => {
+          scheduleProgrammaticTabCollapseUpdate();
+        });
+
+        const topNavContainer = document.querySelector("#top-nav .container-fluid");
+        [topNavContainer, topNavRight, tabsList].forEach((element) => {
+          if (element) {
+            resizeObserver.observe(element);
+          }
+        });
+      }
+    })();
+  </script>
 </div>

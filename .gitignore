@@ -1,7 +1,9 @@
 *.pyc
+*.pyc.*
 *.mo
 *.po
 */__pycache__/*
+**/__pycache__/
 django/db.sqlite3
 django/celerybeat-schedule
 django/venv/*
@@ -26,6 +28,7 @@ tmp_text
 liccheck.ini
 licenses_results.txt
 poc/*
+chat_next_bench
 
 # Local Terraform directories
 **/.terraform/*
@@ -59,3 +62,21 @@ load_test_results.txt
 tld_cache/
 pdf_benchmark_results*
 memlog*
+librarian_embedding_log.csv
+
+# Scraping results
+scraping/results/
+scraping/screenshots/
+
+# Ignore scraping directory (temporary)
+scraping/
+
+.incident/
+.worktrees/
+node_modules/
+**/node_modules/
+.npm/
+openai-skills-repo
+
+# Local Entra org metadata analysis exports (contain sensitive user data)
+docs/entra_org_metadata_exports/

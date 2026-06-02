@@ -66,7 +66,7 @@
         <div style="max-width:550px;">
           <p lang="en" class="mb-1 mt-3">AI-powered tools to automate legal processes and provide instant insights.</p>
           <div class="d-flex justify-content-center mb-3">
-            <a href="{% url 'azure_auth:login' %}?lang=en&next={{ next_url }}"
+            <a href="{% url 'azure_auth:login' %}?lang=en&next={{ next_url|urlencode }}"
                class="signin-with-microsoft">
               <img src="{% static 'thirdparty/microsoft_squares.svg' %}"
                    style="margin-right:12px"
@@ -84,7 +84,7 @@
             Outils alimentés par l'IA pour automatiser les processus juridiques et fournir des informations instantanées.
           </p>
           <div class="d-flex justify-content-center mb-2">
-            <a href="{% url 'azure_auth:login' %}?lang=fr&next={{ next_url }}"
+            <a href="{% url 'azure_auth:login' %}?lang=fr&next={{ next_url|urlencode }}"
                class="signin-with-microsoft">
               <img src="{% static 'thirdparty/microsoft_squares.svg' %}"
                    style="margin-right:12px"
@@ -97,6 +97,16 @@
         </div>
       </div>
     </div>
+    {% if browser_test_auth_enabled %}
+      <div class="alert alert-warning-subtle border border-warning-subtle text-center mt-2 mb-4"
+           style="max-width: 880px">
+        <p class="mb-2 fw-semibold">{% trans "Local development browser testing" %}</p>
+        <p class="mb-3 small text-muted">
+          {% trans "Entra can reject the embedded browser in VS Code. This local-only fallback signs in one of several disposable development test accounts and is only available when ENABLE_BROWSER_TEST_AUTH=True." %}
+        </p>
+        {% include "components/browser_test_login_buttons.html" %}
+      </div>
+    {% endif %}
   </div>
   {# Align to the bottom #}
   <div style="height:90px;

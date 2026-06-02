@@ -1,7 +1,6 @@
 from django.conf import settings
 from django.conf.urls.static import static
-from django.urls import include, path
-from django.utils.html import format_html
+from django.urls import path
 
 from . import responses, views
 
@@ -10,6 +9,7 @@ app_name = "chat"
 
 urlpatterns = [
     path("", views.new_chat, name="new_chat"),
+    path("preset/<int:preset_id>/", views.new_chat_from_preset, name="from_preset"),
     path("chat-with-ai/", views.new_chat_with_ai, name="chat_with_ai"),
     path("summarize/", views.new_summarize, name="summarize"),
     path("translate/", views.new_translate, name="translate"),
@@ -30,6 +30,11 @@ urlpatterns = [
     path("delete_all_chats/", views.delete_all_chats, name="delete_all_chats"),
     path("id/<str:chat_id>/message/", views.chat_message, name="chat_message"),
     path(
+        "id/<str:chat_id>/debug_stream_test/",
+        views.debug_stream_test,
+        name="debug_stream_test",
+    ),
+    path(
         "message/<int:message_id>/delete/", views.delete_message, name="delete_message"
     ),
     path(
@@ -48,6 +53,16 @@ urlpatterns = [
         name="cost_warning",
     ),
     path(
+        "message/<int:message_id>/html/",
+        views.get_message_html,
+        name="get_message_html",
+    ),
+    path(
+        "message/<int:message_id>/send_outlook/",
+        views.send_message_outlook,
+        name="send_outlook",
+    ),
+    path(
         "message/<int:message_id>/sources/",
         views.message_sources,
         name="message_sources",
@@ -62,6 +77,11 @@ urlpatterns = [
         "thumbs-feedback/<int:message_id>/<str:feedback>",
         views.thumbs_feedback,
         name="thumbs_feedback",
+    ),
+    path(
+        "rerun_prompt/<int:message_id>/",
+        views.rerun_prompt,
+        name="rerun_prompt",
     ),
     path("id/<str:chat_id>/options/", views.chat_options, name="chat_options"),
     path(
@@ -93,6 +113,11 @@ urlpatterns = [
         "id/<str:current_chat_id>/list_item/<str:chat_id>",
         views.chat_list_item,
         name="chat_list_item",
+    ),
+    path(
+        "id/<str:current_chat_id>/refresh_titles/",
+        views.refresh_chat_titles,
+        name="refresh_chat_titles",
     ),
     path(
         "id/<str:chat_id>/options/presets/",

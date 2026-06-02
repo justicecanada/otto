@@ -1,0 +1,14 @@
+{% load i18n %}
+<div id="preset-header"
+     {% if swap %}hx-swap-oob="true"{% endif %}
+     class="{% if chat.loaded_preset %}px-3 pb-2 pt-0 col-form-label-sm text-muted{% endif %}">
+  {% if chat.loaded_preset %}
+    <strong>{% trans "Preset:" %}</strong>
+    <span id="preset-name">{{ chat.loaded_preset.name_auto }}</span>
+    {% if preset_dirty %}
+      <span id="preset-dirty-indicator"
+            class="text-danger"
+            title="{% trans 'Modified from preset' %}">*</span>
+    {% endif %}
+  {% endif %}
+</div>

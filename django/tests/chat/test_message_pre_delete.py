@@ -7,13 +7,14 @@ from llama_index.core.vector_stores.types import MetadataFilter, MetadataFilters
 
 from chat.llm import OttoLLM
 from chat.models import Chat, ChatFile, Message
-from librarian.models import DataSource, Document, Library, SavedFile
-from librarian.tasks import process_document_helper
+from librarian.models import DataSource, Document, SavedFile
+from librarian.tasks import process_document
 
 this_dir = os.path.dirname(os.path.abspath(__file__))
 
 
 @pytest.mark.django_db
+@pytest.mark.usefixtures("configure_celery_for_tests")
 def test_message_pre_delete_removes_documents(all_apps_user):
     """
     Test that deleting a message in Q&A mode also deletes the corresponding Document objects
@@ -49,12 +50,17 @@ def test_message_pre_delete_removes_documents(all_apps_user):
 
     # Create a Document object linked to the saved file
     document = Document.objects.create(
-        data_source=data_source, saved_file=saved_file, filename="test_document.pdf"
+        data_source=data_source,
+        saved_file=saved_file,
+        filename="test_document.pdf",
     )
+    document.messages.add(message)
 
     # Process the document to add it to the vector store
+    process_document.run(document_id=document.id, mock_embedding=True)
+
+    # We need an llm instance for later assertions
     llm = OttoLLM(mock_embedding=True)
-    process_document_helper(document, llm)
 
     # Verify the document was processed and exists in vector store
     document.refresh_from_db()
@@ -78,9 +84,9 @@ def test_message_pre_delete_removes_documents(all_apps_user):
     )
     retriever = llm.get_retriever(user.personal_library.uuid_hex, filters)
     nodes_before_delete = retriever.retrieve("What is this about?")
-    assert (
-        len(nodes_before_delete) > 0
-    ), "Document should exist in vector store before deletion"
+    assert len(nodes_before_delete) > 0, (
+        "Document should exist in vector store before deletion"
+    )
 
     # Store IDs for verification after deletion
     document_id = document.id
@@ -92,20 +98,20 @@ def test_message_pre_delete_removes_documents(all_apps_user):
 
     # Verify the ChatFile still exists (it's only deleted when the message is deleted)
     # but the Document should be deleted due to the signal handler
-    assert not Document.objects.filter(
-        id=document_id
-    ).exists(), "Document should be deleted"
+    assert not Document.objects.filter(id=document_id).exists(), (
+        "Document should be deleted"
+    )
 
     # The ChatFile should also be deleted since it's CASCADE related to Message
-    assert not ChatFile.objects.filter(
-        id=chat_file_id
-    ).exists(), "ChatFile should be deleted"
+    assert not ChatFile.objects.filter(id=chat_file_id).exists(), (
+        "ChatFile should be deleted"
+    )
 
     # The SavedFile might still exist if referenced elsewhere, but in this case it should be deleted
     # when the ChatFile is deleted (due to the post_delete signal on ChatFile)
-    assert not SavedFile.objects.filter(
-        id=saved_file_id
-    ).exists(), "SavedFile should be deleted"
+    assert not SavedFile.objects.filter(id=saved_file_id).exists(), (
+        "SavedFile should be deleted"
+    )
 
     # Most importantly, verify the document no longer exists in the vector store
     nodes_after_delete = retriever.retrieve("What is this about?")
@@ -115,15 +121,15 @@ def test_message_pre_delete_removes_documents(all_apps_user):
         for node in nodes_after_delete
         if node.metadata.get("doc_id") == document.uuid_hex
     ]
-    assert (
-        len(matching_nodes) == 0
-    ), "Document should not exist in vector store after deletion"
+    assert len(matching_nodes) == 0, (
+        "Document should not exist in vector store after deletion"
+    )
 
 
 @pytest.mark.django_db
-def test_message_pre_delete_non_qa_mode_no_deletion(all_apps_user):
+def test_message_pre_delete_non_qa_mode_deletes_documents(all_apps_user):
     """
-    Test that deleting a message NOT in Q&A mode does not delete Document objects.
+    Test that deleting a message removes associated Document objects even outside Q&A mode.
     """
     user = all_apps_user()
 
@@ -147,7 +153,7 @@ def test_message_pre_delete_non_qa_mode_no_deletion(all_apps_user):
             content_type="application/pdf",
         )
 
-    chat_file = ChatFile.objects.create(
+    ChatFile.objects.create(
         message=message, filename="test_document.pdf", saved_file=saved_file
     )
 
@@ -155,8 +161,11 @@ def test_message_pre_delete_non_qa_mode_no_deletion(all_apps_user):
     data_source = DataSource.objects.get(chat=chat)
 
     document = Document.objects.create(
-        data_source=data_source, saved_file=saved_file, filename="test_document.pdf"
+        data_source=data_source,
+        saved_file=saved_file,
+        filename="test_document.pdf",
     )
+    document.messages.add(message)
 
     # Store ID for verification
     document_id = document.id
@@ -164,10 +173,10 @@ def test_message_pre_delete_non_qa_mode_no_deletion(all_apps_user):
     # Delete the message - this should NOT trigger document deletion since mode != "qa"
     message.delete()
 
-    # Verify the Document still exists (should not be deleted for non-Q&A messages)
-    assert Document.objects.filter(
-        id=document_id
-    ).exists(), "Document should NOT be deleted for non-Q&A messages"
+    # Verify the Document no longer exists
+    assert not Document.objects.filter(id=document_id).exists(), (
+        "Document should be deleted when the message is removed"
+    )
 
 
 @pytest.mark.django_db
@@ -215,22 +224,23 @@ def test_message_pre_delete_multiple_documents(all_apps_user):
             saved_file=saved_file,
             filename=f"test_document_{i}.pdf",
         )
+        document.messages.add(message)
         document_ids.append(document.id)
 
     # Verify both documents exist
     for doc_id in document_ids:
-        assert Document.objects.filter(
-            id=doc_id
-        ).exists(), f"Document {doc_id} should exist before deletion"
+        assert Document.objects.filter(id=doc_id).exists(), (
+            f"Document {doc_id} should exist before deletion"
+        )
 
     # Delete the message
     message.delete()
 
     # Verify both documents are deleted
     for doc_id in document_ids:
-        assert not Document.objects.filter(
-            id=doc_id
-        ).exists(), f"Document {doc_id} should be deleted"
+        assert not Document.objects.filter(id=doc_id).exists(), (
+            f"Document {doc_id} should be deleted"
+        )
 
 
 @pytest.mark.django_db
@@ -250,7 +260,9 @@ def test_message_pre_delete_no_saved_file(all_apps_user):
 
     # Create a ChatFile with no saved_file (this can happen in edge cases)
     ChatFile.objects.create(
-        message=message, filename="test_document.pdf", saved_file=None  # No saved file
+        message=message,
+        filename="test_document.pdf",
+        saved_file=None,  # No saved file
     )
 
     # This should not crash
@@ -296,8 +308,11 @@ def test_message_pre_delete_error_handling(all_apps_user, caplog):
     data_source = DataSource.objects.get(chat=chat)
 
     document = Document.objects.create(
-        data_source=data_source, saved_file=saved_file, filename="test_document.pdf"
+        data_source=data_source,
+        saved_file=saved_file,
+        filename="test_document.pdf",
     )
+    document.messages.add(message)
 
     message_id = message.id
 
@@ -309,7 +324,7 @@ def test_message_pre_delete_error_handling(all_apps_user, caplog):
         mock_queryset.first.side_effect = Exception("Simulated database error")
         return mock_queryset
 
-    with patch("chat.models.Document.objects.filter", side_effect=mock_filter):
+    with patch("librarian.models.Document.objects.filter", side_effect=mock_filter):
         # The message deletion should still work despite the error
         message.delete()
 

@@ -1,0 +1,58 @@
+{% load i18n %}
+
+<div id="active-skills-panel">
+  {% if is_new_skill %}
+    <div class="d-flex align-items-center justify-content-between py-2 px-1 border-bottom">
+      <span class="small fw-semibold" style="cursor: default">{% trans "New skill" %}</span>
+      <div class="form-check form-switch mb-0">
+        <input class="form-check-input" type="checkbox" role="switch" disabled>
+      </div>
+    </div>
+  {% endif %}
+  {% if active_skills %}
+    <ul class="list-unstyled mb-0">
+      {% for skill in active_skills %}
+        <li class="d-flex align-items-center justify-content-between py-2 px-1 border-bottom"
+            style="cursor: pointer">
+          <a class="small text-decoration-none text-body flex-grow-1 {% if current_skill_id and skill.id|stringformat:'s' == current_skill_id|stringformat:'s' %}fw-semibold{% endif %}"
+             role="button"
+             hx-get="{% url 'chat_next:edit_skill' chat_id=chat_id skill_id=skill.id %}"
+             hx-include="#skill-modal-nav-state"
+             hx-target="#chat-next-modal-content"
+             hx-swap="innerHTML">{{ skill.display_name|default:_("Untitled skill") }}</a>
+          <div class="form-check form-switch mb-0">
+            <input class="form-check-input"
+                   type="checkbox"
+                   role="switch"
+                   checked
+                   data-skill-id="{{ skill.id }}"
+                   hx-post="{% url 'chat_next:toggle_skill' chat_id=chat_id skill_id=skill.id %}"
+                   hx-swap="none"
+                   onclick="event.stopPropagation()"
+                   title="{% trans 'Disable skill' %}">
+          </div>
+        </li>
+      {% endfor %}
+    </ul>
+  {% elif not is_new_skill and not current_skill_id %}
+    <p class="text-muted small py-2">{% trans "No active skills" %}</p>
+  {% endif %}
+  {% if current_skill_id and not current_skill_enabled %}
+    <ul class="list-unstyled mb-0">
+      <li class="d-flex align-items-center justify-content-between py-2 px-1 border-bottom"
+          style="cursor: pointer">
+        <span class="small text-body flex-grow-1 fw-semibold">{{ current_skill_name }}</span>
+        <div class="form-check form-switch mb-0">
+          <input class="form-check-input"
+                 type="checkbox"
+                 role="switch"
+                 data-skill-id="{{ current_skill_id }}"
+                 hx-post="{% url 'chat_next:toggle_skill' chat_id=chat_id skill_id=current_skill_id %}"
+                 hx-swap="none"
+                 onclick="event.stopPropagation()"
+                 title="{% trans 'Enable skill' %}">
+        </div>
+      </li>
+    </ul>
+  {% endif %}
+</div>

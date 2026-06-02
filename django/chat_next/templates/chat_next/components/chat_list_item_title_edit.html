@@ -1,0 +1,37 @@
+{% load i18n %}
+
+<form hx-post="{% url 'chat_next:rename_chat' current_chat_id=current_chat_id chat_id=chat.id %}"
+      hx-target="closest li"
+      hx-swap="outerHTML"
+      hx-trigger="keyup[key=='Enter']"
+      onsubmit="event.preventDefault();renameChatHandler();"
+      class="row d-flex py-2 border-bottom">
+  <div class="col">
+    <input type="hidden" name="rename_intent" value="1">
+    <label for="{{ form.title.id_for_label }}" class="visually-hidden">{% trans "Edit chat title" %}</label>
+    {{ form.title }}
+  </div>
+
+  <button type="button"
+          class="btn btn-sm btn-light me-0 ps-2 col-auto d-none cancel-chat-rename-btn"
+          hx-get="{% url 'chat_next:chat_list_item' current_chat_id=current_chat_id chat_id=chat.id %}"
+          hx-swap="outerHTML"
+          hx-target="closest li">
+    <i class="bi bi-x-lg"></i><span class="visually-hidden">{% trans "Cancel" %}</span>
+  </button>
+</form>
+
+{% block page_script %}
+  <script>
+        htmx.onLoad((element) => {
+            if(element instanceof HTMLFormElement) {
+                const input = document.getElementById('{{ form.title.id_for_label }}');                
+                input.focus();
+            }
+        });
+        function renameChatHandler() {
+            const input = document.getElementById('{{ form.title.id_for_label }}');
+            updatePageTitle(input.value + " - " + '{% trans "AI Assistant - Otto" %}');
+        }
+  </script>
+{% endblock page_script %}

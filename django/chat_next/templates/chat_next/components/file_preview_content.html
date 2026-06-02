@@ -1,0 +1,82 @@
+{% load i18n %}
+{% load static %}
+
+{% comment %}
+  File preview content fragment. Loaded via HTMX into the preview panel.
+  Renders differently based on file content type:
+  - Markdown: rendered via markdown-it (same as chat messages)
+  - Images: inline <img> tag
+  - Plain text / CSV: <pre><code> block
+  - DOCX: rendered client-side with docx-preview into a DOM container
+  - PDF: <iframe> with inline file URL
+  - HTML: sandboxed <iframe srcdoc>
+  - Other: "Download to view" fallback
+
+  Context:
+    - file: ChatFile object
+    - preview_type: one of "markdown", "image", "text", "docx", "pdf", "html", "unsupported"
+    - file_content: raw file content string (for markdown, text, html)
+    - inline_url: URL to serve file inline (for image, pdf)
+    - download_url: URL to download the file
+{% endcomment %}
+
+<div class="preview-content-inner" data-preview-type="{{ preview_type }}" data-copyable="{% if preview_type == 'markdown' or preview_type == 'text' or preview_type == 'image' or preview_type == 'html' %}true{% else %}false{% endif %}">
+{% if preview_type == "markdown" %}
+<div class="preview-copyable-wrapper position-relative">
+<div class="markdown-text" data-md="{{ file_content_json }}"></div>
+</div>
+
+{% elif preview_type == "text" %}
+<div class="preview-copyable-wrapper position-relative">
+<pre class="preview-text-block"><code>{{ file_content }}</code></pre>
+</div>
+
+{% elif preview_type == "image" %}
+<div class="preview-copyable-wrapper">
+  <img src="{{ inline_url }}"
+       alt="{{ file.filename }}"
+       class="preview-image"
+       loading="lazy">
+</div>
+
+{% elif preview_type == "pdf" %}
+<iframe src="{{ inline_url }}"
+        class="preview-iframe"
+        title="{{ file.filename }}"></iframe>
+
+{% elif preview_type == "docx" %}
+<div class="preview-copyable-wrapper preview-docx-wrapper"
+     data-docx-url="{{ inline_url }}"
+     data-download-url="{{ download_url }}">
+  <div class="preview-docx-status text-muted small d-flex align-items-center gap-2 px-1 py-2">
+    <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+    <span>{% trans "Loading DOCX preview..." %}</span>
+  </div>
+  <div class="preview-docx-error alert alert-warning d-none mb-0"
+       role="status">
+    <i class="bi bi-exclamation-triangle me-2"></i>
+    <span>{% trans "DOCX preview could not be rendered in the browser." %}</span>
+    <a href="{{ download_url }}" class="alert-link ms-2">{% trans "Download the file instead." %}</a>
+  </div>
+  <div class="preview-docx-stage"></div>
+</div>
+
+{% elif preview_type == "html" %}
+<div class="preview-copyable-wrapper">
+  <template class="preview-html-source">{{ file_content }}</template>
+  <iframe srcdoc="{{ file_content }}"
+          sandbox="allow-same-origin"
+          class="preview-iframe preview-iframe-html"
+          title="{{ file.filename }}"></iframe>
+</div>
+
+{% else %}
+<div class="preview-unsupported text-center py-4 text-muted">
+  <i class="bi bi-file-earmark display-4 d-block mb-3"></i>
+  <p>{% trans "Preview not available for this file type." %}</p>
+  <a href="{{ download_url }}" class="btn btn-sm btn-outline-secondary">
+    <i class="bi bi-download me-1"></i>{% trans "Download to view" %}
+  </a>
+</div>
+{% endif %}
+</div>

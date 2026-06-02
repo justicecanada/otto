@@ -5,7 +5,8 @@
   <div id="cost-bar-outer"
        hx-get="{% url 'user_cost' %}"
        hx-swap="outerHTML"
-       hx-trigger='load delay:100ms'>
+       hx-trigger='load delay:100ms'
+       hx-request='{"timeout": 15000}'>
     <meter id="cost-bar-inner"
            class="w-100 d-block"
            style="height: 12px"
@@ -24,21 +25,31 @@
   <ul class="dropdown-menu dropdown-menu-end">
     <li class="d-none" id="user-menu-cost"></li>
     {% if request.user.is_operations_admin %}
-      {# Small heading #}
       <li>
-        <h6 class="dropdown-header text-secondary">{% trans "Admin tools" %}</h6>
+        <hr class="dropdown-divider">
+      </li>
+      <li>
+        <h6 class="dropdown-header text-secondary">{% trans "Admin dashboards" %}</h6>
       </li>
       <li>
         <a class="a dropdown-item" href="{% url 'cost_dashboard' %}">{% trans "Cost dashboard" %}</a>
+        <a class="a dropdown-item" href="{% url 'usage_dashboard' %}">{% trans "Usage dashboard" %}</a>
         <a class="a dropdown-item" href="{% url 'feedback_dashboard' %}">{% trans "Feedback dashboard" %}</a>
       </li>
     {% endif %}
     {% if request.user.is_admin %}
       <li>
+        <hr class="dropdown-divider">
+      </li>
+      <li>
+        <h6 class="dropdown-header text-secondary">{% trans "Admin tools" %}</h6>
+      </li>
+      <li>
         <a class="a dropdown-item" href="{% url 'manage_users' %}">{% trans "Manage users" %}</a>
-        <a class="a dropdown-item" href="{% url 'reset_completion_flags' %}">{% trans "Reset flags for demo" %}</a>
+        <a class="a dropdown-item" href="{% url 'manage_api_clients' %}">{% trans "Manage API clients" %}</a>
         <a class="a dropdown-item" href="{% url 'laws:loading_monitor' %}">{% trans "Manage laws loading" %}</a>
         <a class="a dropdown-item" href="{% url 'manage_banner' %}">{% trans "Manage message banner" %}</a>
+        <a class="a dropdown-item" href="{% url 'reset_completion_flags' %}">{% trans "Reset flags for demo" %}</a>
       </li>
       <li>
         {% if load_test_enabled %}
@@ -48,11 +59,15 @@
         {% endif %}
       </li>
     {% endif %}
-    {% if request.user.is_operations_admin %}
-      <li>
-        <hr class="dropdown-divider">
-      </li>
-    {% endif %}
+    <li>
+      <hr class="dropdown-divider">
+    </li>
+    <li>
+      <a href="{% url 'manage_teams' %}" class="dropdown-item">
+        <i class="bi bi-people"></i>
+        {% trans "Manage teams" %}
+      </a>
+    </li>
     <li>
       <a href="{% url 'azure_auth:logout' %}" class="dropdown-item">
         <i class="bi bi-box-arrow-right"></i>

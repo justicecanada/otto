@@ -1,15 +1,10 @@
-from django.core.exceptions import ObjectDoesNotExist
-from django.core.management import call_command
 from django.core.management.base import BaseCommand
 
-from langdetect import detect
 from llama_index.core.retrievers import QueryFusionRetriever
 from llama_index.core.vector_stores.types import MetadataFilter, MetadataFilters
 
 from chat.llm import OttoLLM
-from chat.models import Preset
 from laws.models import Law
-from otto.models import Group, User
 
 
 def fake_laws_search(query):
@@ -116,7 +111,7 @@ def fake_laws_search(query):
 
     try:
         sources = retriever.retrieve(query)
-    except:
+    except Exception:
         sources = None
     return sources
 
@@ -129,7 +124,5 @@ class Command(BaseCommand):
 
         start = time()
         for j in range(10):
-            sources = fake_laws_search(
-                f"what is the most important law in the world? ({j})"
-            )
+            fake_laws_search(f"what is the most important law in the world? ({j})")
         print(time() - start)

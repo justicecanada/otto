@@ -1,0 +1,9 @@
+{% load i18n %}
+
+<a href="#"
+   hx-get="{{ url }}"
+   hx-target="#user-roles-form"
+   hx-indicator="#modal-spinner"
+   onclick="document.getElementById('user-roles-form').innerHTML='';"
+   data-bs-toggle="modal"
+   data-bs-target="#addUserModal">{% trans "Edit user" %}</a>

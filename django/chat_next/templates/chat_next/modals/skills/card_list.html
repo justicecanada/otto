@@ -1,0 +1,379 @@
+{% load i18n %}
+
+<div class="modal-body" id="skills-card-list">
+  <div class="row g-0 flex-nowrap">
+    {# Left column: filters #}
+    <div class="col-3 border-end p-3 scroll-col">
+      <button class="btn btn-primary btn-sm w-100 mb-3"
+              type="button"
+              hx-get="{% url 'chat_next:create_skill' chat_id=chat_id %}"
+              hx-include="#skills-browser-state"
+              hx-target="#chat-next-modal-content"
+              hx-swap="innerHTML">
+        <i class="bi bi-plus-lg me-1"></i>{% trans "New skill" %}
+      </button>
+
+      {% if skill_creator %}
+        <div class="alert alert-light border small p-2 mb-3">
+          <i class="bi bi-magic text-warning"></i>
+          {% trans "Ask the AI to" %}
+          <a href="#"
+             class="fw-semibold"
+             onclick="submitSkillCreatorPrompt(event, '{% trans "Help me create a skill" %}', '{{ skill_creator.id }}', '{{ skill_creator.display_name|escapejs }}')">{% trans "create a skill" %}</a>
+          {% trans "or" %}
+          <a href="#"
+             class="fw-semibold"
+             onclick="submitSkillCreatorPrompt(event, '{% trans "I want to migrate a preset from the old AI Assistant" %}', '{{ skill_creator.id }}', '{{ skill_creator.display_name|escapejs }}')">{% trans "migrate a preset" %}</a>.
+        </div>
+      {% endif %}
+
+      {# Checkbox filters #}
+      <div class="mb-1">
+        <a href="#"
+           class="text-muted small text-decoration-none"
+           onclick="event.preventDefault(); clearSkillFilters()">{% trans "Clear filters" %}</a>
+      </div>
+
+      <div class="mb-3">
+        <form id="skill-search-form"
+              hx-get="{% url 'chat_next:get_skills' chat_id=chat_id %}"
+              hx-target="#chat-next-modal-content"
+              hx-swap="innerHTML"
+              hx-trigger="submit"
+              hx-include="#skills-browser-state"
+              onsubmit="return submitSkillSearch(event)">
+          <label for="skill-filter-search" class="visually-hidden">{% trans "Search" %}</label>
+          <div class="input-group input-group-sm">
+            <input type="text"
+                   class="form-control"
+                   id="skill-filter-search"
+                   name="q"
+                   value="{{ search_query }}"
+                   hx-get="{% url 'chat_next:get_skills' chat_id=chat_id %}"
+                   hx-trigger="keyup[key!='Enter'] changed delay:500ms"
+                   hx-target="#skills-results"
+                   hx-select="#skills-results"
+                   hx-swap="outerHTML"
+                   hx-include="#skills-browser-state"
+                   placeholder="{% trans 'Search...' %}">
+          </div>
+        </form>
+      </div>
+
+      <div class="form-check mb-1">
+        <input class="form-check-input"
+               type="checkbox"
+               id="filter-mine"
+               {% if "mine" in sharing_filter %}checked{% endif %}
+               onchange="updateSkillFilters()">
+        <label class="form-check-label small" for="filter-mine">{% trans "My Skills" %}</label>
+      </div>
+
+      <div class="form-check mb-1">
+        <input class="form-check-input"
+               type="checkbox"
+               id="filter-featured"
+               {% if featured_filter == "1" %}checked{% endif %}
+               onchange="updateSkillFilters()">
+        <label class="form-check-label small" for="filter-featured">{% trans "Featured" %}</label>
+      </div>
+
+      <div class="form-check mb-1">
+        <input class="form-check-input"
+               type="checkbox"
+               id="filter-everyone"
+               {% if sharing_filter == "everyone" %}checked{% endif %}
+               onchange="updateSkillFilters()">
+        <label class="form-check-label small" for="filter-everyone">{% trans "Shared with everyone" %}</label>
+      </div>
+
+      <div class="form-check mb-3">
+        <input class="form-check-input"
+               type="checkbox"
+               id="filter-shared-with-me"
+               {% if sharing_filter == "shared_with_me" %}checked{% endif %}
+               onchange="updateSkillFilters()">
+        <label class="form-check-label small" for="filter-shared-with-me">{% trans "Shared with me" %}</label>
+      </div>
+
+      <div class="form-check form-switch mb-3">
+        <input class="form-check-input"
+               type="checkbox"
+               role="switch"
+               id="filter-enabled-only"
+               {% if enabled_filter == "1" %}checked{% endif %}
+               onchange="toggleEnabledSkillsFilter(this)">
+        <label class="form-check-label small" for="filter-enabled-only">
+          {% trans "Only show" %}
+          <abbr style="text-decoration-thickness: 1px"
+                title="{% trans 'When skills are enabled, they become available for use during chat conversations.' %}">
+            {% trans "enabled skills" %}
+          </abbr>
+        </label>
+      </div>
+
+      {# Filter by tag #}
+      {% if all_tags %}
+        <h6 class="small fw-semibold mb-2">{% trans "Filter by tag" %}</h6>
+        <div class="d-flex flex-wrap gap-1 mb-2" id="skill-tag-filters">
+          {% for tag in all_tags %}
+            <button type="button"
+                    class="btn btn-sm {% if tag_filter == tag.name %}btn-primary{% else %}btn-outline-secondary{% endif %} skill-tag-filter-btn"
+                    data-tag="{{ tag.name }}"
+                    onclick="toggleSkillTagFilter(this)">{{ tag.name }}</button>
+          {% endfor %}
+        </div>
+        {% if has_more_tags %}
+          <a href="#"
+             class="small text-muted text-decoration-none"
+             onclick="event.preventDefault(); loadMoreSkillTags()">{% trans "Load more..." %}</a>
+        {% endif %}
+      {% endif %}
+    </div>
+
+    {# Right column: results #}
+    <div class="col-9 p-3 scroll-col" id="skills-results">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <small class="text-muted">
+          {% blocktrans with filtered=filtered_count total=total_visible_count %}Displaying {{ filtered }}/{{ total }} skills{% endblocktrans %}
+        </small>
+        <div class="d-flex flex-nowrap align-items-center gap-2">
+          <label for="skill-sort-select"
+                 class="small text-muted text-nowrap flex-shrink-0">{% trans "Sort by" %}</label>
+          <select id="skill-sort-select"
+                  class="form-select form-select-sm"
+                  onchange="updateSkillSort(this.value)">
+            <option value="popular" {% if sort_option == "popular" %}selected{% endif %}>{% trans "Popular" %}</option>
+            <option value="newest" {% if sort_option == "newest" %}selected{% endif %}>{% trans "Newest" %}</option>
+            <option value="relevant"
+                    {% if sort_option == "relevant" %}selected{% endif %}>{% trans "Most relevant" %}</option>
+          </select>
+        </div>
+      </div>
+      {% if skills %}
+        <div class="d-flex flex-column gap-2">
+          {% for skill in skills %}
+            {% include "chat_next/modals/skills/card.html" %}
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="text-center text-muted py-5">
+          <i class="bi bi-lightbulb" style="font-size: 2rem;"></i>
+          <p class="mt-2">{% trans "No skills found." %}</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  function getEl(id) { return document.getElementById(id); }
+  const listUrl = "{% url 'chat_next:get_skills' chat_id=chat_id %}";
+
+  function getHiddenValue(id) {
+    return getEl(id)?.value || '';
+  }
+
+  function setHiddenValue(id, value) {
+    const el = getEl(id);
+    if (el) el.value = value;
+  }
+
+  function syncSearchFromInput() {
+    const searchValue = getEl('skill-filter-search')?.value || '';
+    setHiddenValue('skill-filter-search-hidden', searchValue);
+    return searchValue;
+  }
+
+  function applySearchSortDefault(searchValue) {
+    const trimmed = (searchValue || '').trim();
+    const sortUserSet = getHiddenValue('skill-filter-sort-user-set-hidden');
+    if (sortUserSet !== '1') {
+      setHiddenValue('skill-filter-sort-hidden', trimmed ? 'relevant' : 'popular');
+    }
+  }
+
+  function syncStateFromServer() {
+    setHiddenValue('skill-filter-search-hidden', '{{ search_query|escapejs }}');
+    setHiddenValue('skill-filter-sharing-hidden', '{{ sharing_filter|escapejs }}');
+    setHiddenValue('skill-filter-featured-hidden', '{{ featured_filter|escapejs }}');
+    setHiddenValue('skill-filter-enabled-hidden', '{{ enabled_filter|escapejs }}');
+    setHiddenValue('skill-filter-tag-hidden', '{{ tag_filter|escapejs }}');
+    setHiddenValue('skill-filter-sort-hidden', '{{ sort_option|escapejs }}');
+    setHiddenValue('skill-filter-show-all-tags-hidden', '{{ show_all_tags|escapejs }}');
+  }
+
+  function requestSkillList() {
+    htmx.ajax('GET', listUrl, {
+      target: '#chat-next-modal-content',
+      swap: 'innerHTML',
+      values: {
+        q: getHiddenValue('skill-filter-search-hidden'),
+        sharing: getHiddenValue('skill-filter-sharing-hidden'),
+        featured: getHiddenValue('skill-filter-featured-hidden'),
+        enabled: getHiddenValue('skill-filter-enabled-hidden'),
+        tag: getHiddenValue('skill-filter-tag-hidden'),
+        sort: getHiddenValue('skill-filter-sort-hidden'),
+        show_all_tags: getHiddenValue('skill-filter-show-all-tags-hidden'),
+      },
+    });
+  }
+
+  syncStateFromServer();
+
+  // --- Public handlers (attached to window so inline handlers work after swap) ---
+
+  window.submitSkillSearch = function() {
+    const searchValue = syncSearchFromInput();
+    setHiddenValue('skill-filter-show-all-tags-hidden', '');
+    applySearchSortDefault(searchValue);
+    return true;
+  };
+
+  window.submitSkillCreatorPrompt = function(event, promptText, skillId, skillName, extraContextHints) {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+
+    const promptInput = getEl('chat-prompt');
+    const promptForm = getEl('prompt-form');
+    const sendButton = getEl('send-button');
+    const contextHintsField = getEl('context-hints');
+
+    if (!promptInput || !promptForm || !sendButton || !contextHintsField) {
+      return false;
+    }
+
+    const normalizedSkillId = String(skillId || '').trim();
+    if (!normalizedSkillId) {
+      return false;
+    }
+
+    const seen = new Set();
+    const contextHints = [];
+    const addHint = (hint) => {
+      if (!hint || !hint.type || !hint.id) return;
+      const key = `${hint.type}:${hint.id}`;
+      if (seen.has(key)) return;
+      seen.add(key);
+      contextHints.push({
+        type: hint.type,
+        id: String(hint.id),
+        name: hint.name || '',
+      });
+    };
+
+    addHint({
+      type: 'skill',
+      id: normalizedSkillId,
+      name: skillName || '',
+    });
+
+    if (Array.isArray(extraContextHints)) {
+      extraContextHints.forEach(addHint);
+    }
+
+    contextHintsField.value = JSON.stringify(contextHints);
+
+    promptInput.value = promptText || '';
+    promptInput.dispatchEvent(new Event('input', {bubbles: true}));
+    promptInput.dispatchEvent(new Event('change', {bubbles: true}));
+
+    const modalEl = getEl('chat-next-modal');
+    if (modalEl) {
+      const bsModal = bootstrap.Modal.getInstance(modalEl);
+      if (bsModal) {
+        bsModal.hide();
+      }
+    }
+
+    requestAnimationFrame(() => sendButton.click());
+    return false;
+  };
+
+  window.updateSkillFilters = function() {
+    syncSearchFromInput();
+
+    // Build sharing filter from checkboxes
+    const mine = getEl('filter-mine')?.checked;
+    const featured = getEl('filter-featured')?.checked;
+    const everyone = getEl('filter-everyone')?.checked;
+    const sharedWithMe = getEl('filter-shared-with-me')?.checked;
+
+    // Build sharing value
+    let sharing = '';
+    if (mine && !everyone && !sharedWithMe) sharing = 'mine';
+    else if (!mine && everyone && !sharedWithMe) sharing = 'everyone';
+    else if (!mine && !everyone && sharedWithMe) sharing = 'shared_with_me';
+    // Any other combo: send all checked as comma-separated
+    else if (mine || everyone || sharedWithMe) {
+      const parts = [];
+      if (mine) parts.push('mine');
+      if (everyone) parts.push('everyone');
+      if (sharedWithMe) parts.push('shared_with_me');
+      sharing = parts.join(',');
+    }
+
+    setHiddenValue('skill-filter-sharing-hidden', sharing);
+    setHiddenValue('skill-filter-featured-hidden', featured ? '1' : '');
+    setHiddenValue('skill-filter-show-all-tags-hidden', '');
+    requestSkillList();
+  };
+
+  window.toggleEnabledSkillsFilter = function(checkbox) {
+    syncSearchFromInput();
+    setHiddenValue('skill-filter-enabled-hidden', checkbox?.checked ? '1' : '');
+    setHiddenValue('skill-filter-show-all-tags-hidden', '');
+    requestSkillList();
+  };
+
+  window.clearSkillFilters = function() {
+    const checkboxes = ['filter-mine', 'filter-featured', 'filter-everyone', 'filter-shared-with-me', 'filter-enabled-only'];
+    checkboxes.forEach(id => { const el = getEl(id); if (el) el.checked = false; });
+    const searchInput = getEl('skill-filter-search');
+    if (searchInput) searchInput.value = '';
+    setHiddenValue('skill-filter-sharing-hidden', '');
+    setHiddenValue('skill-filter-featured-hidden', '');
+    setHiddenValue('skill-filter-enabled-hidden', '');
+    setHiddenValue('skill-filter-tag-hidden', '');
+    setHiddenValue('skill-filter-search-hidden', '');
+    setHiddenValue('skill-filter-show-all-tags-hidden', '');
+
+    const sortUserSet = getHiddenValue('skill-filter-sort-user-set-hidden');
+    if (sortUserSet !== '1') {
+      setHiddenValue('skill-filter-sort-hidden', 'popular');
+    }
+
+    requestSkillList();
+  };
+
+  window.toggleSkillTagFilter = function(btn) {
+    syncSearchFromInput();
+
+    const tag = btn.dataset.tag;
+    const current = getHiddenValue('skill-filter-tag-hidden');
+    if (current === tag) {
+      setHiddenValue('skill-filter-tag-hidden', '');
+    } else {
+      setHiddenValue('skill-filter-tag-hidden', tag);
+    }
+    setHiddenValue('skill-filter-show-all-tags-hidden', '');
+    requestSkillList();
+  };
+
+  window.loadMoreSkillTags = function() {
+    syncSearchFromInput();
+    setHiddenValue('skill-filter-show-all-tags-hidden', '1');
+    requestSkillList();
+  };
+
+  window.updateSkillSort = function(sortValue) {
+    syncSearchFromInput();
+    setHiddenValue('skill-filter-sort-hidden', sortValue);
+    setHiddenValue('skill-filter-sort-user-set-hidden', '1');
+    requestSkillList();
+  };
+})();
+</script>

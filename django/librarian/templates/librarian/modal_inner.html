@@ -4,8 +4,9 @@
      hx-target="#editLibrariesInner"
      hx-ext="morph"
      hx-swap="morph:innerHTML"
-     hx-indicator="#librarian-modal-spinner">
-  <div class="row" style="min-height: 300px">
+     hx-indicator="#librarian-modal-spinner"
+     data-current-url="{{ refresh_url }}">
+  <div class="row librarian-modal-grid">
     <div class="col-2 border-end">{% include "librarian/components/library_list.html" %}</div>
     <div class="col-2 border-end">{% include "librarian/components/data_source_list.html" %}</div>
     <div class="col-3 border-end">{% include "librarian/components/document_list.html" %}</div>
@@ -14,6 +15,6 @@
 </div>
 
 {% include "librarian/components/poller.html" %}
-{% if selected_data_source and selected_data_source.id %}
+{% if selected_data_source and selected_data_source.id and not selected_data_source.is_chat_folder %}
   {% include "librarian/components/upload_form.html" %}
 {% endif %}

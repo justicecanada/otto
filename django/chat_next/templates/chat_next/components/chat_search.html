@@ -1,0 +1,19 @@
+{% load i18n %}
+
+<div id="chat-search-container"
+     class="px-2 pb-2 pt-1 me-2"
+     style="display:none">
+  <input type="text"
+         class="form-control form-control-sm border-none mx-1"
+         placeholder="{% trans 'Search chats...' %}"
+         aria-label="{% trans 'Search chats...' %}"
+         id="chat-history-search-input"
+         name="search"
+         autocomplete="off"
+         value="{{ search|default:'' }}"
+         hx-get="{% url 'chat_next:search_chats' %}"
+         hx-include="#current-chat-hidden-field"
+         hx-trigger="input delay:300ms, keyup changed"
+         hx-target="#chat-history-list"
+         hx-swap="outerHTML">
+</div>

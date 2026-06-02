@@ -1,0 +1,70 @@
+{% load i18n %}
+
+<div id="librarian-file-dropzone"
+     class="d-flex align-items-center justify-content-center">
+  <div class="rounded d-block text-center text-white"
+       id="librarian-file-area">
+    <i class="h3 bi bi-upload"></i>
+    <div class="mt-2 h5">{% trans "Drop files here" %}</div>
+  </div>
+</div>
+
+<script>
+function showLibrarianOverlay() {
+  document.querySelector('#librarian-file-dropzone').classList.add('show');
+}
+
+function hideLibrarianOverlay() {
+  document.querySelector('#librarian-file-dropzone').classList.remove('show');
+}
+
+function handleLibrarianDragEnter(e) {
+  // ensures the librarian dropzone only responds while its modal is actually open, that way it doesn't interfere with the chat dropzone
+  const modal = document.querySelector('#editLibrariesModal.show') || document.querySelector('#chat-next-modal.show [data-chat-next-modal-view="librarian"]');
+  if (!modal) {
+    return;
+  }
+
+  const dt = e && e.dataTransfer;
+  if (!dt) {
+    return;
+  }
+
+  if (!Array.from(dt.types || []).includes('Files')) {
+    return;
+  }
+  showLibrarianOverlay();
+  e.stopPropagation();
+}
+
+document.addEventListener('dragenter', handleLibrarianDragEnter);
+
+function preventLibrarianDefault(e) {
+  e.preventDefault();
+  e.stopPropagation();
+}
+
+function onLibrarianDrop(e) {
+  e.preventDefault();
+  e.stopPropagation();
+  document.querySelector('#id_librarian-input_file').value = null;
+  document.querySelector('#id_librarian-input_file').files = e.dataTransfer.files;
+  document.querySelector('#id_librarian-input_file').dispatchEvent(new Event('change'));
+  hideLibrarianOverlay();
+}
+
+function handleLibrarianDragLeave(e) {
+  if (!e.relatedTarget || !document.querySelector('#librarian-file-dropzone').contains(e.relatedTarget)) {
+    hideLibrarianOverlay();
+  }
+}
+
+// Set up event listeners on the dropzone element when the script runs
+(function() {
+  const dropZone = document.querySelector('#librarian-file-dropzone');
+  dropZone.addEventListener('dragover', preventLibrarianDefault);
+  dropZone.addEventListener('dragleave', handleLibrarianDragLeave);
+  dropZone.addEventListener('dragexit', handleLibrarianDragLeave);
+  dropZone.addEventListener('drop', onLibrarianDrop);
+})();
+</script>

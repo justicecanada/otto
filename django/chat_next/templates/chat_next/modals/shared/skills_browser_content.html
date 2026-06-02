@@ -1,0 +1,47 @@
+{% load i18n %}
+
+<div class="chat-next-modal-view"
+     data-chat-next-modal-view="skills"
+     data-modal-current-url="{{ current_url }}">
+  <div class="modal-header">
+    <h5 class="modal-title">{% trans "Skills" %}</h5>
+    <button type="button"
+            class="btn-close"
+            data-bs-dismiss="modal"
+            aria-label="{% trans 'Close' %}"></button>
+  </div>
+  <div id="skills-browser-state" class="d-none">
+    <input type="hidden"
+           id="skill-filter-search-hidden"
+           value="{{ search_query|default:'' }}">
+    <input type="hidden"
+           name="sharing"
+           id="skill-filter-sharing-hidden"
+           value="{{ sharing_filter|default:'' }}">
+    <input type="hidden"
+           name="tag"
+           id="skill-filter-tag-hidden"
+           value="{{ tag_filter|default:'' }}">
+    <input type="hidden"
+           name="featured"
+           id="skill-filter-featured-hidden"
+           value="{{ featured_filter|default:'' }}">
+    <input type="hidden"
+           name="enabled"
+           id="skill-filter-enabled-hidden"
+           value="{{ enabled_filter|default:'' }}">
+    <input type="hidden"
+           name="sort"
+           id="skill-filter-sort-hidden"
+           value="{{ sort_option|default:'popular' }}">
+    <input type="hidden"
+           name="sort_user_selected"
+           id="skill-filter-sort-user-set-hidden"
+           value="">
+    <input type="hidden"
+           name="show_all_tags"
+           id="skill-filter-show-all-tags-hidden"
+           value="{{ show_all_tags|default:'' }}">
+  </div>
+  {% include "chat_next/modals/skills/card_list.html" %}
+</div>

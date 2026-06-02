@@ -1,10 +1,9 @@
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import Client
 from django.urls import reverse
 
 import pytest
 
-from chat.models import Chat, ChatOptions
+from chat.models import Chat
 
 
 @pytest.mark.django_db
@@ -32,7 +31,11 @@ def test_translate_glossary_filename_persists_on_refresh(client, all_apps_user):
             "mode": "translate",
             "chat_temperature": "0.1",
             "chat_reasoning_effort": "medium",
+            "chat_verbosity": "medium",
+            "summarize_reasoning_effort": "minimal",
+            "summarize_verbosity": "medium",
             "qa_reasoning_effort": "minimal",
+            "qa_verbosity": "medium",
             "translate_language": "fr",
             "translate_model": "azure_custom",
             "qa_library": chat.options.qa_library.id,
@@ -62,7 +65,11 @@ def test_translate_glossary_filename_persists_on_refresh(client, all_apps_user):
             "translate_language": "fr",
             "chat_temperature": "0.1",
             "chat_reasoning_effort": "medium",
+            "chat_verbosity": "medium",
+            "summarize_reasoning_effort": "minimal",
+            "summarize_verbosity": "medium",
             "qa_reasoning_effort": "minimal",
+            "qa_verbosity": "medium",
             "translate_model": "azure_custom",
             "qa_library": chat.options.qa_library.id,
             "qa_mode": "rag",

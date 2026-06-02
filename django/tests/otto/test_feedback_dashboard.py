@@ -2,8 +2,6 @@ from django.urls import reverse
 
 import pytest
 
-from otto.models import Feedback
-
 
 @pytest.mark.django_db
 def test_feedback_dashboard_view(client, all_apps_user):

@@ -1,6 +1,6 @@
 {% load i18n %}
 {% load static %}
-<div id="prompt-form-container" class="{{ mode }} d-none">
+<div id="prompt-form-container" class="{{ mode }}">
   <div class="container px-5">
     <form id="prompt-form"
           hx-post="{% url 'chat:chat_message' chat_id=chat.id %}"
@@ -98,7 +98,7 @@
                     data-qa-placeholder='{% trans "Ask a question about the selected documents, upload files or enter a URL to add" %}'
                     data-summarize-placeholder='{% trans "Enter a URL, paste long text or upload files to summarize" %}'
                     data-translate-placeholder='{% trans "Enter text or upload files to translate (select language in sidebar)" %}'
-                    required></textarea>
+                    required>{{ chat.options.prompt }}</textarea>
 
           <button id="send-button"
                   class="btn btn-outline-secondary"

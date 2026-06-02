@@ -1,5 +1,4 @@
 from django.core.exceptions import ObjectDoesNotExist
-from django.core.management import call_command
 from django.core.management.base import BaseCommand
 
 from otto.models import Group, User
@@ -20,7 +19,9 @@ class Command(BaseCommand):
 
         # Find the user and make them an admin
         try:
-            user = User.objects.filter(upn__iexact=upn).first()
+            user = User.objects.find_by_upn(upn, include_inactive=False)
+            if user is None:
+                raise ObjectDoesNotExist()
             user.make_otto_admin()
             self.stdout.write(
                 self.style.SUCCESS(

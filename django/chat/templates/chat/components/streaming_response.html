@@ -1,13 +1,33 @@
+{% load i18n %}
+{# Persistent reasoning widget container - OUTSIDE the SSE swap area so it's never replaced #}
+<div class="reasoning-widget-container"
+     id="reasoning-container-{{ message.id }}"
+     data-thinking-text="{% trans 'Thinking' %}"
+     data-show-reasoning-text="{% trans 'Show processing steps' %}"
+     data-generating-text="{% trans 'Generating final response' %}"
+     data-reasoning-steps-text="{% trans 'Processing steps' %}"
+     data-empty-reasoning-text="{% trans 'Processing steps will appear here shortly.' %}"></div>
+{# Hidden data element updated via OOB swap - JS reads from here #}
+<div id="reasoning-data-{{ message.id }}"
+     style="display:none"
+     data-is-reasoning="false"></div>
 <div hx-ext="sse"
-     sse-connect="{% url 'chat:chat_response' message_id=message.id %}?cost_approved={{ cost_approved }}"
+     sse-connect="{% url 'chat:chat_response' message_id=message.id %}?cost_approved={{ cost_approved }}{% if message.stream_query %}&{{ message.stream_query|safe }}{% endif %}"
      sse-swap="message"
+     sse-close="done"
+     sse-no-retry="true"
      class="chat-streaming-response"
-     id="response-{{ message.id }}">
+     id="response-{{ message.id }}"
+     data-message-id="{{ message.id }}"
+     data-error-text="{% trans 'Connection lost. The response may be incomplete.' %}"
+     data-retry-text="{% trans 'Retry' %}">
   {% comment %} Spans below require to make CSS "typing dots" bounce {% endcomment %}
   <!-- djlint:off -->
     <div class="typing"><span></span><span></span><span></span></div>
 <!-- djlint:on -->
 </div>
+<!-- Update screen reader announcement -->
+<span id="chat-sr-message" hx-swap-oob="true">{% trans "Otto is generating a response." %}</span>
 {% if not hide_stop_button %}
   {% include "chat/components/stop_button.html" %}
 {% endif %}

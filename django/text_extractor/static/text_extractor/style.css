@@ -8,3 +8,29 @@ body {
 [data-bs-theme="dark"] .text-secondary {
   color: var(--text-secondary) !important;
 }
+
+#text-extractor-file-dropzone {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 10;
+  pointer-events: none;
+  background: var(--chat-file-drop);
+  border-radius: inherit;
+}
+
+#text-extractor-file-dropzone.show {
+  pointer-events: auto;
+}
+
+#text-extractor-file-dropzone:not(.show) {
+  display: none !important;
+}
+
+#text-extractor-file-area {
+  background: none;
+  border: var(--bs-border-color) 3px dashed;
+  padding: 5rem;
+}

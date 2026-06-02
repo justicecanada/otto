@@ -1,0 +1,16 @@
+{
+  "assets": [
+    {
+      "packageName": "docx-preview",
+      "version": "0.3.7",
+      "sourcePath": "node_modules/docx-preview/dist/docx-preview.min.js",
+      "outputPath": "django/otto/static/thirdparty/docx-preview-0.3.7.min.js"
+    },
+    {
+      "packageName": "jszip",
+      "version": "3.10.1",
+      "sourcePath": "node_modules/jszip/dist/jszip.min.js",
+      "outputPath": "django/otto/static/thirdparty/jszip-3.10.1.min.js"
+    }
+  ]
+}

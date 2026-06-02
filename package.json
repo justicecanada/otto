@@ -1,0 +1,10 @@
+{
+  "name": "otto-workspace",
+  "private": true,
+  "workspaces": [
+    "frontend-vendor"
+  ],
+  "scripts": {
+    "vendor:sync": "npm run sync -w frontend-vendor"
+  }
+}

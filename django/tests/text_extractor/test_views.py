@@ -1,7 +1,6 @@
 import uuid
 from unittest import mock
 
-from django.conf import settings
 from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.models import ContentType
 from django.core.files.base import ContentFile
@@ -10,9 +9,11 @@ from django.urls import reverse
 
 import pytest
 
+from otto.priorities import MEDIUM
 from otto.secure_models import AccessKey
+
 from text_extractor.models import OutputFile, UserRequest
-from text_extractor.views import *
+from text_extractor.views import io, zipfile
 
 pytest_plugins = ("pytest_asyncio",)
 
@@ -61,9 +62,9 @@ def test_index_view(client, all_apps_user):
     ],
 )
 def test_submit_document_view(
-    client, all_apps_user, process_ocr_document_mock, merged, files
+    client, all_apps_user, process_ocr_document_mock, merged, files, mocker
 ):
-    mock_delay, mock_async_result = process_ocr_document_mock
+    mocks = process_ocr_document_mock
     user = all_apps_user()
     client.force_login(user)
 
@@ -74,21 +75,23 @@ def test_submit_document_view(
 
     response = client.post(
         reverse("text_extractor:submit_document"),
-        {"file_upload": uploaded_files, "merged": merged},
+        {
+            "file_upload": uploaded_files,
+            "merge_docs_checkbox": "on" if merged else "off",
+        },
     )
 
     assert response.status_code == 200
     assert "output_files" in response.context
     assert len(response.context["output_files"]) > 0
-    assert mock_delay.called
-
-
-import uuid
-from unittest import mock
-
-from django.urls import reverse
-
-import pytest
+    # For merged files, check merge task was called; for non-merged, check OCR task
+    if merged:
+        assert mocks["merge_apply_async"].called
+        assert mocks["merge_apply_async"].call_args.kwargs["priority"] == MEDIUM
+    else:
+        assert mocks["ocr_apply_async"].called
+        for call in mocks["ocr_apply_async"].call_args_list:
+            assert call.kwargs["priority"] == MEDIUM
 
 
 @pytest.mark.django_db(transaction=True)
@@ -171,7 +174,6 @@ def test_poll_tasks_view(
             "text_extractor.views.file_size_to_string", file_size_to_string_mock
         ),
     ):
-
         response = client.get(
             reverse("text_extractor:poll_tasks", args=[str(user_request.id)])
         )
@@ -202,7 +204,6 @@ def test_download_document(client, all_apps_user, output_file):
     with mock.patch(
         "text_extractor.models.OutputFile.objects.get", return_value=output_file
     ):
-
         # Test downloading PDF file
         response = client.get(
             reverse(

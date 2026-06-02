@@ -1,0 +1,215 @@
+/* Print stylesheet: only print a specific selector and its contents */
+
+/* Page setup */
+@page {
+  size: auto;
+  margin: 12mm;
+}
+
+@media print {
+  #messages-container {
+    max-height: none !important;
+    overflow: visible !important;
+    zoom: 90%;
+  }
+
+  #chat-container,
+  #chat-flexbox,
+  #chat-outer,
+  .container.px-5.position-relative {
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    position: static !important;
+  }
+
+  html,
+  body {
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  /* Hide UI elements not needed for print */
+  .chat-sidebar-toggle {
+    display: none !important;
+  }
+
+  /* Hide everything by default */
+  body * {
+    visibility: hidden !important;
+  }
+
+  /* Show only the target area and its descendants */
+  /* Change .print-target to your specific selector (e.g., #invoice, .receipt) */
+  .print-target,
+  .print-target * {
+    visibility: visible !important;
+  }
+
+  /* Make the target use full page width, remove decoration */
+  .print-target {
+    position: static !important;
+    float: none !important;
+    overflow: visible !important;
+    width: auto !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    background: transparent !important;
+  }
+
+  /* Hide common non-print elements */
+  .no-print,
+  nav,
+  footer,
+  aside,
+  .btn,
+  button,
+  [role="button"] {
+    display: none !important;
+  }
+
+  /* Fix 1: Show user-uploaded file status cards in print.
+     Global print rule hides [role="button"], but file cards use role="button"
+     on the icon and filename spans. Re-enable those elements so filenames print. */
+  .file-status-card {
+    display: flex !important;
+  }
+
+  .file-status-card [role="button"],
+  .file-status-card .filename-link {
+    display: inline !important;
+  }
+
+  /* Fix 2: Show the reasoning/processing-steps header in print.
+     Without this, only the .reasoning-widget border renders (a "thick line")
+     when the steps are collapsed.  Show the header text ("Show processing
+     steps…") and keep the collapsed body hidden. */
+  .reasoning-header {
+    display: flex !important;
+    cursor: default;
+    pointer-events: none;
+  }
+
+  .reasoning-content.collapsed {
+    display: none !important;
+  }
+
+  /* Fix 3a: Expand truncated messages in print.
+     On screen, long messages get class "truncate" which applies
+     max-height:500px + overflow:hidden to .message-text, and shows a
+     "Show all…" gradient overlay (position:absolute at the bottom of
+     the blob).  In print every blob must render at full natural height
+     otherwise later messages overlap the clipped bot response. */
+  .message-text {
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  .message-blob {
+    overflow: visible !important;
+    height: auto !important;
+  }
+
+  /* Hide the "Show all…" fade-overlay — it's meaningless on paper */
+  .message-show-all {
+    display: none !important;
+  }
+
+  /* Fix 3b: Reset fit-content / inline-flex sizing for print.
+     On screen, .message-stack (inline-flex) and .message-blob both use
+     width:fit-content, computed from the screen layout.  When printed,
+     text reflows at a different scale, so the computed blob width is
+     narrower than the reflowed text — content spills below the blob
+     border and overlaps successor messages.
+     Solution: switch to full-width block layout for print so the blob
+     always grows to contain its content. */
+  .message-stack {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .message-blob {
+    display: block !important;
+    width: auto !important;
+    max-width: 100% !important;
+  }
+
+  /* Keep user messages right-aligned without inline-flex tricks */
+  .message-outer:not(.bot)>.d-flex {
+    display: block !important;
+    text-align: right;
+  }
+
+  .message-outer:not(.bot) .message-blob {
+    display: inline-block !important;
+    width: auto !important;
+    max-width: 80% !important;
+    text-align: left;
+  }
+
+  /* Fix 3c: Correct message-actions positioning in print.
+     On screen, only the last message's actions are visible (others have
+     visibility:hidden).  print-target * forces all actions visible, but
+     non-last ones still carry margin-top:-6px and overlap their message.
+     Mirror screen behaviour: hide actions on every message except the last,
+     and reset the negative margin + fixed height on the one that IS shown. */
+  .message-outer:has(~ .message-outer) .message-actions {
+    display: none !important;
+  }
+
+  .message-actions {
+    margin-top: 0 !important;
+    height: auto !important;
+  }
+
+  /* Avoid awkward breaks */
+  .message-outer,
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  p,
+  /* blockquote, */
+  /* pre, */
+  /* table, */
+  thead,
+  tbody,
+  tfoot,
+  tr,
+  td,
+  th,
+  /* ul, */
+  /* ol, */
+  /* dl, */
+  img {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  /* Allow long messages to flow across pages.
+      Long content is flagged on .message-outer.truncate (and often gains
+      .show-all right before print), so keep short messages together but
+      let long ones split naturally to avoid large blank page gaps. */
+  .message-outer.truncate,
+  .message-outer.truncate .message-blob,
+  .message-outer.truncate .message-text {
+    break-inside: auto !important;
+    page-break-inside: auto !important;
+  }
+
+  /* Show link URLs after text (optional) */
+  a[href^="http"]::after {
+    content: " (" attr(href) ")";
+    font-size: 90%;
+  }
+}
+
+/* Usage:
+   Add class "print-target" to the element you want to print:
+   <div class="print-target"> ... </div>
+*/

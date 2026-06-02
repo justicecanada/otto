@@ -1,0 +1,125 @@
+{% load static %}
+{% load i18n %}
+
+<div id="message-actions-{{ message.id }}"
+     class="message-meta message-actions text-muted"
+     {% if actions_swap_oob %}hx-swap-oob="true"{% endif %}>
+  <div class="copy-message-dropdown dropdown ms-1">
+    <button type="button"
+            onclick="copyMessage(this)"
+            class="btn btn-link m-0 p-0 text-muted copy-message-button"
+            title='{% trans "Copy" %}'
+            aria-label='{% trans "Copy" %}'>
+      <i class="bi bi-copy"></i><i class="bi bi-check-lg"></i>
+    </button>
+    <button type="button"
+            class="btn btn-link m-0 p-0 text-muted copy-message-menu-toggle dropdown-toggle"
+            data-bs-toggle="dropdown"
+            data-bs-auto-close="true"
+            title='{% trans "Copy options" %}'
+            aria-label='{% trans "Copy options" %}'>
+      <i class="bi bi-chevron-down"></i>
+    </button>
+    <div class="dropdown-menu copy-message-menu">
+      <button type="button"
+              class="dropdown-item"
+              onclick="copyMessage(this, 'markdown')">{% trans "Copy as markdown" %}</button>
+      <button type="button"
+              class="dropdown-item"
+              onclick="copyMessage(this, 'rich')">{% trans "Copy as rich text" %}</button>
+    </div>
+  </div>
+  {% if not read_only %}
+    {% if message.is_bot %}
+      <button type="button"
+              hx-get="{% url 'chat_next:thumbs_feedback' message_id=message.id feedback=1 %}"
+              hx-trigger="click"
+              hx-swap="none"
+              class="btn btn-link m-0 ms-1 p-0 text-muted thumb-message-button thumb-up {% if message.feedback == 1 %}clicked{% endif %}"
+              onclick="thumbMessage(this);"
+              title='{% trans "Like" %}'>
+        <i class="bi bi-hand-thumbs-up"></i>
+        <i class="bi bi-hand-thumbs-up-fill"></i>
+      </button>
+      <button type="button"
+              hx-get="{% url 'chat_next:thumbs_feedback' message_id=message.id feedback=-1 %}"
+              hx-target="#feedback-modal-body"
+              hx-trigger="click"
+              class="btn btn-link m-0 ms-1 p-0 text-muted thumb-message-button thumb-down {% if message.feedback == -1 %}clicked{% endif %}"
+              onclick="thumbMessage(this);"
+              title='{% trans "Dislike" %}'>
+        <i class="bi bi-hand-thumbs-down"></i><i class="bi bi-hand-thumbs-down-fill"></i>
+      </button>
+    {% else %}
+      <button type="button"
+              class="btn btn-link m-0 ms-1 p-0 text-muted edit-message-button{% if message.num_files %} d-none{% endif %}"
+              hx-get="{% url 'chat_next:edit_message' message.id %}?editing=1"
+              hx-target="closest .message-outer"
+              hx-swap="outerHTML"
+              title='{% trans "Edit message" %}'
+              aria-label='{% trans "Edit message" %}'>
+        <i class="bi bi-pencil"></i>
+      </button>
+      <button type="button"
+              class="btn btn-link m-0 ms-1 p-0 text-muted rerun-prompt-button{% if message.num_files and mode != 'summarize' and mode != 'translate' %} d-none{% endif %}"
+              hx-post="{% url 'chat_next:rerun_prompt' message.id %}"
+              hx-include="#prompt-form [name='chat-model-selector-chat_model'], #prompt-form [name='chat-model-selector-chat_reasoning_effort'], #prompt-form [name='chat-model-selector-chat_verbosity']"
+              hx-target="closest .message-outer"
+              hx-swap="outerHTML"
+              data-confirm-text="{% trans "This will rerun the prompt and erase all messages after this one. Are you sure you want to proceed?" %}"
+              onclick="confirmRerun(this, event);"
+              title='{% trans "Re-run prompt with current settings" %}'
+              aria-label='{% trans "Re-run prompt with current settings" %}'>
+        <i class="bi bi-arrow-clockwise"></i>
+      </button>
+    {% endif %}
+    <button type="button"
+            class="btn btn-link m-0 ms-1 p-0 text-muted"
+            hx-delete="{% url 'chat_next:delete_message' message.id %}"
+            hx-target="closest div.message-outer"
+            hx-swap="outerHTML"
+            title="{% trans 'Delete message' %}"
+            aria-label="{% trans 'Delete message' %}">
+      <i class="bi bi-trash"></i>
+    </button>
+  {% endif %}
+  {% if message.seconds_elapsed %}
+    <span class="message-time ms-1" style="word-spacing:0">{{ message.seconds_elapsed|stringformat:".0f" }}s</span>
+  {% endif %}
+  {% if "." in message.usd_cost|stringformat:"f" %}
+
+    {% if message.seconds_elapsed %}<span class="ms-1">|</span>{% endif %}
+    <span class="message-cost ms-1">{{ message.display_cost }}</span>
+  {% endif %}
+  {% with context_usage=message.context_usage %}
+    {% if context_usage %}
+      {# Circular context indicator - right aligned via flex spacer #}
+      <span class="context-indicator-wrapper ms-auto"
+            data-bs-toggle="tooltip"
+            data-bs-placement="top"
+            data-bs-html="true"
+            data-bs-title="{{ context_usage.tooltip_text|safe }}">
+        {# SVG circular pie chart indicator #}
+        <svg class="context-pie"
+             width="16"
+             height="16"
+             viewBox="0 0 16 16"
+             style="vertical-align: middle;
+                    cursor: pointer">
+          {# Background circle - higher opacity in light mode #}
+          <circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="2" class="context-bg-circle" />
+          {# Progress arc - uses stroke-dasharray for pie effect #}
+          <circle cx="8" cy="8" r="6" fill="none" stroke="
+          {% if context_usage.near_limit %}
+            #dc3545
+          {% elif context_usage.percentage > 50 %}
+            #e6a700
+          {% else %}
+            #3fb950
+          {% endif %}
+          " stroke-width="2" stroke-dasharray="{{ context_usage.stroke_dasharray }}" transform="rotate(-90 8 8)" stroke-linecap="round" />
+        </svg>
+      </span>
+    {% endif %}
+  {% endwith %}
+</div>

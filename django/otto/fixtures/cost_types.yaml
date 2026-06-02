@@ -25,6 +25,18 @@
     unit_cost: 10
     unit_quantity: 1000000
 - model: otto.CostType
+  pk: 41
+  fields:
+    short_name: gpt-4o-in-cached
+    name: GPT-4o Global (cached input)
+    name_fr: GPT-4o Global (entrée en cache)
+    description: API calls to Azure OpenAI GPT-4o Global Deployment model (cached input)
+    description_fr: Appels API au modèle de déploiement global Azure OpenAI GPT-4o (entrée en cache)
+    unit_name: tokens
+    unit_name_fr: jetons
+    unit_cost: 0.25
+    unit_quantity: 1000000
+- model: otto.CostType
   pk: 7
   fields:
     short_name: embedding
@@ -123,6 +135,18 @@
     unit_cost: 0.6
     unit_quantity: 1000000
 - model: otto.CostType
+  pk: 42
+  fields:
+    short_name: gpt-4o-mini-in-cached
+    name: GPT-4o-mini Global (cached input)
+    name_fr: GPT-4o-mini Global (entrée en cache)
+    description: API calls to Azure OpenAI GPT-4o-mini Global Deployment model (cached input)
+    description_fr: Appels API au modèle de déploiement global Azure OpenAI GPT-4o-mini (entrée en cache)
+    unit_name: tokens
+    unit_name_fr: jetons
+    unit_cost: 0.015
+    unit_quantity: 1000000
+- model: otto.CostType
   pk: 15
   fields:
     short_name: o3-mini-in
@@ -145,6 +169,18 @@
     unit_name: tokens
     unit_name_fr: jetons
     unit_cost: 4.40
+    unit_quantity: 1000000
+- model: otto.CostType
+  pk: 43
+  fields:
+    short_name: o3-mini-in-cached
+    name: o3-mini Global (cached input)
+    name_fr: o3-mini Global (entrée en cache)
+    description: API calls to Azure OpenAI o3-mini Global Deployment model (cached input)
+    description_fr: Appels API au modèle de déploiement global Azure OpenAI o3-mini (entrée en cache)
+    unit_name: tokens
+    unit_name_fr: jetons
+    unit_cost: 0.11
     unit_quantity: 1000000
 - model: otto.CostType
   pk: 17
@@ -171,6 +207,18 @@
     unit_cost: 8
     unit_quantity: 1000000
 - model: otto.CostType
+  pk: 38
+  fields:
+    short_name: gpt-4.1-in-cached
+    name: gpt-4.1 Global (cached input)
+    name_fr: gpt-4.1 Global (entrée en cache)
+    description: API calls to Azure OpenAI gpt-4.1 Global Deployment model (cached input)
+    description_fr: Appels API au modèle de déploiement global Azure OpenAI gpt-4.1 (entrée en cache)
+    unit_name: tokens
+    unit_name_fr: jetons
+    unit_cost: 0.20
+    unit_quantity: 1000000
+- model: otto.CostType
   pk: 19
   fields:
     short_name: gpt-4.1-mini-in
@@ -195,6 +243,18 @@
     unit_cost: 1.60
     unit_quantity: 1000000
 - model: otto.CostType
+  pk: 39
+  fields:
+    short_name: gpt-4.1-mini-in-cached
+    name: gpt-4.1-mini Global (cached input)
+    name_fr: gpt-4.1-mini Global (entrée en cache)
+    description: API calls to Azure OpenAI gpt-4.1-mini Global Deployment model (cached input)
+    description_fr: Appels API au modèle de déploiement global Azure OpenAI gpt-4.1-mini (entrée en cache)
+    unit_name: tokens
+    unit_name_fr: jetons
+    unit_cost: 0.04
+    unit_quantity: 1000000
+- model: otto.CostType
   pk: 21
   fields:
     short_name: gpt-4.1-nano-in
@@ -217,6 +277,18 @@
     unit_name: tokens
     unit_name_fr: jetons
     unit_cost: 0.40
+    unit_quantity: 1000000
+- model: otto.CostType
+  pk: 40
+  fields:
+    short_name: gpt-4.1-nano-in-cached
+    name: gpt-4.1-nano Global (cached input)
+    name_fr: gpt-4.1-nano Global (entrée en cache)
+    description: API calls to Azure OpenAI gpt-4.1-nano Global Deployment model (cached input)
+    description_fr: Appels API au modèle de déploiement global Azure OpenAI gpt-4.1-nano (entrée en cache)
+    unit_name: tokens
+    unit_name_fr: jetons
+    unit_cost: 0.01
     unit_quantity: 1000000
 - model: otto.CostType
   pk: 23
@@ -286,3 +358,335 @@
     unit_name_fr: jetons
     unit_cost: 10
     unit_quantity: 1000000
+# Cached input tokens (10% of regular cost per OpenAI pricing)
+- model: otto.CostType
+  pk: 29
+  fields:
+    short_name: gpt-5-in-cached
+    name: GPT-5 Global (cached input)
+    name_fr: GPT-5 Global (entrée en cache)
+    unit_name: tokens
+    unit_name_fr: jetons
+    unit_cost: 0.13
+    unit_quantity: 1000000
+- model: otto.CostType
+  pk: 44
+  fields:
+    short_name: gpt-5.1-in
+    name: GPT-5.1 Global (input)
+    name_fr: GPT-5.1 Global (entrée)
+    unit_name: tokens
+    unit_name_fr: jetons
+    unit_cost: 1.25
+    unit_quantity: 1000000
+- model: otto.CostType
+  pk: 45
+  fields:
+    short_name: gpt-5.1-out
+    name: GPT-5.1 Global (output)
+    name_fr: GPT-5.1 Global (sortie)
+    unit_name: tokens
+    unit_name_fr: jetons
+    unit_cost: 10
+    unit_quantity: 1000000
+- model: otto.CostType
+  pk: 46
+  fields:
+    short_name: gpt-5.1-in-cached
+    name: GPT-5.1 Global (cached input)
+    name_fr: GPT-5.1 Global (entrée en cache)
+    unit_name: tokens
+    unit_name_fr: jetons
+    unit_cost: 0.13
+    unit_quantity: 1000000
+- model: otto.CostType
+  pk: 54
+  fields:
+    short_name: gpt-5.2-in
+    name: GPT-5.2 Global (input)
+    name_fr: GPT-5.2 Global (entrée)
+    unit_name: tokens
+    unit_name_fr: jetons
+    unit_cost: 1.75
+    unit_quantity: 1000000
+- model: otto.CostType
+  pk: 55
+  fields:
+    short_name: gpt-5.2-out
+    name: GPT-5.2 Global (output)
+    name_fr: GPT-5.2 Global (sortie)
+    unit_name: tokens
+    unit_name_fr: jetons
+    unit_cost: 14
+    unit_quantity: 1000000
+- model: otto.CostType
+  pk: 56
+  fields:
+    short_name: gpt-5.2-in-cached
+    name: GPT-5.2 Global (cached input)
+    name_fr: GPT-5.2 Global (entrée en cache)
+    unit_name: tokens
+    unit_name_fr: jetons
+    unit_cost: 0.18
+    unit_quantity: 1000000
+- model: otto.CostType
+  pk: 57
+  fields:
+    short_name: gpt-5.4-in
+    name: GPT-5.4 Global (input)
+    name_fr: GPT-5.4 Global (entrée)
+    unit_name: tokens
+    unit_name_fr: jetons
+    unit_cost: 2.5
+    unit_quantity: 1000000
+- model: otto.CostType
+  pk: 58
+  fields:
+    short_name: gpt-5.4-out
+    name: GPT-5.4 Global (output)
+    name_fr: GPT-5.4 Global (sortie)
+    unit_name: tokens
+    unit_name_fr: jetons
+    unit_cost: 15
+    unit_quantity: 1000000
+- model: otto.CostType
+  pk: 59
+  fields:
+    short_name: gpt-5.4-in-cached
+    name: GPT-5.4 Global (cached input)
+    name_fr: GPT-5.4 Global (entrée en cache)
+    unit_name: tokens
+    unit_name_fr: jetons
+    unit_cost: 0.25
+    unit_quantity: 1000000
+- model: otto.CostType
+  pk: 60
+  fields:
+    short_name: gpt-5.4-mini-in
+    name: GPT-5.4-mini Global (input)
+    name_fr: GPT-5.4-mini Global (entrée)
+    unit_name: tokens
+    unit_name_fr: jetons
+    unit_cost: 0.75
+    unit_quantity: 1000000
+- model: otto.CostType
+  pk: 61
+  fields:
+    short_name: gpt-5.4-mini-out
+    name: GPT-5.4-mini Global (output)
+    name_fr: GPT-5.4-mini Global (sortie)
+    unit_name: tokens
+    unit_name_fr: jetons
+    unit_cost: 4.5
+    unit_quantity: 1000000
+- model: otto.CostType
+  pk: 62
+  fields:
+    short_name: gpt-5.4-mini-in-cached
+    name: GPT-5.4-mini Global (cached input)
+    name_fr: GPT-5.4-mini Global (entrée en cache)
+    unit_name: tokens
+    unit_name_fr: jetons
+    unit_cost: 0.075
+    unit_quantity: 1000000
+- model: otto.CostType
+  pk: 63
+  fields:
+    short_name: gpt-5.4-nano-in
+    name: GPT-5.4-nano Global (input)
+    name_fr: GPT-5.4-nano Global (entrée)
+    unit_name: tokens
+    unit_name_fr: jetons
+    unit_cost: 0.2
+    unit_quantity: 1000000
+- model: otto.CostType
+  pk: 64
+  fields:
+    short_name: gpt-5.4-nano-out
+    name: GPT-5.4-nano Global (output)
+    name_fr: GPT-5.4-nano Global (sortie)
+    unit_name: tokens
+    unit_name_fr: jetons
+    unit_cost: 1.25
+    unit_quantity: 1000000
+- model: otto.CostType
+  pk: 65
+  fields:
+    short_name: gpt-5.4-nano-in-cached
+    name: GPT-5.4-nano Global (cached input)
+    name_fr: GPT-5.4-nano Global (entrée en cache)
+    unit_name: tokens
+    unit_name_fr: jetons
+    unit_cost: 0.02
+    unit_quantity: 1000000
+- model: otto.CostType
+  pk: 30
+  fields:
+    short_name: gpt-5-mini-in
+    name: GPT-5-mini Global (input)
+    name_fr: GPT-5-mini Global (entrée)
+    unit_name: tokens
+    unit_name_fr: jetons
+    unit_cost: 0.25
+    unit_quantity: 1000000
+- model: otto.CostType
+  pk: 31
+  fields:
+    short_name: gpt-5-mini-out
+    name: GPT-5-mini Global (output)
+    name_fr: GPT-5-mini Global (sortie)
+    unit_name: tokens
+    unit_name_fr: jetons
+    unit_cost: 2.0
+    unit_quantity: 1000000
+- model: otto.CostType
+  pk: 32
+  fields:
+    short_name: gpt-5-mini-in-cached
+    name: GPT-5-mini Global (cached input)
+    name_fr: GPT-5-mini Global (entrée en cache)
+    unit_name: tokens
+    unit_name_fr: jetons
+    unit_cost: 0.03
+    unit_quantity: 1000000
+- model: otto.CostType
+  pk: 33
+  fields:
+    short_name: gpt-5-nano-in
+    name: GPT-5-nano Global (input)
+    name_fr: GPT-5-nano Global (entrée)
+    unit_name: tokens
+    unit_name_fr: jetons
+    unit_cost: 0.05
+    unit_quantity: 1000000
+- model: otto.CostType
+  pk: 34
+  fields:
+    short_name: gpt-5-nano-out
+    name: GPT-5-nano Global (output)
+    name_fr: GPT-5-nano Global (sortie)
+    unit_name: tokens
+    unit_name_fr: jetons
+    unit_cost: 0.4
+    unit_quantity: 1000000
+- model: otto.CostType
+  pk: 35
+  fields:
+    short_name: gpt-5-nano-in-cached
+    name: GPT-5-nano Global (cached input)
+    name_fr: GPT-5-nano Global (entrée en cache)
+    unit_name: tokens
+    unit_name_fr: jetons
+    unit_cost: 0.01
+    unit_quantity: 1000000
+- model: otto.CostType
+  pk: 36
+  fields:
+    short_name: o3-in-cached
+    name: o3 Global (cached input)
+    name_fr: o3 Global (entrée en cache)
+    unit_name: tokens
+    unit_name_fr: jetons
+    unit_cost: 0.50
+    unit_quantity: 1000000
+- model: otto.CostType
+  pk: 37
+  fields:
+    short_name: o4-mini-in-cached
+    name: o4-mini Global (cached input)
+    name_fr: o4-mini Global (entrée en cache)
+    unit_name: tokens
+    unit_name_fr: jetons
+    unit_cost: 0.11
+    unit_quantity: 1000000
+- model: otto.CostType
+  pk: 47
+  fields:
+    short_name: gpt-oss-120b-in
+    name: GPT-OSS 120B (input)
+    name_fr: GPT-OSS 120B (entrée)
+    description: API calls to GPT-OSS 120B model (input)
+    description_fr: Appels API au modèle GPT-OSS 120B (entrée)
+    unit_name: tokens
+    unit_name_fr: jetons
+    unit_cost: 0.15
+    unit_quantity: 1000000
+- model: otto.CostType
+  pk: 48
+  fields:
+    short_name: gpt-oss-120b-out
+    name: GPT-OSS 120B (output)
+    name_fr: GPT-OSS 120B (sortie)
+    description: API calls to GPT-OSS 120B model (output)
+    description_fr: Appels API au modèle GPT-OSS 120B (sortie)
+    unit_name: tokens
+    unit_name_fr: jetons
+    unit_cost: 0.60
+    unit_quantity: 1000000
+- model: otto.CostType
+  pk: 49
+  fields:
+    short_name: cohere-command-a-in
+    name: Cohere Command A (input)
+    name_fr: Cohere Command A (entrée)
+    description: API calls to Cohere Command A model (input)
+    description_fr: Appels API au modèle Cohere Command A (entrée)
+    unit_name: tokens
+    unit_name_fr: jetons
+    unit_cost: 2.5
+    unit_quantity: 1000000
+- model: otto.CostType
+  pk: 50
+  fields:
+    short_name: cohere-command-a-out
+    name: Cohere Command A (output)
+    name_fr: Cohere Command A (sortie)
+    description: API calls to Cohere Command A model (output)
+    description_fr: Appels API au modèle Cohere Command A (sortie)
+    unit_name: tokens
+    unit_name_fr: jetons
+    unit_cost: 10
+    unit_quantity: 1000000
+# https://azure.microsoft.com/en-us/pricing/details/cognitive-services/bing-entity-search/
+# Grounding with Bing Search in Azure OpenAI - $14 per 1,000 transactions
+- model: otto.CostType
+  pk: 51
+  fields:
+    short_name: bing-grounding
+    name: Grounding with Bing Search
+    name_fr: Mise à la terre avec Bing Search
+    description: Azure OpenAI Grounding with Bing Search (web_search_preview tool)
+    description_fr: Mise à la terre Azure OpenAI avec Bing Search (outil web_search_preview)
+    unit_name: transactions
+    unit_name_fr: transactions
+    unit_cost: 14
+    unit_quantity: 1000
+# Code Interpreter pricing: $0.0363 per session
+# https://azure.microsoft.com/en-us/pricing/details/azure-openai/
+- model: otto.CostType
+  pk: 52
+  fields:
+    short_name: code-interpreter
+    name: Code Interpreter
+    name_fr: Interpréteur de code
+    description: Azure OpenAI Code Interpreter tool (per session)
+    description_fr: Outil interpréteur de code Azure OpenAI (par session)
+    unit_name: sessions
+    unit_name_fr: sessions
+    unit_cost: 0.0363
+    unit_quantity: 1
+
+# Azure Speech-to-Text (batch transcription)
+# https://azure.microsoft.com/en-us/pricing/details/cognitive-services/speech-services/
+- model: otto.CostType
+  pk: 53
+  fields:
+    short_name: speech-to-text-batch
+    name: Azure batch speech-to-text
+    name_fr: Reconnaissance vocale Azure par lot
+    description: Azure Speech-to-Text batch transcription (per hour of audio)
+    description_fr: Transcription par lot Azure reconnaissance vocale (par heure d'audio)
+    unit_name: hours
+    unit_name_fr: heures
+    unit_cost: 1.332
+    unit_quantity: 1

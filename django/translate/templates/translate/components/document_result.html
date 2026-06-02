@@ -1,0 +1,101 @@
+{% load i18n %}
+{% if error %}
+  <div class="alert alert-danger">{{ error }}</div>
+{% elif output_files %}
+  <div class="card-body p-0">
+    {% if show_download_all %}
+      <div class="px-3 py-2 text-end border-bottom">
+        <button type="button"
+                class="btn btn-link btn-sm p-0 text-nowrap"
+                onclick="downloadAllDocumentResults(this)">{% trans "Download all" %}</button>
+      </div>
+    {% endif %}
+    <table class="table table-sm mb-0 align-middle">
+      <thead>
+        <tr>
+          <th>{% trans "Document" %}</th>
+          <th>{% trans "Status" %}</th>
+          <th>{% trans "Cost" %}</th>
+          <th>{% trans "Result" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for output_file in output_files %}
+          <tr>
+            <td>{{ output_file.file_name }}</td>
+            <td>
+              {% if output_file.status == "IDLING" %}
+                <div class="document-status document-status-{{ output_file.status }}">
+                  <i class="bi bi-circle text-secondary small me-1" aria-hidden="true"></i>
+                  <span>{% trans "Idling" %}...</span>
+                </div>
+              {% elif output_file.status == "UPLOADING" %}
+                <div class="document-status document-status-{{ output_file.status }}">
+                  <span class="me-1">
+                    <i class="bi bi-arrow-repeat text-primary small icn-spinner"
+                       aria-hidden="true"></i>
+                  </span>
+                  <span>{% trans "Uploading" %}...</span>
+                </div>
+              {% elif output_file.status == "PARSING" %}
+                <div class="document-status document-status-{{ output_file.status }}">
+                  <span class="me-1">
+                    <i class="bi bi-arrow-repeat text-primary small icn-spinner"
+                       aria-hidden="true"></i>
+                  </span>
+                  <span>{% trans "Parsing" %}...</span>
+                </div>
+              {% elif output_file.status == "TRANSLATING" %}
+                <div class="document-status document-status-{{ output_file.status }}">
+                  <span class="me-1">
+                    <i class="bi bi-arrow-repeat text-primary small icn-spinner"
+                       aria-hidden="true"></i>
+                  </span>
+                  <span>{% trans "Translating" %}...</span>
+                </div>
+              {% elif output_file.status == "FINISHED" %}
+                <div class="document-status document-status-{{ output_file.status }}">
+                  <i class="bi bi-check-circle-fill text-success small me-1"
+                     aria-hidden="true"></i>
+                  <span>{% trans "Finished" %}</span>
+                </div>
+              {% elif output_file.status == "STOPPED" %}
+                <div class="document-status document-status-{{ output_file.status }}">
+                  <i class="bi bi-stop-circle-fill text-secondary small me-1"
+                     aria-hidden="true"></i>
+                  <span>{{ output_file.error_message|default:_("Stopped") }}</span>
+                </div>
+              {% else %}
+                <div class="document-status document-status-{{ output_file.status }}">
+                  <i class="bi bi-exclamation-circle-fill text-danger small me-1"
+                     aria-hidden="true"></i>
+                  <span>{{ output_file.error_message|default:_("Error") }}</span>
+                </div>
+              {% endif %}
+            </td>
+            <td>{{ output_file.cost }}</td>
+            <td>
+              {% if output_file.file %}
+                <a href="{% url 'translate:download_document' output_file.id %}"
+                   class="text-nowrap icon-link translate-download-link"> {% trans "Download file" %}
+                  {% if output_file.result_size %}({{ output_file.result_size }}){% endif %}
+                </a>
+              {% else %}
+                <span class="text-muted">—</span>
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% if poll_url %}
+    <div class="d-none"
+         hx-get="{{ poll_url }}"
+         hx-trigger="load delay:1s"
+         hx-target="#document-result"
+         hx-swap="innerHTML"
+         hx-request='{"timeout": 10000}'></div>
+  {% endif %}
+{% endif %}

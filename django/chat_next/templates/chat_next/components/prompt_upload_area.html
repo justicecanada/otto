@@ -1,0 +1,261 @@
+{% load i18n %}
+
+{# Upload form - auto-submits to save_upload when all files finish uploading #}
+<form id="prompt-upload-form"
+      method="post"
+      enctype="multipart/form-data"
+      hx-post="{% url 'chat_next:upload' chat.id %}"
+      hx-swap="outerHTML"
+      hx-target="#chat-upload-message"
+      hx-encoding="multipart/form-data">
+  {% csrf_token %}
+  {{ upload_form }}
+</form>
+
+<template id="chat-upload-message-template">
+  {% include "chat_next/components/prompt_upload_message.html" with hidden=True %}
+</template>
+
+<script>
+// Wrap everything in a try-catch to ensure errors here NEVER break form submission
+(function() {
+  try {
+    window.ensurePromptUploadMessagePlaceholder = function() {
+      const messagesContainer = document.getElementById("messages-container");
+      const template = document.getElementById("chat-upload-message-template");
+      if (!messagesContainer || !template) {
+        return null;
+      }
+
+      let uploadMessage = document.getElementById("chat-upload-message");
+      if (!uploadMessage) {
+        messagesContainer.appendChild(template.content.cloneNode(true));
+        uploadMessage = document.getElementById("chat-upload-message");
+      } else if (
+        uploadMessage.parentElement !== messagesContainer
+        || messagesContainer.lastElementChild !== uploadMessage
+      ) {
+        messagesContainer.appendChild(uploadMessage);
+      }
+
+      return uploadMessage;
+    };
+
+    // Global function to initialize the upload area
+    window.initPromptUploadArea = function() {
+      try {
+        const uploadForm = document.getElementById("prompt-upload-form");
+        const file_input = document.getElementById("id_chat-input_file");
+        const getUploadMessage = function() {
+          return window.ensurePromptUploadMessagePlaceholder?.();
+        };
+        const getUploadProgressFiles = function() {
+          return getUploadMessage()?.querySelector("#upload-progress-files");
+        };
+        const uploadMessage = getUploadMessage();
+        const uploadProgressFiles = getUploadProgressFiles();
+        
+        // All elements must exist
+        if (!uploadForm || !file_input || !uploadMessage || !uploadProgressFiles) {
+          return;
+        }
+        
+        // Don't re-initialize
+        if (uploadForm.dataset.initialized === 'true') {
+          return;
+        }
+        uploadForm.dataset.initialized = 'true';
+
+        const metadata = {};
+
+        function submitUploadsIfComplete() {
+          const currentUploadMessage = getUploadMessage();
+          const filesContainer = getUploadProgressFiles();
+          if (!filesContainer) return;
+          
+          const allDone = Array.from(filesContainer.querySelectorAll(".dff-file")).every(file => {
+            return file.classList.contains("dff-upload-success") || file.classList.contains("dff-upload-fail");
+          });
+          
+          // Count successful uploads (not failed)
+          const successfulUploads = filesContainer.querySelectorAll(".dff-file.dff-upload-success").length;
+          
+          if (allDone && successfulUploads > 0) {
+            // Auto-submit the form via HTMX
+            currentUploadMessage?.classList.remove("d-none");
+            currentUploadMessage?.classList.add("submitting");
+            htmx.trigger(uploadForm, 'htmx:beforeRequest');
+            htmx.ajax('POST', uploadForm.getAttribute('hx-post'), {
+              source: uploadForm,
+              target: uploadForm.getAttribute('hx-target'),
+              swap: uploadForm.getAttribute('hx-swap')
+            });
+          } else if (allDone && successfulUploads === 0) {
+            // All failed, hide the placeholder
+            currentUploadMessage?.classList.add("d-none");
+            currentUploadMessage?.classList.remove("submitting");
+            if (typeof setUploadsInProgress === 'function') {
+              setUploadsInProgress(false);
+            }
+          }
+          
+          hideIfNoFiles();
+        }
+        
+        function hideIfNoFiles() {
+          const currentUploadMessage = getUploadMessage();
+          const filesContainer = getUploadProgressFiles();
+          if (!filesContainer) return;
+          const numFiles = filesContainer.querySelectorAll(".dff-file").length;
+          if (numFiles === 0) {
+            currentUploadMessage?.classList.add("d-none");
+            currentUploadMessage?.classList.remove("submitting");
+          }
+        }
+
+        // Global helpers
+        window.getPromptUploadMetadata = function() {
+          const metadataField = document.querySelector("#id_chat-input_file-metadata");
+          return metadataField ? metadataField.value : "{}";
+        };
+
+        window.clearPromptUploadedFiles = function() {
+          try {
+            const currentUploadMessage = getUploadMessage();
+            const filesContainer = getUploadProgressFiles();
+            if (filesContainer) {
+              filesContainer.innerHTML = "";
+            }
+            Object.keys(metadata).forEach(key => delete metadata[key]);
+            const metadataField = document.querySelector("#id_chat-input_file-metadata");
+            if (metadataField) {
+              metadataField.value = "{}";
+            }
+            if (file_input) {
+              file_input.value = null;
+            }
+            currentUploadMessage?.classList.add("d-none");
+            currentUploadMessage?.classList.remove("submitting");
+            if (typeof resizeOtherElements === 'function') {
+              resizeOtherElements();
+            }
+          } catch (e) {
+            console.error("Error clearing upload files:", e);
+          }
+        };
+
+        window.hasPendingUploads = function() {
+          const filesContainer = getUploadProgressFiles();
+          if (!filesContainer) return false;
+          return filesContainer.querySelectorAll(".dff-file.dff-upload-success").length > 0;
+        };
+
+        // Initialize file upload library if available
+        if (typeof initUploadFields === 'function') {
+          initUploadFields(uploadForm, {
+            prefix: "chat",
+            supportDropArea: false,
+            callbacks: {
+              onSuccess: (upload) => {
+                try {
+                  metadata[upload.name] = {type: upload.upload.file.type};
+                  const metadataField = document.querySelector("#id_chat-input_file-metadata");
+                  if (metadataField) {
+                    metadataField.value = JSON.stringify(metadata);
+                  }
+                  submitUploadsIfComplete();
+                } catch (e) { console.error(e); }
+              },
+              onError: () => submitUploadsIfComplete(),
+              onDelete: (upload) => {
+                try {
+                  delete metadata[upload.name];
+                  const metadataField = document.querySelector("#id_chat-input_file-metadata");
+                  if (metadataField) {
+                    metadataField.value = JSON.stringify(metadata);
+                  }
+                  submitUploadsIfComplete();
+                } catch (e) { console.error(e); }
+              },
+              onProgress: (bytesUploaded, bytesTotal, upload) => {
+                try {
+                  if (typeof CHAT_MAX_UPLOAD_SIZE !== 'undefined' && bytesTotal > CHAT_MAX_UPLOAD_SIZE) {
+                    const filesContainer = getUploadProgressFiles();
+                    const fileElements = filesContainer ? filesContainer.querySelectorAll('.dff-file') : [];
+                    const fileElement = Array.from(fileElements).find(el => {
+                      const fn = el.querySelector('.dff-filename');
+                      return fn && fn.innerHTML === upload.name;
+                    });
+                    if (fileElement) {
+                      const cancel = fileElement.querySelector('a.dff-cancel');
+                      const progress = fileElement.querySelector('.dff-progress');
+                      if (cancel) cancel.remove();
+                      if (progress) progress.remove();
+                      if (!fileElement.querySelector('.dff-error')) {
+                        const err = document.createElement('span');
+                        err.className = 'dff-error';
+                        err.innerText = CHAT_UPLOAD_TOO_LARGE || 'File too large';
+                        fileElement.appendChild(err);
+                      }
+                    }
+                    upload.abort(true);
+                    setTimeout(() => {
+                      if (fileElement) fileElement.classList.add("dff-upload-fail");
+                      submitUploadsIfComplete();
+                    }, 2000);
+                  }
+                } catch (e) { console.error(e); }
+              },
+            }
+          });
+        }
+
+        // File input change handler - show upload progress area
+        file_input.addEventListener("change", function() {
+          try {
+            const currentUploadMessage = getUploadMessage();
+            currentUploadMessage?.classList.remove("d-none");
+            currentUploadMessage?.classList.remove("submitting");
+            const welcome = document.querySelector("#no-messages-placeholder");
+            if (welcome) welcome.remove();
+            if (typeof setUploadsInProgress === 'function') {
+              setUploadsInProgress(true);
+            }
+          } catch (e) { console.error(e); }
+        });
+        
+        // Move .dff-files container into upload progress area
+        const moveFilesContainer = setInterval(function() {
+          try {
+            const filesContainer = uploadForm.querySelector(".dff-files");
+            if (filesContainer && !uploadProgressFiles.contains(filesContainer)) {
+              clearInterval(moveFilesContainer);
+              uploadProgressFiles.appendChild(filesContainer);
+            }
+          } catch (e) {
+            clearInterval(moveFilesContainer);
+            console.error(e);
+          }
+        }, 100);
+
+        // Stop checking after 5 seconds
+        setTimeout(() => clearInterval(moveFilesContainer), 5000);
+
+      } catch (e) {
+        console.error("Error in initPromptUploadArea:", e);
+      }
+    };
+
+    // Initialize when DOM is ready
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', window.initPromptUploadArea);
+    } else {
+      // DOM already loaded, run after a small delay to ensure all elements exist
+      setTimeout(window.initPromptUploadArea, 10);
+    }
+
+  } catch (e) {
+    console.error("Error setting up upload area:", e);
+  }
+})();
+</script>

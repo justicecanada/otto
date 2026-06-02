@@ -1,13 +1,7 @@
 import io
-import os
-from unittest.mock import Mock, patch
-
-from django.core.files.uploadedfile import SimpleUploadedFile
 
 import pytest
-from docx import Document
 from openpyxl import Workbook
-from pptx import Presentation
 
 from librarian.utils.process_engine import (
     csv_to_markdown,
@@ -116,3 +110,95 @@ def test_multiple_excel_sheets(sample_excel):
     assert "# Sheet2" in result
     assert "Header1" in result
     assert "Header2" in result
+
+
+def test_excel_to_markdown_with_hyperlinks():
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Links"
+    ws["A1"] = "Name"
+    ws["B1"] = "URL"
+    ws["A2"] = "Example"
+    ws["B2"] = "Click here"
+    ws["B2"].hyperlink = "https://example.com"
+
+    buffer = io.BytesIO()
+    wb.save(buffer)
+    buffer.seek(0)
+
+    result = excel_to_markdown(buffer.getvalue())
+    assert "[Click here](https://example.com)" in result
+    assert "Example" in result
+
+
+def test_csv_to_markdown_with_hyperlink_formula_comma_separator():
+    csv_content = (
+        b'Name,Link\nExample,"=HYPERLINK(""https://example.com"",""Click here"")"\n'
+    )
+
+    result = csv_to_markdown(csv_content)
+    assert "[Click here](https://example.com)" in result
+    assert "Example" in result
+
+
+def test_csv_to_markdown_with_hyperlink_formula_semicolon_separator():
+    csv_content = (
+        b'Name,Link\nExample,"=HYPERLINK(""https://example.com"";""Cliquez ici"")"\n'
+    )
+
+    result = csv_to_markdown(csv_content)
+    assert "[Cliquez ici](https://example.com)" in result
+    assert "Example" in result
+
+
+def test_csv_to_markdown_with_pipe_in_regular_cell():
+    csv_content = b'Name,Value\nExample,"Click|here"\n'
+
+    result = csv_to_markdown(csv_content)
+    assert "Click\\|here" in result
+
+
+def test_csv_to_markdown_with_pipe_in_hyperlink_label():
+    csv_content = (
+        b'Name,Link\nExample,"=HYPERLINK(""https://example.com"",""Click|here"")"\n'
+    )
+
+    result = csv_to_markdown(csv_content)
+    assert "[Click\\|here](https://example.com)" in result
+    assert "Example" in result
+
+
+def test_excel_to_markdown_with_pipe_in_regular_cell():
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Data"
+    ws["A1"] = "Name"
+    ws["B1"] = "Value"
+    ws["A2"] = "Example"
+    ws["B2"] = "Click|here"
+
+    buffer = io.BytesIO()
+    wb.save(buffer)
+    buffer.seek(0)
+
+    result = excel_to_markdown(buffer.getvalue())
+    assert "Click\\|here" in result
+
+
+def test_excel_to_markdown_with_pipe_in_hyperlink_label():
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Links"
+    ws["A1"] = "Name"
+    ws["B1"] = "URL"
+    ws["A2"] = "Example"
+    ws["B2"] = "Click|here"
+    ws["B2"].hyperlink = "https://example.com"
+
+    buffer = io.BytesIO()
+    wb.save(buffer)
+    buffer.seek(0)
+
+    result = excel_to_markdown(buffer.getvalue())
+    assert "[Click\\|here](https://example.com)" in result
+    assert "Example" in result

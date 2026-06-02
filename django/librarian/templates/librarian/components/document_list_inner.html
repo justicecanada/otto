@@ -8,7 +8,9 @@
       <em class="small">
         {% if selected_data_source and selected_data_source.chat_id %}
           {% trans "No documents in this chat." %}
-        {% else %}
+        {% elif selected_data_source and selected_data_source.chat_next_id %}
+          {% trans "No documents in this chat." %}
+        {% elif selected_data_source and selected_data_source.id %}
           {% trans "No documents in this folder." %}
         {% endif %}
       </em>
@@ -16,17 +18,23 @@
   {% endif %}
 </div>
 <span id="librarian-failed-oob" hx-swap-oob="true">
-  {% if blocked_count or failed_count %}
+  {% if blocked_count or failed_count or paused_count %}
     <span class="small text-danger"
           role="img"
           data-bs-toggle="tooltip"
           data-bs-placement="bottom"
           data-bs-trigger="hover focus"
-          title="{{ failed_count }} {% trans 'failed' %}{% if blocked_count %} · {{ blocked_count }} {% trans 'stopped' %}{% endif %}">
+          title="{{ failed_count }} {% trans 'failed' %}{% if blocked_count %} · {{ blocked_count }} {% trans 'stopped' %}{% endif %}{% if paused_count %} · {{ paused_count }} {% trans 'paused' %}{% endif %}">
       <i class="bi bi-exclamation-circle-fill"></i>
     </span>
   {% endif %}
 </span>
+<span id="librarian-document-count" hx-swap-oob="true">{{ total_document_count }}</span>
+<div id="librarian-sort-list-inner" hx-swap-oob="innerHTML">
+  {% if selected_data_source and selected_data_source.id %}
+    {% include "librarian/components/sort_list.html" %}
+  {% endif %}
+</div>
 <span id="librarian-totals-oob" hx-swap-oob="true" class="d-none">
   <span id="librarian-total-cost">{{ total_cost|default:"$0.00" }}</span>
   <span id="librarian-total-chunks">{{ total_chunks|default:"0" }} {% trans "chunk(s)" %}</span>
@@ -36,7 +44,13 @@
   {% if blocked_count %}
     · <span id="librarian-blocked-count">{{ blocked_count }}</span> {% trans "stopped" %}
   {% endif %}
+  {% if paused_count %}
+    · <span id="librarian-paused-count">{{ paused_count }}</span> {% trans "paused" %}
+  {% endif %}
 </span>
+<div id="librarian-pagination" hx-swap-oob="true">
+  {% include "librarian/components/data_source_pagination.html" %}
+</div>
 <script>
 document.body.addEventListener('htmx:afterSwap', function() {
   var el = document.querySelector('#librarian-failed-oob [data-bs-toggle="tooltip"]');

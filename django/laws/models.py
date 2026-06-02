@@ -1,11 +1,8 @@
-import time
-
 from django.conf import settings
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
-from llama_index.core.schema import MediaResource
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 from structlog import get_logger
@@ -17,19 +14,16 @@ logger = get_logger(__name__)
 
 
 class LawManager(models.Manager):
-
-    def from_docs_and_nodes(
+    def create_or_update_from_documents(
         self,
         law_status,
         document_en,
-        nodes_en,
         document_fr,
-        nodes_fr,
-        llm=None,
-        current_task_id=None,
     ):
-        from laws.tasks import cancellation_guard
-
+        """
+        Create or update a Law object from document metadata.
+        Does NOT handle vector store embedding - that's done in insert_law_chunks task.
+        """
         # Updating an existing law?
         if law_status.law:
             obj = law_status.law
@@ -49,6 +43,7 @@ class LawManager(models.Manager):
         )
         obj.enabling_authority_en = document_en.metadata.get("enabling_authority")
         obj.node_id_en = document_en.doc_id
+
         # Document-level metadata (French)
         obj.short_title_fr = document_fr.metadata.get("short_title")
         obj.long_title_fr = document_fr.metadata.get("long_title")
@@ -68,90 +63,19 @@ class LawManager(models.Manager):
         obj.last_amended_date = document_en.metadata.get("last_amended_date", None)
         obj.current_date = document_en.metadata.get("current_date", None)
         obj.in_force_start_date = document_en.metadata.get("in_force_start_date", None)
+
         # NOTE: Don't set sha_256_hash fields yet - only after successful vector store operations
         obj.eng_law_id = law_status.eng_law_id
 
         obj.full_clean()
         obj.save()
 
-        if llm is None:
-            return obj
+        # Update law_status to link to the law object
+        if not law_status.law:
+            law_status.law = obj
+            law_status.save()
 
-        try:
-            idx = llm.get_index("laws_lois__", hnsw=False)
-            nodes = []
-            if law_status.law:
-                # Remove the old content from the vector store using consistent cleanup
-                try:
-                    delete_documents_from_vector_store(
-                        [obj.node_id_en, obj.node_id_fr], "laws_lois__"
-                    )
-                except Exception as e:
-                    logger.error(
-                        f"Error deleting nodes from vector store for law {obj.eng_law_id}: {e}"
-                    )
-            else:
-                law_status.law = obj
-                law_status.save()
-            # Always add the document and chunk nodes for embedding
-            nodes.append(document_en)
-            nodes.extend(nodes_en)
-            nodes.append(document_fr)
-            nodes.extend(nodes_fr)
-            batch_size = 16
-            logger.debug(
-                f"Embedding & inserting nodes into vector store (batch size={batch_size} nodes)..."
-            )
-            # Filter out or skip bad nodes gracefully
-            valid_nodes = []
-            for node in nodes:
-                try:
-                    if hasattr(node, "text") and node.text and node.text.strip():
-                        valid_nodes.append(node)
-                    else:
-                        logger.warning(
-                            f"Skipping node with missing or empty text: {getattr(node, 'doc_id', 'unknown')}"
-                        )
-                except Exception as e:
-                    logger.warning(f"Skipping node due to error: {e}")
-            nodes = valid_nodes
-
-            original_details = law_status.details or ""
-            total_batches = (len(nodes) + batch_size - 1) // batch_size
-            for i in range(0, len(nodes), batch_size):
-                batch_num = (i // batch_size) + 1
-                logger.debug(f"Processing embedding batch {batch_num}/{total_batches}")
-                law_status.details = (
-                    f"{original_details} (embedding batch {batch_num}/{total_batches})"
-                )
-                law_status.save()
-                max_exponent = 7
-                for j in range(2, max_exponent + 1):
-                    with cancellation_guard(current_task_id):
-                        try:
-                            idx.insert_nodes(nodes[i : i + batch_size])
-                            break
-                        except Exception as e:
-                            logger.error(f"Error inserting nodes: {e}")
-                            logger.error(f"Retrying in {2**j} seconds...")
-                            if j == max_exponent:  # Last retry
-                                # Clean up partial entries and re-raise using consistent method
-                                raise Exception("Failed to insert nodes after retries.")
-                            with cancellation_guard(current_task_id):
-                                time.sleep(2**j)
-
-            # Only set hashes after successful vector store operations
-            obj.sha_256_hash_en = law_status.sha_256_hash_en
-            obj.sha_256_hash_fr = law_status.sha_256_hash_fr
-            obj.save()
-            return obj
-
-        except Exception as e:
-            # Clean up partial law object and vector store entries on any error
-            logger.error(f"Error in from_docs_and_nodes: {e}")
-            if obj.pk:  # Only try cleanup if object was saved
-                obj.delete()
-            raise
+        return obj
 
     def purge(self, keep_ids):
         """
@@ -216,7 +140,7 @@ class Law(models.Model):
     in_force_start_date = models.DateField(null=True, blank=True)
 
     # To correlate with the XML file name
-    eng_law_id = models.CharField(max_length=50, null=True, blank=True)
+    eng_law_id = models.CharField(max_length=50, null=True, blank=True, db_index=True)
 
     objects = LawManager()
 
@@ -251,7 +175,7 @@ class Law(models.Model):
         engine = create_engine(connection_string)
         Session = sessionmaker(bind=engine)
         session = Session()
-        session.execute(text(f"DROP TABLE IF EXISTS data_laws_lois__ CASCADE"))
+        session.execute(text("DROP TABLE IF EXISTS data_laws_lois__ CASCADE"))
         session.commit()
         session.close()
         cls.objects.all().delete()
@@ -328,6 +252,8 @@ class JobStatus(models.Model):
     def cancel(self):
         """
         Cancel the job by setting status to 'cancelled' and updating finished_at.
+        Also marks all pending/in-progress LawLoadingStatus entries as cancelled
+        and revokes any spawned Celery tasks to prevent queue churn.
         """
         if self.celery_task_id:
             from celery import current_app
@@ -336,17 +262,52 @@ class JobStatus(models.Model):
             task = current_app.AsyncResult(self.celery_task_id)
             if task:
                 try:
-                    task.revoke()
+                    task.revoke(terminate=True)
                 except Exception as e:
                     logger.error(
                         f"Error cancelling Celery task {self.celery_task_id}: {e}"
                     )
+
+        # Bulk-revoke spawned child tasks so workers skip them immediately
+        spawned_ids = (self.options or {}).get("spawned_task_ids", [])
+        if spawned_ids:
+            from celery import current_app
+
+            try:
+                current_app.control.revoke(spawned_ids)
+                logger.info(f"Revoked {len(spawned_ids)} spawned tasks from queue")
+            except Exception as e:
+                logger.error(f"Error revoking spawned tasks: {e}")
 
         # Update job status
         self.status = "cancelled"
         self.finished_at = timezone.now()
         self.error_message = "Job was cancelled by user."
         self.save()
+
+        # Mark all pending/in-progress law loading statuses as cancelled
+        from django.db.models import Q
+
+        pending_statuses = LawLoadingStatus.objects.filter(
+            Q(finished_at__isnull=True)
+            | Q(
+                status__in=[
+                    "parsing_xml",
+                    "embedding_nodes",
+                    "pending_new",
+                    "pending_update",
+                ]
+            )
+        )
+
+        cancelled_count = pending_statuses.update(
+            status="cancelled",
+            finished_at=timezone.now(),
+            error_message="Job was cancelled by user.",
+        )
+
+        if cancelled_count > 0:
+            logger.info(f"Marked {cancelled_count} law loading statuses as cancelled")
 
     @property
     def options_str(self):
@@ -355,7 +316,13 @@ class JobStatus(models.Model):
         """
         if not self.options:
             return "No options provided"
-        return ", ".join(f"{k}: {v}" for k, v in self.options.items())
+        internal_option_keys = {"spawned_task_ids"}
+        visible_options = {
+            k: v for k, v in self.options.items() if k not in internal_option_keys
+        }
+        if not visible_options:
+            return "No options provided"
+        return ", ".join(f"{k}: {v}" for k, v in visible_options.items())
 
 
 class LawLoadingStatus(models.Model):

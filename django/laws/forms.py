@@ -3,69 +3,80 @@ from django.conf import settings
 from django.utils.translation import get_language
 from django.utils.translation import gettext_lazy as _
 
-from autocomplete import HTMXAutoComplete, widgets
+from autocomplete import HTMXAutoComplete
 from autocomplete.widgets import Autocomplete
-from data_fetcher.util import get_request
 
+from otto.form_fields import PermissiveModelMultipleChoiceField
+from otto.forms import SimpleFieldAutocompleteMixin
+
+from chat._llm.models import get_grouped_chat_model_choices
 from chat.forms import SelectWithOptionClasses
-from chat.llm_models import get_grouped_chat_model_choices
 
 from .models import Law
 from .prompts import default_additional_instructions
 
 
-class ActsAutocomplete(HTMXAutoComplete):
+class ActsAutocomplete(SimpleFieldAutocompleteMixin, HTMXAutoComplete):
     """Autocomplete component to select Acts only (filter out regulations)"""
 
     name = "enabling_acts"
     multiselect = True
     minimum_search_length = 0
     model = Law
+    field_name = "title"
 
-    def get_items(self, search=None, values=None):
-        data = Law.objects.filter(type="act").values("id", "title").order_by("title")
-        if search is not None:
-            items = [
-                {"label": x["title"], "value": str(x["id"])}
-                for x in data
-                if search == "" or str(search).upper() in x["title"].upper()
-            ]
-            return items
+    def get_items(self, search=None, values=None, request=None):
+        # Override to add type filter for acts only
         if values is not None:
-            items = [
-                {"label": x["title"], "value": str(x["id"])}
-                for x in data
-                if str(x["id"]) in values
-            ]
-            return items
+            data = Law.objects.filter(type="act", id__in=values).values("id", "title")
+            return [{"label": x["title"], "value": str(x["id"])} for x in data]
+
+        if search is not None:
+            if search == "":
+                data = (
+                    Law.objects.filter(type="act")
+                    .values("id", "title")
+                    .order_by("title")[: self.limit]
+                )
+            else:
+                data = (
+                    Law.objects.filter(type="act", title__icontains=search)
+                    .values("id", "title")
+                    .order_by("title")[: self.limit]
+                )
+            return [{"label": x["title"], "value": str(x["id"])} for x in data]
 
         return []
 
 
-class LawsAutocomplete(HTMXAutoComplete):
+class LawsAutocomplete(SimpleFieldAutocompleteMixin, HTMXAutoComplete):
     """Autocomplete component to select any law (Act or Regulation)"""
 
     name = "laws"
     multiselect = True
     minimum_search_length = 0
     model = Law
+    field_name = "title"
+    order_by = "type,title"  # Custom ordering
 
-    def get_items(self, search=None, values=None):
-        data = Law.objects.values("id", "title").order_by("type", "title")
-        if search is not None:
-            items = [
-                {"label": x["title"], "value": str(x["id"])}
-                for x in data
-                if search == "" or str(search).upper() in x["title"].upper()
-            ]
-            return items
+    def get_items(self, search=None, values=None, request=None):
+        # Override to use custom multi-field ordering
         if values is not None:
-            items = [
-                {"label": x["title"], "value": str(x["id"])}
-                for x in data
-                if str(x["id"]) in values
-            ]
-            return items
+            data = Law.objects.filter(id__in=values).values("id", "title")
+            return [{"label": x["title"], "value": str(x["id"])} for x in data]
+
+        if search is not None:
+            if search == "":
+                data = Law.objects.values("id", "title").order_by("type", "title")[
+                    : self.limit
+                ]
+            else:
+                data = (
+                    Law.objects.filter(title__icontains=search)
+                    .values("id", "title")
+                    .order_by("type", "title")[: self.limit]
+                )
+            return [{"label": x["title"], "value": str(x["id"])} for x in data]
 
         return []
 
@@ -73,7 +84,6 @@ class LawsAutocomplete(HTMXAutoComplete):
 class SelectWithModelGroups(SelectWithOptionClasses):
     def optgroups(self, name, value, attrs=None):
         groups = []
-        has_selected = False
         for index, (group_label, options) in enumerate(self.choices):
             subgroup = []
             for option_value, option_label in options:
@@ -83,8 +93,6 @@ class SelectWithModelGroups(SelectWithOptionClasses):
                         name, option_value, option_label, selected, index
                     )
                 )
-                if selected:
-                    has_selected = True
             groups.append((group_label, subgroup, index))
         return groups
 
@@ -125,28 +133,28 @@ class LawSearchForm(forms.Form):
         widget=forms.Select(attrs={"class": "form-select"}),
     )
 
-    laws = forms.ModelMultipleChoiceField(
-        queryset=Law.objects.all(),
+    laws = PermissiveModelMultipleChoiceField(
+        queryset=Law.objects.none(),  # Queryset not used; autocomplete uses get_items()
         label=_("Select act(s)/regulation(s)"),
         required=False,
         widget=Autocomplete(
             use_ac=LawsAutocomplete,
             attrs={
-                "component_id": f"id_laws",
-                "id": f"id_laws__textinput",
+                "component_id": "id_laws",
+                "id": "id_laws__textinput",
             },
         ),
     )
 
-    enabling_acts = forms.ModelMultipleChoiceField(
-        queryset=Law.objects.all(),
+    enabling_acts = PermissiveModelMultipleChoiceField(
+        queryset=Law.objects.none(),  # Queryset not used; autocomplete uses get_items()
         label=_("Select enabling act(s)"),
         required=False,
         widget=Autocomplete(
             use_ac=ActsAutocomplete,
             attrs={
-                "component_id": f"id_enabling_acts",
-                "id": f"id_enabling_acts__textinput",
+                "component_id": "id_enabling_acts",
+                "id": "id_enabling_acts__textinput",
             },
         ),
     )

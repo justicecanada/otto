@@ -7,13 +7,12 @@
   "emmet.includeLanguages": {
     "jinja-html": "html"
   },
-  // Python
-  "editor.codeActionsOnSave": {
-    "source.organizeImports": "explicit"
-  },
   "[python]": {
-    "editor.defaultFormatter": "ms-python.black-formatter",
+    "editor.defaultFormatter": "charliermarsh.ruff",
     "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+      "source.organizeImports": "explicit"
+    },
   },
   // Javascript
   "[javascript]": {
@@ -49,8 +48,31 @@
   "html.format.unformattedContentDelimiter": "<!--noformat-->",
   // Misc
   "files.insertFinalNewline": true,
-  "[yaml][markdown]": {
-    "editor.formatOnSave": false,
+  "[yaml]": {
+    // YAML (Kubernetes) formatting
+    "editor.defaultFormatter": "redhat.vscode-yaml",
+    "editor.formatOnSave": true,
+    "editor.tabSize": 2,
+    "editor.insertSpaces": true
+  },
+  "[markdown]": {
+    "editor.formatOnSave": false
+  },
+  // Terraform formatting (uses terraform fmt via extension)
+  "[terraform]": {
+    "editor.defaultFormatter": "hashicorp.terraform",
+    "editor.formatOnSave": true
+  },
+  "[terraform-vars]": {
+    "editor.defaultFormatter": "hashicorp.terraform",
+    "editor.formatOnSave": true
+  },
+  // YAML schema associations for Kubernetes manifests
+  "yaml.schemas": {
+    "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.29.0-standalone-strict/all.json": [
+      "infrastructure/k8s/**/*.yml",
+      "infrastructure/k8s/**/*.yaml"
+    ]
   },
   "files.exclude": {
     "**/.git": false
@@ -80,12 +102,70 @@
   ],
   "python.testing.unittestEnabled": false,
   "python.testing.pytestEnabled": true,
-  "dev.containers.mountWaylandSocket": false,
-  "workbench.colorCustomizations": {
-    "statusBar.background": "#7C21D7",
-    "statusBar.debuggingBackground": "#7C21D7",
-    "statusBar.noFolderBackground": "#7C21D7",
-    "statussBar.prominentBackground": "#7C21D7"
+  // Python Language Server (Pylance) performance settings
+  "python.analysis.exclude": [
+    "**/node_modules/**",
+    "**/__pycache__/**",
+    "**/.*",
+    "**/htmlcov/**",
+    "**/infrastructure/**",
+    "**/media/**",
+    "**/staticfiles/**",
+    "**/tld_cache/**",
+    "**/.venv/**",
+    "**/venv/**",
+    "**/scraping/**",
+    "$TMP/**"
+  ],
+  "python.analysis.ignore": [
+    "**/node_modules/**",
+    "**/__pycache__/**",
+    "**/htmlcov/**",
+    "**/infrastructure/**",
+    "**/media/**",
+    "**/staticfiles/**",
+    "**/migrations/**"
+  ],
+  "python.analysis.indexing": true,
+  "python.analysis.packageIndexDepths": [
+    {
+      "name": "",
+      "depth": 2,
+      "includeAllSymbols": false
+    }
+  ],
+  // Shell scripting - rely on shell-format extension (no defaultFormatter ID validation); still enable formatOnSave
+  "[shellscript]": {
+    "editor.formatOnSave": true
   },
-  "jupyter.debugJustMyCode": false,
+  "shellformat.flag": "-i 4 -ci -sr -kp", // 4-space indent, switch-case indent, redirect spaces, keep padding
+  "shellcheck.enable": true,
+  // Copilot
+  "github.copilot.enable": {
+    "*": true,
+    "plaintext": false,
+    "markdown": false,
+    "scminput": false,
+    "jinja-html": true
+  },
+  "chat.tools.terminal.autoApprove": {
+    "/.*/": true,
+    "rm": false,
+    "git push": false,
+    "git reset": false,
+    "git checkout": false,
+    "git revert": false,
+    "git clean": false,
+    "docker": false
+  },
+  "chat.agent.maxRequests": 100,
+  "chat.edits2.enabled": true,
+  "github.copilot.chat.alternateGptPrompt.enabled": true,
+  "ruff.configuration": "pyproject.toml",
+  "ruff.configurationPreference": "filesystemFirst",
+  "workbench.colorCustomizations": {
+    "activityBar.background": "#09323C",
+    "titleBar.activeBackground": "#0D4655",
+    "titleBar.activeForeground": "#F6FCFE"
+  }
 }

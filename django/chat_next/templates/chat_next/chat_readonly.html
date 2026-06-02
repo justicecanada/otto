@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block body_classes %}chat{% endblock %}
+
+{% block page_css %}
+  <link rel="stylesheet" href="{% static 'chat_next/css/style.css' %}">
+{% endblock %}
+
+{% block page_title %}
+  {% include "chat_next/components/chat_title.html" %}
+{% endblock %}
+
+{% block content_container %}
+  <main id="chat-outer" class="{{ mode }}">
+    <div id="chat-flexbox" class="d-flex justify-content-between mb-3">
+      <div id="chat-container" class="flex-grow-1">
+        <div id="shared-chat-warning"
+             class="text-center small text-bg-warning py-1">
+          <i class="bi bi-exclamation-triangle-fill"></i>
+          {% trans "This chat was shared with you and is read-only." %}
+          {% trans "If you should not have access," %}
+          <a href="#"
+             class="text-body"
+             onclick="emailChatAuthor('{% url 'chat_next:email_author' chat.id %}')">{% trans "email the chat author" %}</a>
+          {% trans "to report the issue." %}
+          <span id="author-mailto-container"></span>
+        </div>
+        <div class="container px-5 position-relative">
+          <div id="messages-container" class="py-3 px-2">{% include 'chat_next/components/chat_messages.html' %}</div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script defer src="{% static 'thirdparty/markdown-it.min.js' %}"></script>
+  <script defer src="{% static 'thirdparty/katex.min.js' %}"></script>
+  <script defer src="{% static 'thirdparty/markdown-it-katex.js' %}"></script>
+  <script defer src="{% static 'thirdparty/highlight.js' %}"></script>
+
+  <script defer src="{% static 'chat_next/js/scripts.js' %}"></script>
+  <script defer src="{% static 'chat_next/js/reasoningWidget.js' %}"></script>
+  <script defer src="{% static 'chat_next/js/filePreview.js' %}"></script>
+  <script defer src="{% static 'librarian/scripts.js' %}"></script>
+
+  <link rel="stylesheet" href="{% static 'chat_next/css/highlightjs.css' %}">
+  <link rel="stylesheet" href="{% static 'thirdparty/css/katex.min.css' %}">
+{% endblock %}

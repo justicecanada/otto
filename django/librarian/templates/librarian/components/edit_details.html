@@ -31,5 +31,9 @@
       <em class="small">{% trans "Select a library, folder or document to view." %}</em>
     </div>
   {% endif %}
+  {% if show_data_source_status and data_source_status_summary %}
+    {% include "librarian/components/data_source_status.html" %}
+  {% endif %}
+
   {% if focus_el %}<script>document.querySelector('{{ focus_el }}').focus();</script>{% endif %}
 </div>

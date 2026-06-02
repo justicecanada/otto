@@ -1,0 +1,201 @@
+{% load i18n %}
+{% load chat_next_extras %}
+
+{% comment %}
+  Unified file browser component for both user-uploaded and bot-generated files.
+  Two states: file list view (default) and single-file preview view.
+  Preview replaces the file list with a back button, file info, and prev/next nav.
+
+  Required context:
+    - message: Message object (with prefetched files)
+    - show_library_status: boolean (optional) - set by polling views
+    - files_processing: boolean (optional) - whether files are still processing
+    - status_summary: dict (optional) - processing/completed counts
+    - data_source_id: int (optional) - for "See details" librarian modal link
+{% endcomment %}
+
+{% with sorted_files=message.sorted_files %}
+  <div class="file-browser mt-2"
+       id="file-browser-{{ message.id }}"
+       data-message-id="{{ message.id }}"
+       data-current-index="0">
+
+    {# ── STATE 1: File list view (visible by default) ── #}
+    <div class="file-list-view" id="file-list-{{ message.id }}">
+
+      {% if status_summary and not message.is_bot %}
+        <div class="upload-status-summary d-flex align-items-center">
+          {% if status_summary.processing %}
+            <span class="d-flex flex-wrap align-items-center gap-2">
+              <span class="d-flex align-items-center">
+                <i class="bi bi-arrow-repeat text-primary icn-spinner me-2"></i>
+                <span>
+                  {% blocktrans trimmed with processed=status_summary.processed total=status_summary.total %}
+                    Adding to library... ({{ processed }}/{{ total }})
+                  {% endblocktrans %}
+                </span>
+              </span>
+              {% if status_summary.paused_count > 0 %}
+                <span class="d-flex align-items-center">
+                  <i class="bi bi-pause-circle-fill text-warning me-1"></i>
+                  <span class="fw-semibold">{{ status_summary.paused_count }}</span>
+                  <span class="text-muted ms-1">{% trans "paused" %}</span>
+                </span>
+              {% endif %}
+            </span>
+          {% else %}
+            <span class="d-flex flex-wrap align-items-center gap-2">
+              {% if status_summary.success_count > 0 %}
+                <span class="d-flex align-items-center">
+                  <i class="bi bi-check-circle-fill text-success me-1"></i>
+                  <span class="fw-semibold">{{ status_summary.success_count }}</span>
+                  <span class="text-muted ms-1">{% trans "completed" %}</span>
+                </span>
+              {% endif %}
+              {% if status_summary.error_count > 0 %}
+                <span class="d-flex align-items-center">
+                  <i class="bi bi-exclamation-circle-fill text-danger me-1"></i>
+                  <span class="fw-semibold">{{ status_summary.error_count }}</span>
+                  <span class="text-muted ms-1">{% trans "errors" %}</span>
+                </span>
+              {% endif %}
+              {% if status_summary.stopped_count > 0 %}
+                <span class="d-flex align-items-center">
+                  <i class="bi bi-slash-circle text-warning me-1"></i>
+                  <span class="fw-semibold">{{ status_summary.stopped_count }}</span>
+                  <span class="text-muted ms-1">{% trans "stopped" %}</span>
+                </span>
+              {% endif %}
+              {% if status_summary.paused_count > 0 %}
+                <span class="d-flex align-items-center">
+                  <i class="bi bi-pause-circle-fill text-warning me-1"></i>
+                  <span class="fw-semibold">{{ status_summary.paused_count }}</span>
+                  <span class="text-muted ms-1">{% trans "paused" %}</span>
+                </span>
+              {% endif %}
+            </span>
+          {% endif %}
+          {% if data_source_id %}
+            <a href="#"
+               class="see-details text-primary ms-2"
+               data-bs-toggle="modal"
+               data-bs-target="#chat-next-modal"
+               hx-get="{% url 'chat_next:modal_librarian_data_source' chat_id=message.chat.id data_source_id=data_source_id %}"
+               hx-target="#chat-next-modal-content"
+               hx-indicator="#librarian-modal-spinner"
+               hx-swap="innerHTML">{% trans "See details" %}</a>
+          {% endif %}
+        </div>
+        {% if status_summary.paused_count > 0 %}
+          <div class="upload-status-note upload-status-note-paused small mb-2"
+               role="status">
+            <div class="d-flex align-items-start gap-2">
+              <i class="bi bi-pause-circle-fill text-warning small mt-1"></i>
+              <div>
+                <div class="status-note-title">
+                  {% blocktrans trimmed count paused_count=status_summary.paused_count %}
+                    1 large file is paused pending embedding approval.
+                  {% plural %}
+                    {{ paused_count }} large files are paused pending embedding approval.
+                  {% endblocktrans %}
+                </div>
+                <div class="status-note-detail">{% trans "Click the document icon to continue." %}</div>
+              </div>
+            </div>
+          </div>
+        {% endif %}
+      {% endif %}
+
+      <ul class="list-unstyled mb-1">
+        {% for file in sorted_files %}
+          {% include "chat_next/components/file_status_card.html" with file=file file_index=forloop.counter0 show_status=True show_download=True %}
+        {% endfor %}
+      </ul>
+
+      {% if sorted_files|length > 1 %}
+        <button class="mt-1 mb-1 btn btn-sm btn-outline-dark"
+                onclick="downloadMessageFiles(this)">{% trans 'Download all files' %}</button>
+      {% endif %}
+    </div>
+
+    {# ── STATE 2: Preview view (hidden by default) ── #}
+    <div class="file-preview-view"
+         id="file-preview-{{ message.id }}"
+         style="display:none">
+      <div class="preview-toolbar d-flex align-items-center justify-content-between">
+        <button class="btn btn-sm btn-link text-body text-decoration-none px-0"
+                onclick="closeFilePreview('{{ message.id }}')"
+                title="{% trans 'Back to files' %}">
+          <i class="bi bi-arrow-left me-1"></i>
+          <span class="small">{% trans "Files" %}</span>
+        </button>
+
+        <span class="preview-file-info d-flex align-items-center gap-2 overflow-hidden flex-shrink-1 mx-2">
+          <span class="preview-library-icon flex-shrink-0"
+                style="display:none"
+                title="{% trans 'View in library' %}"></span>
+          <span class="preview-filename text-truncate small fw-semibold"></span>
+          <span class="preview-file-actions d-flex align-items-center gap-2 flex-shrink-0">
+            <a class="preview-download-link text-muted"
+               href="#"
+               title="{% trans 'Download' %}"
+               onclick="event.stopPropagation();">
+              <i class="bi bi-download"></i>
+            </a>
+            <div class="preview-copy-dropdown dropdown d-none">
+              <button type="button"
+                      class="btn btn-link m-0 p-0 text-muted small preview-copy-btn"
+                      onclick="copyCurrentFilePreview(this)"
+                      title="{% trans 'Copy' %}"
+                      aria-label="{% trans 'Copy' %}">
+                <i class="bi bi-copy"></i><i class="bi bi-check-lg"></i>
+              </button>
+              <button type="button"
+                      class="btn btn-link m-0 p-0 text-muted small preview-copy-menu-toggle dropdown-toggle d-none"
+                      data-bs-toggle="dropdown"
+                      data-bs-auto-close="true"
+                      title="{% trans 'Copy options' %}"
+                      aria-label="{% trans 'Copy options' %}">
+                <i class="bi bi-chevron-down"></i>
+              </button>
+              <div class="dropdown-menu preview-copy-menu">
+                <button type="button"
+                        class="dropdown-item"
+                        onclick="copyCurrentFilePreview(this, 'markdown')">{% trans "Copy as markdown" %}</button>
+                <button type="button"
+                        class="dropdown-item"
+                        onclick="copyCurrentFilePreview(this, 'rich')">{% trans "Copy as rich text" %}</button>
+              </div>
+            </div>
+          </span>
+        </span>
+
+        <span class="preview-nav d-flex align-items-center gap-1 flex-shrink-0">
+          <button class="btn btn-sm btn-outline-secondary border-0 px-1 py-0 preview-prev-btn"
+                  onclick="prevFilePreview('{{ message.id }}')"
+                  title="{% trans 'Previous file' %}">
+            <i class="bi bi-chevron-left"></i>
+          </button>
+          <span class="preview-position small text-muted"></span>
+          <button class="btn btn-sm btn-outline-secondary border-0 px-1 py-0 preview-next-btn"
+                  onclick="nextFilePreview('{{ message.id }}')"
+                  title="{% trans 'Next file' %}">
+            <i class="bi bi-chevron-right"></i>
+          </button>
+        </span>
+      </div>
+
+      <div class="preview-content" id="file-preview-content-{{ message.id }}">
+        {# HTMX-loaded preview content goes here #}
+        <div class="text-center py-4 text-muted">
+          <i class="bi bi-arrow-repeat icn-spinner"></i>
+        </div>
+      </div>
+    </div>
+
+    {# ── File metadata for JS navigation ── #}
+    <script id="file-data-{{ message.id }}" type="application/json">
+    [{% for file in sorted_files %}{"id":{{ file.id }},"filename":"{{ file.filename|escapejs }}","downloadUrl":"{% url 'chat_next:download_file' file.id %}","previewUrl":"{% url 'chat_next:preview_file' file.id %}"{% if file.document %},"documentId":{{ file.document.id }},"documentStatus":"{{ file.document.status }}","documentModalUrl":"{% url 'chat_next:modal_librarian_document' chat_id=file.message.chat.id document_id=file.document.id %}"{% endif %}}{% if not forloop.last %},{% endif %}{% endfor %}]
+    </script>
+  </div>
+{% endwith %}

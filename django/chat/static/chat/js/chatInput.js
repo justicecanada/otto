@@ -16,6 +16,21 @@ function resizeTextarea() {
   resizeOtherElements();
 }
 
+// Helper to move the caret of #chat-prompt to the end
+function moveChatPromptCaretToEnd() {
+  const textarea = document.getElementById('chat-prompt');
+  if (!textarea) return;
+  const len = textarea.value.length;
+  textarea.focus();
+  if (typeof textarea.setSelectionRange === 'function') {
+    textarea.setSelectionRange(len, len);
+  } else if (textarea.createTextRange) { // IE fallback
+    const range = textarea.createTextRange();
+    range.collapse(false);
+    range.select();
+  }
+}
+
 function resizeOtherElements() {
   // If the #chat-toolbar has split into two rows, it will be > 50px high. Try to make it smaller
   const hideables = document.querySelectorAll('#chat-toolbar .hideable');
@@ -56,6 +71,11 @@ function handleChatPromptResize(event) {
     default:
       break;
   }
+  const length = textarea.value.length;
+  // Focus the textarea
+  textarea.focus();
+  // Move the cursor to the end of the textarea
+  textarea.setSelectionRange(length, length);
 }
 
 // Add the input event listener to the textarea

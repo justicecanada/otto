@@ -1,0 +1,17 @@
+{% load i18n %}
+
+<div id="libraryModalPoller"></div>
+<div class="modal modal-xl fade"
+     id="chat-next-modal"
+     data-chat-id="{{ chat.id }}"
+     tabindex="0"
+     aria-label="{% trans 'Modal dialog' %}"
+     aria-hidden="true">
+  <div class="modal-dialog full-size-fixed-modal">
+    <div class="modal-content" id="chat-next-modal-content">
+      <div class="text-center py-5">
+        <span class="spinner-border spinner-border-sm"></span>
+      </div>
+    </div>
+  </div>
+</div>

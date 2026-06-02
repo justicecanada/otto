@@ -1,0 +1,18 @@
+{% load i18n %}
+<div id="translatedText"
+     class="form-control"
+     style="min-height: 195px;
+            overflow-y: auto"
+     aria-live="polite">
+  {% if error %}
+    <span class="text-danger small">{{ error }}</span>
+  {% else %}
+    <div class="translation-result-text">{{ translated_text|default:"" }}</div>
+  {% endif %}
+</div>
+
+{% if not initial_load %}
+  <span id="text-translation-cost" class="text-muted ms-2" hx-swap-oob="true">
+    {% if translated_text and not error %}{{ usd_cost }}{% endif %}
+  </span>
+{% endif %}

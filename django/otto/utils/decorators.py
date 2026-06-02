@@ -1,5 +1,6 @@
 from functools import wraps
 
+from django.conf import settings
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.core.exceptions import PermissionDenied
 from django.http import HttpResponse, HttpResponseRedirect
@@ -9,42 +10,48 @@ from django.utils.translation import gettext as _
 
 from structlog import get_logger
 
-from otto.models import App, Notification
+from otto.models import Notification
 from otto.rules import ADMINISTRATIVE_PERMISSIONS
 from otto.utils.common import robust_redirect
 
 logger = get_logger(__name__)
 
 
-# AC-3: Enforce access controls on specific views and functions
-def app_access_required(app_handle):
-    def decorator(func):
-        @wraps(func)
-        def wrapper(request, *args, **kwargs):
-            if not request.user.is_authenticated:
-                logger.info("User is not authenticated", category="security")
-                return robust_redirect(request, reverse("index"))
+def otto_user_required(func):
+    """AC-3: Require membership in the 'Otto user' group.
 
-            app = App.objects.get(handle=app_handle)
-            if not request.user.has_perm("otto.access_app", app):
-                logger.info(
-                    "User does not have permission to access app",
-                    category="security",
-                    app=app.name,
-                )
-                Notification.objects.create(
-                    user=request.user,
-                    heading=_("Access controls"),
-                    text=_("You are not authorized to access") + f" {app.name}",
-                    category="error",
-                )
-                return robust_redirect(request, reverse("index"))
+    Caches the group check on the request object so that multiple
+    decorators in the same request don't hit the DB again.
+    """
 
-            return func(request, *args, **kwargs)
+    @wraps(func)
+    def wrapper(request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            logger.info("User is not authenticated", category="security")
+            return robust_redirect(request, reverse("index"))
 
-        return wrapper
+        # Cache the result on the request to avoid repeated DB queries
+        if not hasattr(request, "_is_otto_user"):
+            request._is_otto_user = request.user.groups.filter(
+                name__in=[settings.OTTO_USER_GROUP, settings.OTTO_ADMIN_GROUP]
+            ).exists()
 
-    return decorator
+        if not request._is_otto_user:
+            logger.info(
+                "User is not in Otto user group",
+                category="security",
+            )
+            Notification.objects.create(
+                user=request.user,
+                heading=_("Access controls"),
+                text=_("You are not authorized to access this application."),
+                category="error",
+            )
+            return robust_redirect(request, reverse("index"))
+
+        return func(request, *args, **kwargs)
+
+    return wrapper
 
 
 # AC-3: Enforce access controls on specific views and functions
@@ -100,7 +107,7 @@ def permission_required(
                     Notification.objects.create(
                         user=user,
                         heading="Access controls",
-                        text=_(f"Unauthorized access of URL:") + f" {request.path}",
+                        text=_("Unauthorized access of URL:") + f" {request.path}",
                         category="error",
                     )
                     return robust_redirect(request, reverse("index"))
@@ -124,14 +131,11 @@ def permission_required(
 def budget_required(func):
     @wraps(func)
     def wrapper(request, *args, **kwargs):
-        if request.user.is_over_budget:
-            logger.info("User blocked due to budget overage", category="budget")
+        def _over_budget_response(message_text):
             Notification.objects.create(
                 user=request.user,
                 heading=_("Budget limit"),
-                text=_(
-                    "You have reached your monthly budget limit. Please contact an Otto administrator or wait until the 1st for the limit to reset."
-                ),
+                text=message_text,
                 category="error",
             )
             if request.headers.get("HX-Request"):
@@ -140,6 +144,29 @@ def budget_required(func):
             else:
                 response = HttpResponseRedirect(reverse("index"))
             return response
+
+        active_cost_group = request.user.get_active_cost_group(request)
+        if active_cost_group:
+            if active_cost_group.is_over_budget:
+                logger.info(
+                    "Cost group blocked due to budget overage",
+                    category="budget",
+                    cost_group_id=active_cost_group.cost_group_id,
+                )
+                return _over_budget_response(
+                    _(
+                        "The selected cost group has reached its monthly budget limit. Please contact an Otto administrator or wait until the 1st for the limit to reset."
+                    )
+                )
+            return func(request, *args, **kwargs)
+
+        if request.user.is_over_budget:
+            logger.info("User blocked due to budget overage", category="budget")
+            return _over_budget_response(
+                _(
+                    "You have reached your monthly budget limit. Please contact an Otto administrator or wait until the 1st for the limit to reset."
+                )
+            )
 
         return func(request, *args, **kwargs)
 

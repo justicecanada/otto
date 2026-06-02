@@ -12,6 +12,7 @@
             hx-target="#presets-modal-body"
             class="d-flex flex-grow-1">
         {% csrf_token %}
+        <input type="hidden" name="prompt" value="">
         <button type="submit"
                 title="{% trans 'Update preset' %}"
                 class="card d-flex flex-grow-1 text-decoration-none text-dark card-button border">

@@ -69,7 +69,8 @@
              hx-post="{% url 'laws:view_search' law_search.id %}"
              hx-trigger="load"
              hx-indicator="#spinner"
-             hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'></div>
+             hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+             hx-request='{"timeout": 15000}'></div>
         <script>
           document.addEventListener('DOMContentLoaded', function() {
             // Re-enable search button on history replay pages

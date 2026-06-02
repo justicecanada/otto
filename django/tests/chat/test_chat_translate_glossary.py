@@ -1,12 +1,9 @@
-import tempfile
-from unittest import mock
-
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
 
 import pytest
 
-from chat.models import Chat, ChatFile, ChatOptions, Message
+from chat.models import Chat, ChatFile, Message
 from librarian.models import SavedFile
 
 
@@ -14,7 +11,6 @@ from librarian.models import SavedFile
 def test_translate_glossary_upload_and_usage(client, all_apps_user):
     user = all_apps_user()
     client.force_login(user)
-
     # Create a chat for glossary upload test
     response = client.get(reverse("chat:translate"), follow=True)
     chat = Chat.objects.filter(user=user).order_by("-created_at").first()

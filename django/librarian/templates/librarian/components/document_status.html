@@ -7,7 +7,14 @@
     <div class="col">
       <h6>{% trans "Document status" %}</h6>
       <div class="small">
-        {% if document.status == "PENDING" %}
+        {% if not document.status %}
+          {# Handle None/null status - should not happen but defensive #}
+          <div class="document-status document-status-PENDING">
+            <i class="bi bi-circle-fill text-secondary small me-1"
+               aria-hidden="true"></i>
+            <span>{% trans 'Not started' %}</span>
+          </div>
+        {% elif document.status == "PENDING" %}
           {# Grey circle #}
           <div class="document-status document-status-{{ document.status }}">
             <i class="bi bi-circle-fill text-secondary small me-1"
@@ -20,13 +27,22 @@
             <i class="bi bi-slash-circle text-warning small me-1" aria-hidden="true"></i>
             <span>{% trans 'Cancelled' %}</span>
           </div>
+        {% elif document.status == "PAUSED" %}
+          <div class="document-status document-status-{{ document.status }}">
+            <i class="bi bi-pause-circle-fill text-warning small me-1"
+               aria-hidden="true"></i>
+            <span>{% trans 'Paused pending embedding approval' %}</span>
+            {% if document.status_details %}
+              <span class="text-secondary" style="font-style:italic;">{{ document.status_details }}</span>
+            {% endif %}
+          </div>
         {% elif document.status == "INIT" %}
           {# Grey circle #}
           <div class="document-status document-status-{{ document.status }}">
             <i class="bi bi-circle text-secondary small me-1" aria-hidden="true"></i>
             <span>{% trans 'Queued' %}...</span>
           </div>
-        {% elif document.status == "PROCESSING" %}
+        {% elif document.status == "PROCESSING" or document.status == "TEXT_EXTRACTED" %}
           {# Blue spinner #}
           <div class="document-status document-status-{{ document.status }}">
             <span class="me-1">
@@ -37,7 +53,11 @@
               {% if document.celery_status_message %}
                 {{ document.celery_status_message }}
               {% else %}
-                {% trans 'Processing' %}...
+                {% if document.status == "TEXT_EXTRACTED" %}
+                  {% trans 'Adding to library' %}...
+                {% else %}
+                  {% trans 'Processing' %}...
+                {% endif %}
               {% endif %}
             </span>
           </div>
@@ -68,11 +88,18 @@
     <div class="col-auto">
       {% has_perm 'librarian.edit_library' user selected_library as can_edit_library %}
       {% if can_edit_library %}
-        {% if document.celery_task_id %}
+        {% if document.status == "PENDING" or document.status == "INIT" or document.status == "PROCESSING" or document.status == "TEXT_EXTRACTED" %}
           <button type="button"
                   class="btn btn-sm btn-outline-secondary"
                   hx-get="{% url 'librarian:document_stop' document.id %}"
-                  hx-include="#librarian-search-input">{% trans "Stop" %}</button>
+                  hx-include="#librarian-search-form"
+                  hx-disabled-elt="this">{% trans "Stop" %}</button>
+        {% elif document.status == "PAUSED" %}
+          <button type="button"
+                  class="btn btn-sm btn-warning"
+                  hx-get="{% url 'librarian:document_start_embedding' document.id %}"
+                  hx-include="#librarian-search-form"
+                  hx-disabled-elt="this">{% trans "Embed large document ($)" %}</button>
         {% elif document.content_type == "application/pdf" %}
           <div class="btn-group">
             <button type="button"
@@ -84,7 +111,7 @@
                 <a class="dropdown-item small"
                    href="#"
                    hx-get="{% url 'librarian:document_start' document.id 'default' %}"
-                   hx-include="#librarian-search-input">
+                   hx-include="#librarian-search-form">
                   <span>{% trans "Text only" %}</span>
                   <span class="text-muted">{% trans "(fastest, $)" %}</span>
                 </a>
@@ -93,7 +120,7 @@
                 <a class="dropdown-item small"
                    href="#"
                    hx-get="{% url 'librarian:document_start' document.id 'layout' %}"
-                   hx-include="#librarian-search-input">
+                   hx-include="#librarian-search-form">
                   <span>{% trans "PDF layout" %}</span>
                   <span class="text-muted">{% trans "(keeps formatting, $)" %}</span>
                 </a>
@@ -102,7 +129,7 @@
                 <a class="dropdown-item small"
                    href="#"
                    hx-get="{% url 'librarian:document_start' document.id 'azure_read' %}"
-                   hx-include="#librarian-search-input">
+                   hx-include="#librarian-search-form">
                   <span>{% trans "PDF OCR" %}</span>
                   <span class="text-muted">{% trans "(for scans, $$)" %}</span>
                 </a>
@@ -111,7 +138,7 @@
                 <a class="dropdown-item small"
                    href="#"
                    hx-get="{% url 'librarian:document_start' document.id 'azure_layout' %}"
-                   hx-include="#librarian-search-input">
+                   hx-include="#librarian-search-form">
                   <span>{% trans "PDF layout & OCR" %}</span>
                   <span class="text-muted">{% trans "(for complex scans, $$$)" %}</span>
                 </a>
@@ -122,7 +149,14 @@
           <button type="button"
                   class="btn btn-sm btn-outline-success"
                   hx-get="{% url 'librarian:document_start' document.id 'default' %}"
-                  hx-include="#librarian-search-input">{% trans "Process document" %}</button>
+                  hx-include="#librarian-search-form">{% trans "Process document" %}</button>
+        {% endif %}
+        {% if document.url %}
+          <button type="button"
+                  class="btn btn-sm btn-outline-primary ms-1"
+                  hx-get="{% url 'librarian:document_start' document.id 'default' %}?refresh_from_url=true"
+                  hx-include="#librarian-search-form"
+                  hx-disabled-elt="this">{% trans "Refresh from URL" %}</button>
         {% endif %}
       {% endif %}
     </div>
@@ -137,13 +171,41 @@
         </dd>
       {% endif %}
       {% if document.filename %}
-        <dt>{% trans "Filename" %}</dt>
+        <dt>
+          {% if document.has_processed_file %}
+            {% trans "Processed file" %}
+          {% else %}
+            {% trans "Filename" %}
+          {% endif %}
+        </dt>
         <dd>
-          {% if document.saved_file %}
+          {% if document.saved_file and document.file_exists %}
             <a href="{% url 'librarian:download_document' document.id %}">{{ document.filename }}</a>
+          {% elif document.saved_file %}
+            <span class="text-muted text-decoration-line-through">{{ document.filename }}</span>
+            <span class="text-danger small"><i class="bi bi-exclamation-triangle"></i> {% trans "File missing" %}</span>
           {% else %}
             {{ document.filename }}
           {% endif %}
+        </dd>
+      {% endif %}
+      {% if document.has_processed_file and document.original_filename %}
+        <dt>{% trans "Original file" %}</dt>
+        <dd>
+          {% if document.original_saved_file and document.original_file_exists %}
+            <a href="{% url 'librarian:download_original_document' document.id %}">{{ document.original_filename }}</a>
+          {% elif document.original_saved_file %}
+            <span class="text-muted text-decoration-line-through">{{ document.original_filename }}</span>
+            <span class="text-danger small"><i class="bi bi-exclamation-triangle"></i> {% trans "File missing" %}</span>
+          {% else %}
+            {{ document.original_filename }}
+          {% endif %}
+        </dd>
+      {% endif %}
+      {% if document.url %}
+        <dt>{% trans "Source URL" %}</dt>
+        <dd>
+          <a href="{{ document.url }}" target="_blank" rel="noopener noreferrer">{{ document.url }}</a>
         </dd>
       {% endif %}
       {% if document.content_type %}

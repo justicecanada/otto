@@ -1,18 +1,34 @@
 # Otto admin: manage users, groups, libraries, data sources - all of it!
 - model: auth.Group
-  pk: 1
   fields:
     name: Otto admin
 
-# Data steward: can use the Librarian interface but requires additional permissions
-# to edit data sources and libraries (granted per-library, per-data_source)
+# Bulk uploader: can upload larger files than normal users
 - model: auth.Group
-  pk: 2
   fields:
-    name: Data steward
+    name: Bulk uploader
+  old_names:
+    - Data steward
 
-#Operations admin: can view and manage feedback, view cost dashboards
+# Operations admin: can view and manage feedback, view cost dashboards
 - model: auth.Group
-  pk: 3
   fields:
     name: Operations admin
+
+# Public sharing admin: can share libraries, presets, and skills with the whole organisation
+- model: auth.Group
+  fields:
+    name: Public sharing admin
+  old_names:
+    - JUS data steward
+    - Public library admin
+
+# Otto user: standard user access
+- model: auth.Group
+  fields:
+    name: Otto user
+
+# Beta tester: can access AI Assistant (new)
+- model: auth.Group
+  fields:
+    name: Beta tester

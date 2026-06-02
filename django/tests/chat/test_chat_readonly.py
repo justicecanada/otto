@@ -3,7 +3,7 @@ from django.utils import timezone
 
 import pytest
 
-from chat.models import Chat, Message
+from chat.models import Chat
 
 
 @pytest.mark.django_db
@@ -13,8 +13,8 @@ def test_chat(client, basic_user, all_apps_user):
     user = all_apps_user()
     client.force_login(user)
     response = client.post(reverse("chat:chat_with_ai"))
-    # This should redirect to the chat page
-    assert response.status_code == 302
+    # This should render the chat page directly (avoids redirect overhead)
+    assert response.status_code == 200
     chat = Chat.objects.filter(user=user).last()
 
     # Post a message to the chat
@@ -54,3 +54,27 @@ def test_chat(client, basic_user, all_apps_user):
     # Check that there is no chat prompt (readonly)
     assert "chat-prompt" not in response.content.decode()
     assert "read-only" in response.content.decode().lower()
+
+
+@pytest.mark.django_db
+def test_chat_page_renders_copy_dropdown_options(client, all_apps_user):
+    user = all_apps_user("legacy-copy-dropdown")
+    client.force_login(user)
+
+    response = client.post(reverse("chat:chat_with_ai"))
+    assert response.status_code == 200
+    chat = Chat.objects.filter(user=user).last()
+
+    response = client.post(
+        reverse("chat:chat_message", kwargs={"chat_id": chat.id}),
+        {"user-message": "## Heading\n\nThis is **markdown**."},
+    )
+    assert response.status_code == 200
+
+    response = client.get(reverse("chat:chat", kwargs={"chat_id": chat.id}))
+    assert response.status_code == 200
+    content = response.content.decode()
+    assert "copy-message-dropdown" in content
+    assert "copy-message-menu-toggle" in content
+    assert "Copy as markdown" in content
+    assert "Copy as rich text" in content

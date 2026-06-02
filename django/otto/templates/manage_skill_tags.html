@@ -1,0 +1,294 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block breadcrumb %}
+  {{ block.super }}
+  <li class="breadcrumb-item">
+    <a href="{% url 'manage_users' %}">{% trans "Manage users" %}</a>
+  </li>
+  <li class="breadcrumb-item">
+    <a href="{% url 'manage_skill_tags' %}">{% trans "Skill tags" %}</a>
+  </li>
+{% endblock %}
+
+{% block page_title %}
+  {% trans "Manage skill tags - Otto" %}
+{% endblock %}
+
+{% block content_container %}
+  <div class="container py-3 px-0">
+    <div class="d-flex justify-content-between align-items-center mb-3 mt-2">
+      <h2 class="mb-0">{% trans "Manage skill tags" %}</h2>
+      <button type="button"
+              class="btn btn-primary"
+              data-bs-toggle="modal"
+              data-bs-target="#add-tag-modal">
+        <i class="bi bi-plus-lg me-1"></i>{% trans "Add tag" %}
+      </button>
+    </div>
+
+    {% if messages %}
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show"
+             role="alert">
+          {{ message }}
+          <button type="button"
+                  class="btn-close"
+                  data-bs-dismiss="alert"
+                  aria-label="{% trans 'Close' %}"></button>
+        </div>
+      {% endfor %}
+    {% endif %}
+
+    {# Add tag modal #}
+    <div class="modal fade"
+         id="add-tag-modal"
+         tabindex="-1"
+         aria-labelledby="add-tag-label"
+         aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <form method="post" action="{% url 'add_skill_tag' %}">
+            {% csrf_token %}
+            <div class="modal-header">
+              <h5 class="modal-title" id="add-tag-label">{% trans "Add tag" %}</h5>
+              <button type="button"
+                      class="btn-close"
+                      data-bs-dismiss="modal"
+                      aria-label="{% trans 'Close' %}"></button>
+            </div>
+            <div class="modal-body">
+              <div class="mb-3">
+                <label for="add-name-en" class="form-label">{% trans "English name" %}</label>
+                <input type="text"
+                       class="form-control"
+                       id="add-name-en"
+                       name="name_en"
+                       required>
+              </div>
+              <div class="mb-3">
+                <label for="add-name-fr" class="form-label">{% trans "French name" %}</label>
+                <input type="text"
+                       class="form-control"
+                       id="add-name-fr"
+                       name="name_fr"
+                       required>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
+              <button type="submit" class="btn btn-primary">{% trans "Save" %}</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    {# Suggested merges #}
+    {% if suggestions %}
+      <div class="card mb-4">
+        <div class="card-header">
+          <h5 class="mb-0">{% trans "Suggested merges" %}</h5>
+        </div>
+        <div class="card-body">
+          <p class="text-muted">{% trans "These tags have similar names and may be duplicates." %}</p>
+          <table class="table table-sm">
+            <thead>
+              <tr>
+                <th>{% trans "Tag A" %}</th>
+                <th>{% trans "Tag B" %}</th>
+                <th>{% trans "Edit distance" %}</th>
+                <th>{% trans "Vector distance" %}</th>
+                <th>{% trans "Merge tags" %}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for suggestion in suggestions %}
+                <tr>
+                  <td>{{ suggestion.t1.name_en }} / {{ suggestion.t1.name_fr }}</td>
+                  <td>{{ suggestion.t2.name_en }} / {{ suggestion.t2.name_fr }}</td>
+                  <td>{{ suggestion.edit_distance }}</td>
+                  <td>
+                    {% if suggestion.embedding_distance is not None %}
+                      {{ suggestion.embedding_distance|floatformat:4 }}
+                    {% else %}
+                      &mdash;
+                    {% endif %}
+                  </td>
+                  <td>
+                    <div class="d-flex flex-wrap gap-2">
+                      <form method="post" action="{% url 'merge_skill_tags' %}" class="d-inline">
+                        {% csrf_token %}
+                        <input type="hidden" name="source_id" value="{{ suggestion.t2.pk }}">
+                        <input type="hidden" name="target_id" value="{{ suggestion.t1.pk }}">
+                        <button type="submit" class="btn btn-sm btn-outline-dark">
+                          {% blocktrans with en=suggestion.t1.name_en fr=suggestion.t1.name_fr %}Keep "{{ en }} / {{ fr }}"{% endblocktrans %}
+                        </button>
+                      </form>
+                      <form method="post" action="{% url 'merge_skill_tags' %}" class="d-inline">
+                        {% csrf_token %}
+                        <input type="hidden" name="source_id" value="{{ suggestion.t1.pk }}">
+                        <input type="hidden" name="target_id" value="{{ suggestion.t2.pk }}">
+                        <button type="submit" class="btn btn-sm btn-outline-dark">
+                          {% blocktrans with en=suggestion.t2.name_en fr=suggestion.t2.name_fr %}Keep "{{ en }} / {{ fr }}"{% endblocktrans %}
+                        </button>
+                      </form>
+                    </div>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    {% endif %}
+
+    {# Manual merge controls #}
+    <div class="card mb-4">
+      <div class="card-header">
+        <h5 class="mb-0">{% trans "Merge any tags" %}</h5>
+      </div>
+      <div class="card-body">
+        <p class="text-muted mb-3">{% trans "Use this to merge tags even when they are not listed in suggested merges." %}</p>
+        <form method="post"
+              action="{% url 'merge_skill_tags' %}"
+              id="manual-merge-form"
+              class="row g-2 align-items-end">
+          {% csrf_token %}
+          <div class="col-12 col-md-5">
+            <label for="manual-source-id" class="form-label">{% trans "Merge from (source)" %}</label>
+            <select class="form-select" name="source_id" id="manual-source-id" required>
+              <option value="" selected disabled>{% trans "Select source tag" %}</option>
+              {% for tag in tags %}
+                <option value="{{ tag.pk }}">{{ tag.name_en }} / {{ tag.name_fr }} ({{ tag.usage_count }})</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-12 col-md-5">
+            <label for="manual-target-id" class="form-label">{% trans "Keep as (target)" %}</label>
+            <select class="form-select" name="target_id" id="manual-target-id" required>
+              <option value="" selected disabled>{% trans "Select target tag" %}</option>
+              {% for tag in tags %}
+                <option value="{{ tag.pk }}">{{ tag.name_en }} / {{ tag.name_fr }} ({{ tag.usage_count }})</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-12 col-md-2 d-grid">
+            <button type="submit" class="btn btn-warning">{% trans "Merge" %}</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    {# Tag table #}
+    <div class="table-responsive">
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>{% trans "English name" %}</th>
+            <th>{% trans "French name" %}</th>
+            <th>{% trans "Skills using tag" %}</th>
+            <th>{% trans "Edit" %}</th>
+            <th>{% trans "Delete" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for tag in tags %}
+            <tr>
+              <td>
+                <span id="name-en-display-{{ tag.pk }}">{{ tag.name_en }}</span>
+              </td>
+              <td>
+                <span id="name-fr-display-{{ tag.pk }}">{{ tag.name_fr }}</span>
+              </td>
+              <td>{{ tag.usage_count }}</td>
+              <td>
+                <button type="button"
+                        class="btn btn-sm btn-outline-primary"
+                        data-bs-toggle="modal"
+                        data-bs-target="#edit-tag-modal-{{ tag.pk }}">{% trans "Edit" %}</button>
+              </td>
+              <td>
+                <form method="post"
+                      action="{% url 'delete_skill_tag' tag.pk %}"
+                      class="d-inline">
+                  {% csrf_token %}
+                  {% if tag.usage_count > 0 %}
+                    <input type="hidden" name="confirm" value="1">
+                    <button type="submit"
+                            class="btn btn-sm btn-outline-danger"
+                            onclick="return confirm('{% blocktrans with name=tag.name_en count=tag.usage_count %}Tag "
+                            {{ name }}
+                            "
+                            is
+                            used
+                            by
+                            {{ count }}
+                            skill
+                            s
+                            .
+                            Delete
+                            anyway
+                            {% endblocktrans %}
+                            '
+                            ">
+                      {% trans "Delete" %}
+                    </button>
+                  {% else %}
+                    <button type="submit" class="btn btn-sm btn-outline-danger">{% trans "Delete" %}</button>
+                  {% endif %}
+                </form>
+              </td>
+            </tr>
+
+            {# Edit modal for this tag #}
+            <div class="modal fade"
+                 id="edit-tag-modal-{{ tag.pk }}"
+                 tabindex="-1"
+                 aria-labelledby="edit-tag-label-{{ tag.pk }}"
+                 aria-hidden="true">
+              <div class="modal-dialog">
+                <div class="modal-content">
+                  <form method="post" action="{% url 'edit_skill_tag' tag.pk %}">
+                    {% csrf_token %}
+                    <div class="modal-header">
+                      <h5 class="modal-title" id="edit-tag-label-{{ tag.pk }}">{% trans "Edit tag" %}</h5>
+                      <button type="button"
+                              class="btn-close"
+                              data-bs-dismiss="modal"
+                              aria-label="{% trans 'Close' %}"></button>
+                    </div>
+                    <div class="modal-body">
+                      <div class="mb-3">
+                        <label for="name-en-{{ tag.pk }}" class="form-label">{% trans "English name" %}</label>
+                        <input type="text"
+                               class="form-control"
+                               id="name-en-{{ tag.pk }}"
+                               name="name_en"
+                               value="{{ tag.name_en }}"
+                               required>
+                      </div>
+                      <div class="mb-3">
+                        <label for="name-fr-{{ tag.pk }}" class="form-label">{% trans "French name" %}</label>
+                        <input type="text"
+                               class="form-control"
+                               id="name-fr-{{ tag.pk }}"
+                               name="name_fr"
+                               value="{{ tag.name_fr }}"
+                               required>
+                      </div>
+                    </div>
+                    <div class="modal-footer">
+                      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
+                      <button type="submit" class="btn btn-primary">{% trans "Save" %}</button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+{% endblock %}

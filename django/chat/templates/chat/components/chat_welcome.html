@@ -3,6 +3,19 @@
 <div id="no-messages-placeholder" class="d-flex flex-column">
   <div class="flex-grow-1 d-flex align-items-center justify-content-center">
     <div id="chat-welcome">
+      {% if from_preset %}
+        <div class="alert alert-info">
+          <div class="row">
+            <div class="col-auto pe-0">
+              <i class="bi bi-sliders me-2" style="font-size: 1.25rem;"></i>
+            </div>
+            <div class="col ps-1">
+              <h5 class="mb-2">{% trans "Loaded preset:" %} {{ from_preset.name_auto }}</h5>
+              {% if from_preset.description_auto %}<p class="mb-0">{{ from_preset.description_auto }}</p>{% endif %}
+            </div>
+          </div>
+        </div>
+      {% endif %}
       <div class="alert alert-warning">
         <div class="row">
           <div class="col-auto pe-0">
@@ -52,7 +65,9 @@
             </p>
             <p class="mb-0">
               <strong>{% trans "Information management:" %}</strong>
-              {% trans "Limit information shared. Chats and Q&A libraries are deleted after 30 days inactivity." %}
+              {% trans "Unpinned chats and" %}
+              <abbr title="{% trans 'Libraries visible to all JUS users are exempt from auto-deletion.' %}">{% trans "most Q&A libraries" %}</abbr>
+              {% trans "are deleted after 90 days of inactivity." %}
             </p>
           </div>
         </div>

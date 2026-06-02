@@ -47,7 +47,7 @@
   --chat-bot-message-blob-bg: #f1f2f4;
   --chat-user-message-border: #dbdef7;
   --chat-bot-message-border: var(--bs-light-border-subtle);
-  --chat-typing-span: #4669b4;
+  --chat-typing-span: #454545;
   --img-icon-border: #dee2e6;
   --app-border: #ccc;
   --chat-footer-border: #ddd;
@@ -121,7 +121,7 @@
   --chat-bot-message-blob-bg: #29282f;
   --chat-user-message-border: var(--chat-user-message-blob-bg);
   --chat-bot-message-border: var(--chat-bot-message-blob-bg);
-  --chat-typing-span: #9abaffc0;
+  --chat-typing-span: #c2c2c2c0;
   --img-icon-border: #dee2e6;
   --app-border: #ccc;
   --chat-footer-border: #ddd;

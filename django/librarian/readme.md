@@ -14,9 +14,10 @@ There are 3 user roles that enable these options:
 
 There is also an "is_public" boolean on the Library model to enable JUS-wide sharing.
 
-Only users in the "Data stewards" group can create or administrate public libraries.
+Only users in the "Public sharing admin" group (and "Otto admin") can create or administrate public libraries (exception: if a member one of these groups adds any user as administrator to a public library,
+that user has limited administration privileges for the library in question).
 
-Users in group "Otto admins" have admin permissions on all public libraries.
+Users in group "Otto admin" have admin permissions on all public libraries.
 
 ## Models
 

@@ -1,56 +1,85 @@
-version: '3.8'
+version: "3.8"
 
 services:
   app:
     build:
       context: ..
       dockerfile: .devcontainer/Dockerfile
+
+    # Mounts the entire codebase into the container for live editing in VS Code.
     volumes:
       - ..:/workspace:cached
-    # Overrides default command so things don't shut down after the process ends.
+
+    # Keeps the container running in VS Code even without a specific app command.
     command: sleep infinity
-    # Runs app on the same network as the database container, allows "forwardPorts" in devcontainer.json function.
-    network_mode: service:postgres-service
+
+    # Waits for database and Redis to start before launching.
+    # LiteLLM is optional and started via profile, so do not block on it.
     depends_on:
       - postgres-service
       - redis
-    # Use "forwardPorts" in **devcontainer.json** to forward an app port locally.
-    # (Adding the "ports" property to this file will not forward from a Codespace.)
+
+    # All services share a common custom network, enabling name-based connectivity.
+    # Previously, we used “network_mode: service:postgres-service”, which tied this
+    # container to Postgres’s network namespace and prevented DNS resolution for
+    # other containers like Redis or LiteLLM. This caused connection errors like
+    # “Name or service not known”. Using a shared bridge network fixes this.
+    networks:
+      - otto-network
+    # Use “forwardPorts” in devcontainer.json instead of exposing ports here —
+    # this is the recommended VS Code Dev Container method for local forwarding.
+    # (Adding "ports" here won’t forward from a Codespace.)
 
   postgres-service:
     image: pgvector/pgvector:pg16
     restart: unless-stopped
-    command: [
-      "postgres",
-      "-c", "shared_preload_libraries=pg_stat_statements",
-      "-c", "pg_stat_statements.track=all",
-      "-c", "shared_buffers=512MB",
-      "-c", "work_mem=32MB",
-      "-c", "effective_cache_size=1GB",
-      "-c", "maintenance_work_mem=256MB"
-    ]
-    shm_size: 1gb
-    volumes:
-      - postgres-data:/var/lib/postgresql/data
-      # - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+
+    # PostgreSQL configured with additional shared libraries and memory tuning
+    # for better performance and query statistics.
+    command:
+      [
+        "postgres",
+        "-c",
+        "shared_preload_libraries=pg_stat_statements",
+        "-c",
+        "pg_stat_statements.track=all",
+      ]
+
     environment:
       POSTGRES_USER: postgres
       POSTGRES_DB: otto
       POSTGRES_PASSWORD: password
       POSTGRES_MAX_CONNECTIONS: 500
-    # Add "forwardPorts": ["5432"] to **devcontainer.json** to forward PostgreSQL locally.
+
+    # Stores persistent database data on a named volume, preserving data
+    # between container rebuilds.
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      # You can initialize with SQL using:
+      # - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+
+      # Shares the same custom bridge network as the app, ensuring reachability
+      # through hostnames like “postgres-service”.
+    networks:
+      - otto-network
 
   redis:
     image: redis:7.0.15-alpine3.20
     command: redis-server
     restart: unless-stopped
 
-  # Run Celery in the VScode container with the following command:
-  # celery -A otto worker -l INFO --pool=gevent --concurrency=256
+    # Sharing the same otto-network allows the app to reach Redis
+    # at the hostname “redis” without needing manual IP configuration.
+    networks:
+      - otto-network
 
-  # To test scheduling tasks also run celery beat in the VScode container with command:
-  # celery -A otto beat --loglevel=info --scheduler django_celery_beat.schedulers:DatabaseScheduler
-
-
+# Defines persistent data storage volume for PostgreSQL.
 volumes:
   postgres-data:
+
+# Defines a shared bridge network connecting all services together.
+# This replaces network_mode-based sharing for better isolation and
+# full support of Docker’s built-in DNS (service-name lookups).
+networks:
+  otto-network:
+    driver: bridge

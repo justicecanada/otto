@@ -1,0 +1,23 @@
+{% load i18n %}
+
+<p class="text-muted small mb-3">{% trans "Choose a disposable local-only test account:" %}</p>
+<div class="d-flex flex-wrap justify-content-center gap-2">
+  {% for persona in browser_test_auth_personas %}
+    <form method="post"
+          action="{% url 'browser_test_login' %}"
+          class="d-inline-flex">
+      {% csrf_token %}
+      <input type="hidden" name="next" value="{{ browser_test_auth_next_url }}">
+      <input type="hidden" name="persona" value="{{ persona.slug }}">
+      <button type="submit" class="btn {{ persona.button_class }} fw-semibold">{{ persona.label }}</button>
+    </form>
+  {% endfor %}
+</div>
+<div class="mt-3 small text-muted">
+  {% for persona in browser_test_auth_personas %}
+    <div>
+      <span class="fw-semibold text-body">{{ persona.label }}</span>
+      <span>— {{ persona.group_names|join:", " }}</span>
+    </div>
+  {% endfor %}
+</div>

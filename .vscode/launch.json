@@ -8,13 +8,18 @@
             "name": "Python: Run Tests",
             "type": "debugpy",
             "request": "launch",
-            "module": "pytest",
+            "module": "coverage",
             "args": [
-                "django"
+                "run",
+                "--source=django",
+                "-m",
+                "pytest",
+                "django/tests",
             ],
             "env": {
                 "PYTHONPATH": "${workspaceFolder}"
-            }
+            },
+            "postDebugTask": "coverage:report",
         },
         {
             "name": "Python: Run Chat Tests",
@@ -136,7 +141,7 @@
             "program": "${file}"
         },
         {
-            "name": "Django: Celery Worker",
+            "name": "Django: Celery Worker (All Queues)",
             "type": "debugpy",
             "request": "launch",
             "module": "celery",
@@ -147,12 +152,60 @@
                 "worker",
                 "-l",
                 "INFO",
+                "-Q",
+                "light,embed,heavy",
                 "--pool=gevent",
-                "--concurrency=256"
+                "--concurrency=16",
+                "--hostname=light@%h",
+                "--prefetch-multiplier=1"
             ],
             "env": {
                 "GEVENT_SUPPORT": "True"
             }
+        },
+        {
+            "name": "Django: Celery Worker (Light & Embed Queues)",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "celery",
+            "cwd": "${workspaceFolder}/django",
+            "args": [
+                "-A",
+                "otto",
+                "worker",
+                "-l",
+                "INFO",
+                "-Q",
+                "light,embed",
+                "--pool=gevent",
+                "--concurrency=16",
+                "--hostname=light@%h",
+                "--prefetch-multiplier=1"
+            ],
+            "env": {
+                "GEVENT_SUPPORT": "True"
+            }
+        },
+        {
+            "name": "Django: Celery Worker (Heavy Queue)",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "celery",
+            "cwd": "${workspaceFolder}/django",
+            "args": [
+                "-A",
+                "otto",
+                "worker",
+                "-l",
+                "INFO",
+                "-Q",
+                "heavy",
+                "-n",
+                "--pool=prefork",
+                "--concurrency=1",
+                "--hostname=heavy@%h",
+                "--prefetch-multiplier=1"
+            ]
         },
         {
             "name": "Django: Celery Beat",
@@ -173,10 +226,10 @@
     ],
     "compounds": [
         {
-            "name": "Django: Run Server & Celery Worker",
+            "name": "Django: Server + Celery",
             "configurations": [
                 "Django: Run Server",
-                "Django: Celery Worker"
+                "Django: Celery Worker (All Queues)",
             ]
         }
     ]

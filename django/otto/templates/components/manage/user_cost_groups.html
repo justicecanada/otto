@@ -1,0 +1,7 @@
+{% load i18n %}
+
+{% if cost_groups %}
+  {% for cost_group in cost_groups %}<span class="badge bg-success me-1">{{ cost_group.name }}</span>{% endfor %}
+{% else %}
+  <span class="text-muted">{% trans "None" %}</span>
+{% endif %}

@@ -1,0 +1,144 @@
+{% load static %}
+{% load i18n %}
+{% get_current_language as LANGUAGE_CODE %}
+
+<div class="message-outer {% if message.is_bot %}bot{% elif not file_upload and not message.num_files %}user{% endif %} {% if message.awaiting_response %}awaiting-response{% endif %} {% if swap_oob %}show-all{% endif %}"
+     id="message_{{ message.id }}"
+     data-is-bot="{{ message.is_bot }}"
+     data-has-files="{% if message.num_files %}true{% else %}false{% endif %}"
+     {% if swap_oob %}hx-swap-oob="{{ swap_oob|lower }}"{% endif %}>
+  <div class="message-meta text-muted">
+    <span class="message-author me-1">
+      {% if message.is_bot %}
+        Otto
+        {% if message.bot_name %}<em>({{ message.bot_name }})</em>{% endif %}
+      {% elif chat_author %}
+        {{ chat_author.full_name }}
+      {% else %}
+        {{ request.user.full_name }}
+      {% endif %}
+    </span>
+    <span class="message-date">{{ message.date_created|date:"Y-m-d H:i" }}</span>
+    {% if message.is_bot and message.was_compacted_during_response %}
+      <span class="message-compaction-indicator ms-1"
+            data-bs-toggle="tooltip"
+            data-bs-placement="top"
+            data-compaction-message-default="Conversation was compacted during this response."
+            title="{% trans 'Conversation was compacted during this response.' %}"
+            aria-label="{% trans 'Conversation was compacted during this response.' %}"></span>
+    {% endif %}
+  </div>
+  <div class="d-flex {% if not message.is_bot %}justify-content-end{% endif %}">
+    <div class="message-stack">
+      <div class="message-blob {{ mode }}">
+        {% if message.awaiting_response %}
+          <div class="message-text">{% include "chat_next/components/streaming_response.html" %}</div>
+        {% elif file_upload %}
+          <div class="message-text">{% include "chat_next/components/file_upload_progress.html" %}</div>
+        {% elif editing_message %}
+          <form class="message-inline-edit-form"
+                hx-post="{% url 'chat_next:edit_message' message.id %}"
+                hx-include="#prompt-form [name='chat-model-selector-chat_model'], #prompt-form [name='chat-model-selector-chat_reasoning_effort'], #prompt-form [name='chat-model-selector-chat_verbosity']"
+                hx-target="closest .message-outer"
+                hx-swap="outerHTML"
+                data-message-id="{{ message.id }}"
+                data-confirm-text="{% trans 'This will rerun the prompt and erase all messages after this one. Are you sure you want to proceed?' %}"
+                onsubmit="confirmRerun(this, event)">
+            <label class="visually-hidden" for="edit-message-{{ message.id }}">{% trans "Edit message" %}</label>
+            <textarea class="form-control message-inline-edit-textarea"
+                      id="edit-message-{{ message.id }}"
+                      name="user-message"
+                      rows="3"
+                      required
+                      oninput="autoResizeInlineEditTextarea(this)"
+                      onkeydown="if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); const form = this.closest('form'); if (form) { form.requestSubmit ? form.requestSubmit() : form.submit(); } }">{{ message.text }}</textarea>
+            <div class="d-flex justify-content-end gap-2 mt-2 message-inline-edit-actions">
+              <button type="button"
+                      class="btn btn-sm btn-outline-secondary"
+                      hx-get="{% url 'chat_next:edit_message' message.id %}"
+                      hx-target="closest .message-outer"
+                      hx-swap="outerHTML">{% trans "Cancel" %}</button>
+              <button type="submit" class="btn btn-sm btn-primary">{% trans "Save and re-run" %}</button>
+            </div>
+          </form>
+        {% elif message.num_files and not message.is_bot %}
+          {% if message.text %}
+            <div class="message-text">{{ message.text|escape }}</div>
+            <hr class="my-2 text-secondary opacity-25">
+          {% endif %}
+          <div class="message-text">{% include "chat_next/components/message_files.html" %}</div>
+          <div id="cost-warning-buttons-{{ message.id }}"></div>
+        {% elif message.is_bot %}
+          <div class="message-text">
+            {% include "chat_next/components/reasoning_section.html" %}
+            <div class="markdown-text" data-md="{{ message.json }}">
+              {% with last_step=message.details.processing_steps|last %}
+                {% if message.text == "" and not waiting_for_approval and last_step.status != "waiting_approval" %}
+                  {% include "chat_next/components/default_error_messages.html" %}
+                {% elif message.text == _("Request cancelled.") %}
+                  <div>{{ message.text|escape }}</div>
+                {% endif %}
+              {% endwith %}
+            </div>
+          </div>
+          {% if message.num_files or has_pending_tasks %}
+            {% if message.text %}<hr class="my-2 text-secondary opacity-25">{% endif %}
+            <div class="message-text">{% include "chat_next/components/message_files.html" %}</div>
+          {% endif %}
+          <div id="cost-warning-buttons-{{ message.id }}"></div>
+        {% else %}
+          {# There cannot be any space between div.message-text and its contents (whitespace: pre-wrap) #}
+          <div class="message-text">{{ message.text|escape }}</div>
+        {% endif %}
+        {% if not message.is_bot and message.details.context_hints %}
+          <div class="message-context-pills mt-1">
+            {% for hint in message.details.context_hints %}
+              <span class="context-pill context-pill-static{% if hint.type == 'library' or hint.type == 'folder' or hint.type == 'document' or hint.type == 'skill' %} context-pill-openable{% endif %}"
+                    title="{{ hint.name }}"
+                    {% if hint.type == 'library' %}data-open-url="{% url 'chat_next:modal_librarian_library' chat_id=message.chat.id library_id=hint.id %}" role="button" tabindex="0" aria-label="{{ hint.name }}" {% elif hint.type == 'folder' %}data-open-url="{% url 'chat_next:modal_librarian_data_source' chat_id=message.chat.id data_source_id=hint.id %}" role="button" tabindex="0" aria-label="{{ hint.name }}" {% elif hint.type == 'document' %}data-open-url="{% url 'chat_next:modal_librarian_document' chat_id=message.chat.id document_id=hint.id %}" role="button" tabindex="0" aria-label="{{ hint.name }}" {% elif hint.type == 'skill' %}data-open-url="{% url 'chat_next:edit_skill' chat_id=message.chat.id skill_id=hint.id %}" role="button" tabindex="0" aria-label="{{ hint.name }}" {% endif %}>
+                <span class="context-pill-icon"><i class="bi {% if hint.type == 'tool' %}bi-tools{% elif hint.type == 'library' %}bi-collection{% elif hint.type == 'folder' %}bi-folder{% elif hint.type == 'document' %}bi-file-earmark-text{% elif hint.type == 'skill' %}bi-lightbulb{% else %}bi-circle{% endif %}"></i></span>
+                <span class="context-pill-label">{{ hint.name }}</span>
+              </span>
+            {% endfor %}
+          </div>
+        {% endif %}
+        <div class="row">
+          <div class="message-show-all col mt-2" style="line-height:1.75rem">
+            <a class="text-body fw-semibold small"
+               href="#"
+               onclick="this.closest('.message-outer').classList.add('show-all'); return false;">{% trans "Show all..." %}<i class="bi bi-chevron-down ms-1 small"></i></a>
+          </div>
+          {% if message.has_sources %}
+            {% include "chat_next/components/message_sources.html" %}
+          {% endif %}
+        </div>
+      </div>
+      {% if not editing_message %}
+        {% include "chat_next/components/message_actions.html" %}
+      {% endif %}
+    </div>
+  </div>
+  {% if update_cost_bar %}
+    <div hx-get="{% url 'user_cost' %}"
+         hx-swap="outerHTML"
+         hx-target="#cost-bar-outer"
+         hx-trigger='load delay:100ms'></div>
+  {% endif %}
+</div>
+
+{% if swap_oob %}
+  {# Update chat title and user costs widget #}
+  {% if message.chat.title %}
+    <span class="chat-title fw-semibold"
+          id="current-chat-title"
+          hx-swap-oob="true"
+          data-pagetitle='{% with chat=message.chat %}{% include "chat_next/components/chat_title.html" %}{% endwith %}'>
+      {{ message.chat.title }}
+    </span>
+  {% endif %}
+  {# Update screen reader with "Done." followed by the message content #}
+  {% if message.is_bot and plain_message_text %}
+    <span id="chat-sr-message" hx-swap-oob="true">{% trans "Done." %} {{ plain_message_text }}</span>
+  {% endif %}
+
+{% endif %}

@@ -1,0 +1,63 @@
+{% load i18n %}
+
+<div class="card"
+     role="button"
+     hx-get="{% url 'chat_next:edit_skill' chat_id=chat_id skill_id=skill.id %}"
+     hx-include="#skills-browser-state"
+     hx-target="#chat-next-modal-content"
+     hx-swap="innerHTML"
+     style="cursor: pointer">
+  <div class="card-body p-3">
+    <div class="d-flex justify-content-between align-items-start">
+      <div class="flex-grow-1 me-2">
+        <h6 class="card-title mb-1">
+          {{ skill.display_name|default:_("Untitled skill") }}
+          {% if skill.is_featured %}
+            <span class="text-success ms-1" title="{% trans 'Featured' %}">
+              <i class="bi bi-patch-check-fill"></i>
+            </span>
+          {% endif %}
+        </h6>
+        <p class="card-text text-muted small mb-1">{{ skill.description }}</p>
+      </div>
+      <div class="d-flex align-items-center gap-1"
+           onclick="event.stopPropagation()">
+        <span class="small text-muted me-1">{% trans "Enabled" %}</span>
+        <div class="form-check form-switch mb-0">
+          <input class="form-check-input"
+                 type="checkbox"
+                 role="switch"
+                 id="skill-toggle-{{ skill.id }}"
+                 {% if skill.id in active_skill_ids %}checked{% endif %}
+                 hx-post="{% if skill.id in active_skill_ids %}{% url 'chat_next:remove_skill' chat_id=chat_id skill_id=skill.id %}{% else %}{% url 'chat_next:add_skill' chat_id=chat_id skill_id=skill.id %}{% endif %}"
+                 hx-include="#skills-browser-state"
+                 hx-target="#chat-next-modal-content"
+                 hx-swap="innerHTML"
+                 title="{% if skill.id in active_skill_ids %}{% trans 'Disable skill' %}{% else %}{% trans 'Enable skill' %}{% endif %}">
+        </div>
+      </div>
+    </div>
+    <div class="d-flex align-items-center gap-2 mt-1">
+      <small class="text-muted">
+        {% if skill.sharing_option == "everyone" %}
+          <i class="bi bi-globe me-1"></i>{% trans "Public" %}
+        {% elif skill.sharing_option == "others" %}
+          <i class="bi bi-people me-1"></i>{% trans "Shared" %}
+        {% else %}
+          <i class="bi bi-lock me-1"></i>{% trans "Private" %}
+        {% endif %}
+      </small>
+      <small class="text-muted">• {% blocktrans count count=skill.load_count %}Used {{ count }} time{% plural %}Used {{ count }} times{% endblocktrans %}</small>
+      {% for tag in skill.skill_tags.all %}<span class="badge bg-secondary fw-normal">{{ tag.name }}</span>{% endfor %}
+      <div class="ms-auto" onclick="event.stopPropagation()">
+        <button type="button"
+                class="btn btn-sm btn-outline-secondary"
+                onclick="event.stopPropagation(); if(window.addContextHintAndClose){window.addContextHintAndClose({type:'skill',id:'{{ skill.id }}',name:'{{ skill.display_name|default:_("Untitled skill") |escapejs }}'},'chat-next-modal')}"
+                title="{% trans 'Try this skill' %}"
+                style="white-space:nowrap">
+          <i class="bi bi-play-fill"></i> {% trans "Try it" %}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,95 @@
+{% load i18n %}
+
+<script>
+let chat_tour_in_progress = false;
+startTour = () => {
+  chat_tour_in_progress = true;
+  const tourModalEl = document.getElementById('tour-modal');
+  if (tourModalEl) {
+    tourModalEl.classList.remove('show');
+    tourModalEl.style.display = '';
+    tourModalEl.setAttribute('aria-hidden', 'true');
+    tourModalEl.removeAttribute('aria-modal');
+    document.body.classList.remove('modal-open');
+  }
+  const urlParams = new URLSearchParams(window.location.search);
+  const start_tour = urlParams.get('start_tour');
+  if (start_tour !== "true") {
+    const redirect_url = "{% url 'chat_next:chat_with_ai' %}?start_tour=true";
+    window.location = redirect_url;
+    return;
+  }
+  const chatPrompt = document.getElementById('chat-prompt');
+  if (chatPrompt) {
+    try {
+      chatPrompt.focus({preventScroll: true});
+    } catch (err) {
+      chatPrompt.focus();
+    }
+  }
+  driverObj.drive();
+  history.replaceState({}, document.title, window.location.pathname);
+};
+
+function ensureLeftSidebarExpanded() {
+  const leftSidebar = document.getElementById('left-sidebar');
+  if (leftSidebar && leftSidebar.classList.contains('collapsed')) {
+    if (typeof openSidebar === 'function') {
+      openSidebar('left-sidebar', false);
+      return;
+    }
+    const toggleButton = document.getElementById('left-sidebar-toggle');
+    if (toggleButton) {
+      toggleButton.click();
+    }
+  }
+}
+
+let tourSteps = [
+  {
+    element: "#chat-inputs",
+    popover: {
+      title: "{% trans 'No more modes' %}",
+      description: "{% trans 'The separate Chat, Q&A, Summarize, and Translate modes are gone. Now you simply describe what you need and the AI will use the right tools automatically.' %}"
+    }
+  },
+  {
+    element: "#editLibrariesButton",
+    popover: {
+      title: "{% trans "Libraries haven't changed" %}",
+      description: "{% trans 'Your Q&A libraries are still available in the new AI Assistant — only the button has moved.' %}",
+      side: "right"
+    }
+  },
+  {
+    element: "#editSkillsButton",
+    popover: {
+      title: "{% trans 'Skills replace Presets' %}",
+      description: "{% trans 'Skills are reusable instruction sets that guide the AI through a workflow. If you had Presets before, you can easily migrate them to Skills. Click this icon to browse, create, or manage skills.' %}",
+      side: "right"
+    }
+  },
+  {
+    element: "#editSettingsButton",
+    popover: {
+      title: "{% trans 'Simplified settings' %}",
+      description: "{% trans 'Personalize the AI with your name, job description and global defaults.' %}",
+      side: "right",
+      onNextClick: () => {
+        htmx.ajax("POST", '{% url "mark_tour_completed" tour_name="chat_next" %}', {swap: "none"});
+        driverObj.moveNext();
+      }
+    }
+  },
+  {
+    element: "#context-button",
+    popover: {
+      title: "{% trans 'Add context quickly' %}",
+      description: "{% trans 'Use the @ Context button to attach skills, tools, libraries, or documents to your message.' %}<br><em>{% trans 'This is optional, but it helps the AI know what you want.' %}</em><br><br>{% trans "You're ready to use the new AI Assistant!" %}"
+    }
+  }
+];
+
+// Filter out steps whose target element is not present in the DOM.
+tourSteps = tourSteps.filter((step) => typeof step.element === 'string' && document.querySelector(step.element));
+</script>

@@ -18,6 +18,7 @@
           <div hx-ext="sse"
                sse-connect="{% url 'laws:answer' query_uuid %}"
                sse-swap="message"
+               sse-close="done"
                id="answer-sse">
             <!-- djlint:off -->
             <!-- djlint:on -->

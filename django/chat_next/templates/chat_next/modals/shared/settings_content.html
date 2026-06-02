@@ -1,0 +1,22 @@
+{% load i18n %}
+
+<div class="chat-next-modal-view"
+     data-chat-next-modal-view="settings"
+     data-modal-current-url="{{ current_url }}">
+  <div class="modal-header">
+    <div class="d-flex align-items-center flex-grow-1 min-w-0">
+      <h5 class="modal-title mb-0">
+        {% trans "Settings" %}
+        <span class="text-muted fw-normal">{% trans "(applies to all chats)" %}</span>
+      </h5>
+    </div>
+    <span id="settings-save-status"
+          class="settings-save-status me-2"
+          aria-live="polite"></span>
+    <button type="button"
+            class="btn-close"
+            data-bs-dismiss="modal"
+            aria-label="{% trans 'Close' %}"></button>
+  </div>
+  {% include "chat_next/modals/settings/settings_form.html" %}
+</div>

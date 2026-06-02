@@ -11,21 +11,56 @@ from django.conf import settings
 from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.models import ContentType
 from django.core.files.base import ContentFile
+from django.core.management import call_command
 from django.urls import reverse
 from django.utils import timezone
-from django.utils.translation import gettext as _
 
 import pytest
+from chat_next.models import Chat as NextChat
 from structlog import get_logger
 
-from chat.models import Chat, ChatFile, Message
-from librarian.models import DataSource, Document, Library, LibraryUserRole, SavedFile
-from librarian.utils.process_engine import generate_hash
 from otto.models import Notification
 from otto.secure_models import AccessKey
+
+from chat.models import Chat, Message
+from librarian.models import DataSource, Document, Library, LibraryUserRole, SavedFile
 from text_extractor.models import OutputFile, UserRequest
 
 logger = get_logger(__name__)
+
+
+def test_cleanup_deleted_libraries_task(monkeypatch):
+    from otto.tasks import cleanup_deleted_libraries
+
+    called = []
+
+    monkeypatch.setattr(
+        "otto.tasks.call_command", lambda *args, **kwargs: called.append((args, kwargs))
+    )
+
+    cleanup_deleted_libraries()
+
+    assert called == [(("cleanup_deleted_libraries",), {})]
+
+
+@pytest.mark.django_db
+def test_cleanup_deleted_libraries_command_hard_deletes_soft_deleted_library(
+    all_apps_user,
+):
+    user = all_apps_user()
+    library = Library.objects.create(name="Soft deleted library", created_by=user)
+    role = LibraryUserRole.objects.create(user=user, library=library, role="admin")
+
+    library.delete()
+
+    assert not Library.objects.filter(id=library.id).exists()
+    assert Library.objects.including_deleted().filter(id=library.id).exists()
+    assert LibraryUserRole.objects.filter(id=role.id).exists()
+
+    call_command("cleanup_deleted_libraries")
+
+    assert not Library.objects.including_deleted().filter(id=library.id).exists()
+    assert not LibraryUserRole.objects.filter(id=role.id).exists()
 
 
 @pytest.mark.django_db
@@ -147,7 +182,7 @@ def test_delete_old_chats_task(client, all_apps_user):
     client.force_login(user)
     start_time = timezone.now()
     response = client.get(reverse("chat:new_chat"))
-    assert response.status_code == 302
+    assert response.status_code == 200
     # Check that the chat was created
     chat = user.chat_set.first()
     chat_id = chat.id
@@ -159,8 +194,10 @@ def test_delete_old_chats_task(client, all_apps_user):
     chat.refresh_from_db()
     # Check that the chat.accessed_at is now updated
     assert (chat.accessed_at - start_time).total_seconds() >= 2
-    # Manually set the accessed_at time to 100 days ago
-    chat.accessed_at = timezone.now() - timezone.timedelta(days=40)
+    # Manually set the accessed_at time to > chat retention policy
+    chat.accessed_at = timezone.now() - timezone.timedelta(
+        days=settings.CHAT_RETENTION_DAYS + 1
+    )
     chat.save()
     # Test the task
     from otto.tasks import delete_old_chats
@@ -172,7 +209,7 @@ def test_delete_old_chats_task(client, all_apps_user):
     assert Chat.objects.count() == 0
     # Create a new chat that should NOT be affected by the task
     response = client.get(reverse("chat:new_chat"))
-    assert response.status_code == 302
+    assert response.status_code == 200
     chat = user.chat_set.first()
     assert chat is not None
     assert Chat.objects.count() == 1
@@ -180,6 +217,41 @@ def test_delete_old_chats_task(client, all_apps_user):
     delete_old_chats()
     # Check that the new chat is still there
     assert Chat.objects.count() == 1
+
+    pinned_chat = Chat.objects.create(
+        user=user,
+        pinned=True,
+        accessed_at=timezone.now()
+        - timezone.timedelta(days=settings.CHAT_RETENTION_DAYS + 1),
+    )
+    delete_old_chats()
+    assert Chat.objects.filter(id=pinned_chat.id).exists()
+
+
+@pytest.mark.django_db
+def test_delete_old_chats_task_includes_chat_next(all_apps_user):
+    user = all_apps_user()
+
+    stale_chat = NextChat.objects.create(user=user)
+    stale_chat.accessed_at = timezone.now() - timezone.timedelta(
+        days=settings.CHAT_RETENTION_DAYS + 1
+    )
+    stale_chat.save(update_fields=["accessed_at"])
+
+    fresh_chat = NextChat.objects.create(user=user)
+    pinned_chat = NextChat.objects.create(user=user, pinned=True)
+    pinned_chat.accessed_at = timezone.now() - timezone.timedelta(
+        days=settings.CHAT_RETENTION_DAYS + 1
+    )
+    pinned_chat.save(update_fields=["accessed_at"])
+
+    from otto.tasks import delete_old_chats
+
+    delete_old_chats()
+
+    assert not NextChat.objects.filter(id=stale_chat.id).exists()
+    assert NextChat.objects.filter(id=fresh_chat.id).exists()
+    assert NextChat.objects.filter(id=pinned_chat.id).exists()
 
 
 @pytest.mark.django_db
@@ -190,7 +262,7 @@ def test_delete_unused_libraries_task(client, all_apps_user, basic_user):
     user = all_apps_user()
     # Create a Library by posting to the library route
     client.force_login(user)
-    start_time = timezone.now()
+
     url = reverse("librarian:modal_create_library")
     response = client.post(
         url, {"name_en": "New Library", "is_public": False, "order": 1}
@@ -200,12 +272,14 @@ def test_delete_unused_libraries_task(client, all_apps_user, basic_user):
     from librarian.views import get_editable_libraries
 
     user_libraries = get_editable_libraries(user)
-    assert len(user_libraries) == 3
-    library = user_libraries[2]
+    # initial_library_count = len(user_libraries)
+    library = user_libraries[-1]  # Get the most recently created library
     library_id = library.id
     assert library is not None
-    # Manually set the accessed_at time to 32 days ago
-    library.accessed_at = timezone.now() - timezone.timedelta(days=32)
+    # Manually set the accessed_at time
+    library.accessed_at = timezone.now() - timezone.timedelta(
+        days=settings.LIBRARY_RETENTION_DAYS + 2
+    )
     library.save()
     # Test the task
     from otto.tasks import delete_unused_libraries
@@ -213,6 +287,16 @@ def test_delete_unused_libraries_task(client, all_apps_user, basic_user):
     delete_unused_libraries()
     # Check that the library is deleted
     assert not Library.objects.filter(id=library_id).exists()
+
+    public_library = Library.objects.create(
+        name="Public Library",
+        created_by=user,
+        is_public=True,
+        accessed_at=timezone.now()
+        - timezone.timedelta(days=settings.LIBRARY_RETENTION_DAYS + 2),
+    )
+    delete_unused_libraries()
+    assert Library.objects.filter(id=public_library.id).exists()
     # Create a new library that should NOT be affected by the task
     client.force_login(user)
     url = reverse("librarian:modal_create_library")
@@ -221,11 +305,13 @@ def test_delete_unused_libraries_task(client, all_apps_user, basic_user):
     )
     assert response.status_code == 200
     user_libraries = get_editable_libraries(user)
-    library = user_libraries[2]
+    library = user_libraries[-1]  # Get the most recently created library
     assert library is not None
     library_id = library.id
-    # Manually set the accessed_at time to 32 days ago
-    library.accessed_at = timezone.now() - timezone.timedelta(days=32)
+    # Manually set the accessed_at time
+    library.accessed_at = timezone.now() - timezone.timedelta(
+        days=settings.LIBRARY_RETENTION_DAYS + 2
+    )
     library.save()
     # Create a data source which will update library.access_at
     data_source = DataSource.objects.create(name="New Data Source", library=library)
@@ -234,8 +320,10 @@ def test_delete_unused_libraries_task(client, all_apps_user, basic_user):
     delete_unused_libraries()
     # Check that the new library is still there
     assert Library.objects.filter(id=library_id).exists()
-    # Manually set the access_at to 32 days ago
-    library.accessed_at = timezone.now() - timezone.timedelta(days=32)
+    # Manually set the access_at
+    library.accessed_at = timezone.now() - timezone.timedelta(
+        days=settings.LIBRARY_RETENTION_DAYS + 2
+    )
     library.save()
     # Create a document which will update library.accessed_at
     document = Document.objects.create(data_source=data_source)
@@ -244,8 +332,10 @@ def test_delete_unused_libraries_task(client, all_apps_user, basic_user):
     delete_unused_libraries()
     # Check that the new library is still there
     assert Library.objects.filter(id=library_id).exists()
-    # Manually set the access_at to 32 days ago
-    library.accessed_at = timezone.now() - timezone.timedelta(days=32)
+    # Manually set the access_at
+    library.accessed_at = timezone.now() - timezone.timedelta(
+        days=settings.LIBRARY_RETENTION_DAYS + 2
+    )
     library.save()
     # Delete document which will update library.accessed_at
     document.delete()
@@ -255,8 +345,10 @@ def test_delete_unused_libraries_task(client, all_apps_user, basic_user):
     delete_unused_libraries()
     # Check that the new library is still there
     assert Library.objects.filter(id=library_id).exists()
-    # Manually set the access_at to 32 days ago
-    library.accessed_at = timezone.now() - timezone.timedelta(days=32)
+    # Manually set the access_at
+    library.accessed_at = timezone.now() - timezone.timedelta(
+        days=settings.LIBRARY_RETENTION_DAYS + 2
+    )
     library.save()
     # Delete data source which will update library.accessed_at
     data_source.delete()
@@ -266,8 +358,10 @@ def test_delete_unused_libraries_task(client, all_apps_user, basic_user):
     delete_unused_libraries()
     # Check that the new library is still there
     assert Library.objects.filter(id=library_id).exists()
-    # Manually set the access_at to 32 days ago
-    library.accessed_at = timezone.now() - timezone.timedelta(days=32)
+    # Manually set the access_at
+    library.accessed_at = timezone.now() - timezone.timedelta(
+        days=settings.LIBRARY_RETENTION_DAYS + 2
+    )
     library.save()
     user_2 = basic_user(accept_terms=True)
     client.force_login(user_2)
@@ -284,8 +378,30 @@ def test_delete_unused_libraries_task(client, all_apps_user, basic_user):
     delete_unused_libraries()
     # Check that the library is still there
     assert Library.objects.filter(id=library_id).exists()
-    # Manually set the access_at to 32 days ago
-    library.accessed_at = timezone.now() - timezone.timedelta(days=32)
+
+    skill_library = user.create_skill_library()
+    skill_library.accessed_at = timezone.now() - timezone.timedelta(
+        days=settings.LIBRARY_RETENTION_DAYS + 2
+    )
+    skill_library.save()
+
+    default_skill_library = Library.objects.create(
+        name_en="Skill files (Otto defaults)",
+        name_fr="Fichiers de compétences (par défaut Otto)",
+        created_by=user,
+        is_public=False,
+        accessed_at=timezone.now()
+        - timezone.timedelta(days=settings.LIBRARY_RETENTION_DAYS + 2),
+    )
+
+    delete_unused_libraries()
+
+    assert Library.objects.filter(id=skill_library.id).exists()
+    assert Library.objects.filter(id=default_skill_library.id).exists()
+    # Manually set the access_at
+    library.accessed_at = timezone.now() - timezone.timedelta(
+        days=settings.LIBRARY_RETENTION_DAYS + 2
+    )
     library.save()
     # Create a chat using the route to create it with appropriate options
     client.force_login(user)
@@ -322,31 +438,83 @@ def test_warn_libraries_pending_deletion_task(client, all_apps_user, basic_user)
     # Create a Library by posting to the library route
     client.force_login(user)
     url = reverse("librarian:modal_create_library")
+
+    from librarian.views import get_editable_libraries
+
+    initial_library_count = len(get_editable_libraries(user))
+
     for i in range(1, 5):
         response = client.post(
             url, {"name_en": f"New Library {i}", "is_public": False, "order": i}
         )
         assert response.status_code == 200
     # Check that the library was created
-    from librarian.views import get_editable_libraries
-
     user_libraries = get_editable_libraries(user)
-    assert len(user_libraries) == 6
+    assert len(user_libraries) == initial_library_count + 4
     # Delete all Notifications
     Notification.objects.all().delete()
     # Check that all notifications have been deleted
     assert Notification.objects.all().count() == 0
-    # Manually set the created libraries accessed_at time to 25 days ago
-    for i in range(2, 6):
+    # Manually set the created libraries accessed_at time
+    days_since_access = (
+        settings.LIBRARY_RETENTION_DAYS - settings.LIBRARY_WARN_BEFORE_DELETION_DAYS
+    )
+    # Only set the accessed_at for the 4 newly created libraries
+    for i in range(initial_library_count, initial_library_count + 4):
         library = user_libraries[i]
-        library.accessed_at = timezone.now() - timezone.timedelta(days=25)
+        library.accessed_at = timezone.now() - timezone.timedelta(
+            days=days_since_access
+        )
         library.save()
+
+    public_library = Library.objects.create(
+        name="Public Library Warning Test",
+        created_by=user,
+        is_public=True,
+        accessed_at=timezone.now() - timezone.timedelta(days=days_since_access),
+    )
+    LibraryUserRole.objects.create(user=user, library=public_library, role="admin")
     # Test the task
     from otto.tasks import warn_libraries_pending_deletion
 
     warn_libraries_pending_deletion()
     # Check that notifications have been sent
     assert Notification.objects.all().count() == 4
+    assert not Notification.objects.filter(
+        text_en__contains=public_library.name
+    ).exists()
+
+
+@pytest.mark.django_db
+def test_warn_libraries_pending_deletion_skips_skill_libraries(all_apps_user):
+    user = all_apps_user()
+    Notification.objects.all().delete()
+
+    days_since_access = (
+        settings.LIBRARY_RETENTION_DAYS - settings.LIBRARY_WARN_BEFORE_DELETION_DAYS
+    )
+    warning_timestamp = timezone.now() - timezone.timedelta(days=days_since_access)
+
+    skill_library = user.create_skill_library()
+    skill_library.accessed_at = warning_timestamp
+    skill_library.save()
+
+    default_skill_library = Library.objects.create(
+        name_en="Skill files (Otto defaults)",
+        name_fr="Fichiers de compétences (par défaut Otto)",
+        created_by=user,
+        is_public=False,
+        accessed_at=warning_timestamp,
+    )
+    LibraryUserRole.objects.create(
+        user=user, library=default_skill_library, role="admin"
+    )
+
+    from otto.tasks import warn_libraries_pending_deletion
+
+    warn_libraries_pending_deletion()
+
+    assert Notification.objects.count() == 0
 
 
 @pytest.mark.django_db
@@ -372,6 +540,12 @@ def test_delete_empty_chats_task(client, all_apps_user):
     # Create a too-new empty chat
     too_new_empty_chat = Chat.objects.create(user=user)
     too_new_empty_chat_id = too_new_empty_chat.id
+    pinned_empty_chat = Chat.objects.create(
+        user=user,
+        pinned=True,
+        accessed_at=timezone.now() - timezone.timedelta(days=2),
+    )
+    pinned_empty_chat_id = pinned_empty_chat.id
     # Test the task
     from otto.tasks import delete_empty_chats
 
@@ -385,11 +559,12 @@ def test_delete_empty_chats_task(client, all_apps_user):
     # Check that the too-new empty chat remains
     too_new_empty_chat = Chat.objects.filter(id=too_new_empty_chat_id).first()
     assert too_new_empty_chat is not None
+    pinned_empty_chat = Chat.objects.filter(id=pinned_empty_chat_id).first()
+    assert pinned_empty_chat is not None
 
 
 @pytest.mark.django_db(transaction=True)
 def test_delete_text_extractor_files_task(client, all_apps_user):
-
     # Ensure the "Otto admin" group exists
     group, created = Group.objects.get_or_create(name="Otto admin")
 
@@ -441,7 +616,7 @@ def test_delete_text_extractor_files_task(client, all_apps_user):
     with open(this_file_path, "rb") as f:
         content = f.read()
 
-    output_file1 = OutputFile.objects.create(
+    OutputFile.objects.create(
         access_key=access_key,
         user_request=user_request1,
         txt_file=ContentFile(content, name="test_file1.txt"),
@@ -452,7 +627,7 @@ def test_delete_text_extractor_files_task(client, all_apps_user):
     user_request1.save(access_key=access_key)
     logger.debug(f"User request 1 created_at: {user_request1.created_at}")
 
-    output_file2 = OutputFile.objects.create(
+    OutputFile.objects.create(
         access_key=access_key,
         user_request=user_request2,
         pdf_file=ContentFile(content, name="test_file2.txt"),

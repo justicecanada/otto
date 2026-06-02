@@ -3,23 +3,23 @@ name: Django Pytest CI
 
 on:
   push:
-    branches: [ "main", "pilot" ]
+    branches: ["main", "pilot"]
   pull_request:
-    branches: [ "main", "pilot" ] 
+    branches: ["main", "pilot"]
 
 defaults:
   run:
-    shell: bash 
+    shell: bash
     working-directory: ./django
- 
+
 jobs:
   # Label of the container job
   test-coverage:
     # Containers must run in Linux based operating systems
     runs-on: ubuntu-latest
     # Docker Hub image that `test-coverage` executes in
-    container: python:3.11
-
+    container: python:3.12
+    timeout-minutes: 10
     permissions:
       # See https://github.com/py-cov-action/python-coverage-comment-action#basic-usage
       pull-requests: write
@@ -49,40 +49,47 @@ jobs:
         ports:
           - 6379:6379
     env:
-      AZURE_OPENAI_KEY: ${{secrets.AZURE_OPENAI_KEY}}
-      AZURE_COGNITIVE_SERVICE_KEY: ${{secrets.AZURE_COGNITIVE_SERVICE_KEY}}
+      AZURE_AI_SERVICES_KEY: ${{secrets.AZURE_AI_SERVICES_KEY}}
+      AZURE_DOCUMENT_INTELLIGENCE_KEY: ${{secrets.AZURE_DOCUMENT_INTELLIGENCE_KEY}}
       DJANGODB_HOST: postgres-service
       VECTORDB_HOST: postgres-service
       LOG_LEVEL: ERROR
+      DEBUG: "False"
     steps:
-    - uses: actions/checkout@v4
-    - name: Install dependencies
-      run: |
-        apt-get update
-        apt-get install -y postgresql-client poppler-utils
-        python -m pip install --upgrade pip setuptools wheel
-        pip install -r requirements.txt
-        pip install -r requirements_dev.txt
-    - name: Collect static files
-      run: |
-        python manage.py collectstatic --noinput
-    - name: Run tests
-      working-directory: ./
-      run: |
-        celery -A otto worker -l INFO --pool=gevent --concurrency=256 &
-        python -m coverage run --source=django -m pytest django
-    - name: Display coverage
-      working-directory: ./
-      run: |
-        python -m coverage report -m
-    - name: Coverage comment
-      id: coverage_comment
-      uses: py-cov-action/python-coverage-comment-action@v3
-      with:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    - name: Store Pull Request comment to be posted
-      uses: actions/upload-artifact@v4
-      if: steps.coverage_comment.outputs.COMMENT_FILE_WRITTEN == 'true'
-      with:
-        name: python-coverage-comment-action
-        path: python-coverage-comment-action.txt
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: |
+          apt-get update
+          apt-get install -y postgresql-client poppler-utils
+          python -m pip install --upgrade pip setuptools wheel
+          pip install -r requirements.txt
+          pip install -r requirements_dev.txt
+      - name: Run migrations
+        run: |
+          python manage.py migrate --noinput
+      - name: Collect static files
+        run: |
+          python manage.py collectstatic --noinput
+      - name: Run tests
+        working-directory: ./
+        env:
+          PYTEST_USE_PRODUCTION_DB: "true"
+        run: |
+          export PYTHONPATH="${PWD}/django:${PYTHONPATH}"
+          celery -A otto worker --loglevel=INFO -Q "default,heavy,light,embed" --pool=gevent --concurrency=256 &
+          python -m coverage run --source=django -m pytest django/tests --override-ini="addopts=-p no:warnings -v -s"
+      - name: Display coverage
+        working-directory: ./
+        run: |
+          python -m coverage report -m
+      - name: Coverage comment
+        id: coverage_comment
+        uses: py-cov-action/python-coverage-comment-action@v3
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Store Pull Request comment to be posted
+        uses: actions/upload-artifact@v4
+        if: steps.coverage_comment.outputs.COMMENT_FILE_WRITTEN == 'true'
+        with:
+          name: python-coverage-comment-action
+          path: python-coverage-comment-action.txt

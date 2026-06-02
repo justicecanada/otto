@@ -1,4 +1,7 @@
 {% load i18n %}
+{% load static %}
+
+<link rel="stylesheet" href="{% static 'librarian/style.css' %}">
 
 <div id="libraryModalPoller"></div>
 <div class="modal fade modal-xl"
@@ -10,9 +13,9 @@
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title w-100" id="editLibrariesModalLabel">{% trans "Manage libraries" %}</h5>
+        <h5 class="modal-title w-100" id="editLibrariesModalLabel">{% trans "Libraries" %}</h5>
         <div id="librarian-modal-spinner"
-             class="spinner text-primary"
+             class="spinner text-primary me-2"
              style="margin-bottom: -7px;
                     margin-top: -4px">
           <span class="spinner-border" aria-hidden="true"></span>
@@ -29,3 +32,53 @@
     </div>
   </div>
 </div>
+
+<script>
+// Persistent script for librarian modal refresh functionality
+(function() {
+  // Update the refresh URL after every HTMX swap into editLibrariesInner
+  document.addEventListener('htmx:afterSwap', function(evt) {
+    if (evt.detail.target && evt.detail.target.id === 'editLibrariesInner') {
+      updateRefreshUrl();
+    }
+  });
+
+  // Also update after settle to ensure all content is ready
+  document.addEventListener('htmx:afterSettle', function(evt) {
+    if (evt.detail.target && evt.detail.target.id === 'editLibrariesInner') {
+      updateRefreshUrl();
+    }
+  });
+
+  function updateRefreshUrl() {
+    var inner = document.querySelector('#editLibrariesInner');
+    if (!inner) return;
+
+    // Extract the refresh URL from data attributes set by the server
+    // The data-current-url is on the .modal-body child element
+    var modalBody = inner.querySelector('.modal-body');
+    var refreshUrl = modalBody ? modalBody.getAttribute('data-current-url') : null;
+    if (refreshUrl) {
+      inner.setAttribute('data-refresh-url', refreshUrl);
+    }
+  }
+
+  // Listen for refresh event
+  document.addEventListener('refresh', function(evt) {
+    var inner = document.querySelector('#editLibrariesInner');
+    if (inner && (evt.target === inner || inner.contains(evt.target))) {
+      var refreshUrl = inner.getAttribute('data-refresh-url');
+      if (refreshUrl) {
+        // Include current search value
+        var searchInput = document.querySelector('#librarian-search-input');
+        
+        var url = new URL(refreshUrl, window.location.origin);
+        url.searchParams.set('search', searchInput.value);
+        refreshUrl = url.pathname + url.search;
+        
+        htmx.ajax('GET', refreshUrl, {target: '#editLibrariesInner', swap: 'innerHTML'});
+      }
+    }
+  });
+})();
+</script>

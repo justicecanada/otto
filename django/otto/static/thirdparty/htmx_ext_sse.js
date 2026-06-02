@@ -44,7 +44,12 @@ This extension adds support for Server Sent Events to htmx.  See /www/extensions
 				case 'htmx:beforeCleanupElement':
 					var internalData = api.getInternalData(parent);
 					// Try to remove remove an EventSource when elements are removed
-					if (internalData.sseEventSource) {
+					var source = internalData.sseEventSource;
+					if (source) {
+						api.triggerEvent(parent, 'htmx:sseClose', {
+							source,
+							type: 'nodeReplaced',
+						});
 						internalData.sseEventSource.close();
 					}
 
@@ -97,8 +102,8 @@ This extension adds support for Server Sent Events to htmx.  See /www/extensions
 			var sseEventNames = sseSwapAttr.split(',');
 
 			for (var i = 0; i < sseEventNames.length; i++) {
-				var sseEventName = sseEventNames[i].trim();
-				var listener = function (event) {
+				const sseEventName = sseEventNames[i].trim();
+				const listener = function (event) {
 					// If the source is missing then close SSE
 					if (maybeCloseSSESource(sourceElement)) {
 						return;
@@ -137,33 +142,28 @@ This extension adds support for Server Sent Events to htmx.  See /www/extensions
 			var internalData = api.getInternalData(sourceElement);
 			var source = internalData.sseEventSource;
 
-			var sseEventName = api.getAttributeValue(elt, 'hx-trigger');
-			if (sseEventName == null) {
-				return;
-			}
-
-			// Only process hx-triggers for events with the "sse:" prefix
-			if (sseEventName.slice(0, 4) != 'sse:') {
-				return;
-			}
-
-			var listener = function (event) {
-				if (maybeCloseSSESource(sourceElement)) {
+			var triggerSpecs = api.getTriggerSpecs(elt);
+			triggerSpecs.forEach(function (ts) {
+				if (ts.trigger.slice(0, 4) !== 'sse:') {
 					return;
 				}
 
-				if (!api.bodyContains(elt)) {
-					source.removeEventListener(sseEventName, listener);
-				}
+				var listener = function (event) {
+					if (maybeCloseSSESource(sourceElement)) {
+						return;
+					}
+					if (!api.bodyContains(elt)) {
+						source.removeEventListener(ts.trigger.slice(4), listener);
+					}
+					// Trigger events to be handled by the rest of htmx
+					htmx.trigger(elt, ts.trigger, event);
+					htmx.trigger(elt, 'htmx:sseMessage', event);
+				};
 
-				// Trigger events to be handled by the rest of htmx
-				htmx.trigger(elt, sseEventName, event);
-				htmx.trigger(elt, 'htmx:sseMessage', event);
-			};
-
-			// Register the new listener
-			api.getInternalData(elt).sseEventListener = listener;
-			source.addEventListener(sseEventName.slice(4), listener);
+				// Register the new listener
+				api.getInternalData(elt).sseEventListener = listener;
+				source.addEventListener(ts.trigger.slice(4), listener);
+			});
 		}
 	}
 
@@ -205,18 +205,34 @@ This extension adds support for Server Sent Events to htmx.  See /www/extensions
 				return;
 			}
 
+			// OTTO CUSTOMIZATION: Check for sse-no-retry attribute to disable automatic reconnection
+			// This prevents expensive retry storms for chat responses where retries are not desired
+			if (api.getAttributeValue(elt, 'sse-no-retry') || api.getAttributeValue(elt, 'data-sse-no-retry')) {
+				return;
+			}
+
 			// Otherwise, try to reconnect the EventSource
 			if (source.readyState === EventSource.CLOSED) {
 				retryCount = retryCount || 0;
-				var timeout = Math.random() * (2 ^ retryCount) * 500;
+				retryCount = Math.max(Math.min(retryCount * 2, 128), 1);
+				var timeout = retryCount * 500;
 				window.setTimeout(function () {
-					ensureEventSourceOnElement(elt, Math.min(7, retryCount + 1));
+					ensureEventSourceOnElement(elt, retryCount);
 				}, timeout);
 			}
 		};
 
 		source.onopen = function (evt) {
 			api.triggerEvent(elt, 'htmx:sseOpen', {source});
+
+			if (retryCount && retryCount > 0) {
+				const childrenToFix = elt.querySelectorAll("[sse-swap], [data-sse-swap], [hx-trigger], [data-hx-trigger]");
+				for (let i = 0; i < childrenToFix.length; i++) {
+					registerSSE(childrenToFix[i]);
+				}
+				// We want to increase the reconnection delay for consecutive failed attempts only
+				retryCount = 0;
+			}
 		};
 
 		api.getInternalData(elt).sseEventSource = source;
@@ -226,6 +242,10 @@ This extension adds support for Server Sent Events to htmx.  See /www/extensions
 		if (closeAttribute) {
 			// close eventsource when this message is received
 			source.addEventListener(closeAttribute, function () {
+				api.triggerEvent(elt, 'htmx:sseClose', {
+					source,
+					type: 'message',
+				});
 				source.close();
 			});
 		}
@@ -242,6 +262,10 @@ This extension adds support for Server Sent Events to htmx.  See /www/extensions
 		if (!api.bodyContains(elt)) {
 			var source = api.getInternalData(elt).sseEventSource;
 			if (source != undefined) {
+				api.triggerEvent(elt, 'htmx:sseClose', {
+					source,
+					type: 'nodeMissing',
+				});
 				source.close();
 				// source = null
 				return true;
@@ -262,7 +286,7 @@ This extension adds support for Server Sent Events to htmx.  See /www/extensions
 
 		var swapSpec = api.getSwapSpecification(elt);
 		var target = api.getTarget(elt);
-		api.swap(target, content, swapSpec);
+		api.swap(target, content, swapSpec, {contextElement: elt});
 	}
 
 

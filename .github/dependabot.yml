@@ -3,6 +3,10 @@
 
 version: 2
 updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: monthly
   - package-ecosystem: "pip" # See documentation for possible values
     directory: "/django/" # Location of package manifests
     schedule:

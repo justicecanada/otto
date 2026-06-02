@@ -17,4 +17,22 @@
            for="{{ options_form.summarize_model.auto_id }}">{% trans "Model" %}</label>
   </div>
   <div class="px-3">{{ options_form.summarize_model }}</div>
+
+  <div id="summarize-reasoning-effort-container"
+       {% if not options_form.show_summarize_reasoning_effort %}class="d-none"{% endif %}>
+    <div class="px-3 mt-2">
+      <label class="col-form-label col-form-label-sm"
+             for="{{ options_form.summarize_reasoning_effort.auto_id }}">{% trans "Reasoning effort" %}</label>
+    </div>
+    <div class="px-3">{{ options_form.summarize_reasoning_effort }}</div>
+  </div>
+
+  <div id="summarize-verbosity-container"
+       {% if not options_form.show_summarize_verbosity %}class="d-none"{% endif %}>
+    <div class="px-3 mt-2">
+      <label class="col-form-label col-form-label-sm"
+             for="{{ options_form.summarize_verbosity.auto_id }}">{% trans "Verbosity" %}</label>
+    </div>
+    <div class="px-3">{{ options_form.summarize_verbosity }}</div>
+  </div>
 {% endblock %}

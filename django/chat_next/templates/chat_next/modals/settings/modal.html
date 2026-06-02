@@ -1,0 +1,32 @@
+{% load i18n %}
+
+<div class="modal modal-xl fade"
+     id="settings-modal"
+     tabindex="0"
+     aria-label='{% trans "Settings" %}'
+     aria-hidden="true">
+  <div class="modal-dialog full-size-fixed-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="d-flex align-items-center flex-grow-1 min-w-0">
+          <h5 class="modal-title mb-0">
+            {% trans "Settings" %}
+            <span class="text-muted fw-normal">{% trans "(applies to all chats)" %}</span>
+          </h5>
+        </div>
+        <span id="settings-save-status"
+              class="settings-save-status me-2"
+              aria-live="polite"></span>
+        <button type="button"
+                class="btn-close"
+                data-bs-dismiss="modal"
+                aria-label='{% trans "Close" %}'></button>
+      </div>
+      <div id="settings-modal-body">
+        <div class="text-center py-5">
+          <span class="spinner-border spinner-border-sm"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

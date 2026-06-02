@@ -1,6 +1,3 @@
-import datetime
-import os
-
 # settings
 from django.conf import settings
 from django.core.management.base import BaseCommand

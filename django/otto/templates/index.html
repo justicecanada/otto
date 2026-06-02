@@ -41,9 +41,7 @@
         <use xlink:href="#exclamation-triangle-fill" />
       </svg>
       <div class="px-3">
-        {% if is_pilot_environment %}
-          {% trans "Welcome to the Otto Protected B pilot." %}
-        {% elif environment == "prod" %}
+        {% if environment == "prod" %}
           {% trans "Welcome to Otto." %}
         {% else %}
           {% trans "Welcome to the Otto development / test environment." %}

@@ -1,11 +1,19 @@
 {% load i18n %}
 
 {# link to open a QA document #}
-{% if document.url %}
+{% if document.has_processed_file and document.saved_file and document.file_exists %}
+  <a class="{% if button %}float-end ps-3 ms-3 mb-3 btn btn-light border{% endif %}"
+     href="{% url 'librarian:download_document' document.id %}">{{ document.name }} <i class="bi bi-file-earmark-arrow-down"></i></a>
+{% elif document.url %}
   <a class="{% if button %}float-end ps-3 ms-3 mb-3 btn btn-light border{% endif %}"
      href="{{ document.url }}"
      target="_blank">{{ document.name }} <i class="bi bi-box-arrow-up-right"></i></a>
-{% elif document.saved_file %}
+{% elif document.saved_file and document.file_exists %}
   <a class="{% if button %}float-end ps-3 ms-3 mb-3 btn btn-light border{% endif %}"
      href="{% url 'librarian:download_document' document.id %}">{{ document.name }} <i class="bi bi-file-earmark-arrow-down"></i></a>
+{% elif document.saved_file %}
+  <span class="text-muted {% if button %}float-end ps-3 ms-3 mb-3 btn btn-light border disabled{% endif %}">
+    <span class="text-decoration-line-through">{{ document.name }}</span> <i class="bi bi-exclamation-triangle text-danger"
+    title="{% trans 'File missing from storage' %}"></i>
+  </span>
 {% endif %}

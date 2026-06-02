@@ -1,264 +1,263 @@
 {% load i18n %}
 {% load rules %}
 
-<div id="librarian-documents" {% if swap %}hx-swap-oob="true"{% endif %}>
-  <div class="d-flex justify-content-between align-items-baseline">
-    <h6 id="documents-label" class="mb-2">
-      {% trans "Documents" %}
-      {% if selected_data_source and selected_data_source.id %}
-        ({{ documents|length }})
-        <span id="librarian-failed-oob">
-          {% if blocked_count or failed_count %}
-            <span class="small text-danger"
-                  role="img"
-                  data-bs-toggle="tooltip"
-                  data-bs-placement="bottom"
-                  data-bs-trigger="hover focus"
-                  title="{{ failed_count }} {% trans 'failed' %}{% if blocked_count %} · {{ blocked_count }} {% trans 'stopped' %}{% endif %}"
-                  aria-label="{{ failed_count }} {% trans 'failed' %}{% if blocked_count %} · {{ blocked_count }} {% trans 'stopped' %}{% endif %}">
-              <i class="bi bi-exclamation-circle-fill"></i>
-            </span>
-          {% endif %}
-        </span>
+<div id="librarian-documents"
+     data-selected-chat-id="{{ selected_data_source.chat_id|default:'' }}"
+     data-selected-chat-next-id="{{ selected_data_source.chat_next_id|default:'' }}"
+     {% if swap %}hx-swap-oob="true"{% endif %}>
+  <div class="librarian-v-top">
+    <div class="d-flex justify-content-between align-items-baseline">
+      <h6 id="documents-label" class="mb-2">
+        {% trans "Documents" %}
+        {% if selected_data_source and selected_data_source.id %}
+          (<span id="librarian-document-count">{{ total_document_count }}</span>)
+          <span id="librarian-failed-oob">
+            {% if blocked_count or failed_count or paused_count %}
+              <span class="small text-danger"
+                    role="img"
+                    data-bs-toggle="tooltip"
+                    data-bs-placement="bottom"
+                    data-bs-trigger="hover focus"
+                    title="{{ failed_count }} {% trans 'failed' %}{% if blocked_count %} · {{ blocked_count }} {% trans 'stopped' %}{% endif %}{% if paused_count %} · {{ paused_count }} {% trans 'paused' %}{% endif %}"
+                    aria-label="{{ failed_count }} {% trans 'failed' %}{% if blocked_count %} · {{ blocked_count }} {% trans 'stopped' %}{% endif %}{% if paused_count %} · {{ paused_count }} {% trans 'paused' %}{% endif %}">
+                <i class="bi bi-exclamation-circle-fill"></i>
+              </span>
+            {% endif %}
+          </span>
+        {% endif %}
+      </h6>
+      {% if selected_data_source or selected_data_source.id or selected_item %}
+        <div class="small text-muted d-none d-xxl-block">
+          <span id="librarian-total-cost">{{ total_cost|default:"$0.00" }}</span>
+          /
+          <span id="librarian-total-chunks">{{ total_chunks|default:0 }} {% trans "chunk(s)" %}</span>
+        </div>
       {% endif %}
-    </h6>
-    {% if selected_data_source or selected_data_source.id or selected_item %}
-      <div class="small text-muted">
-        <span id="librarian-total-cost">{{ total_cost|default:"$0.00" }}</span>
-        /
-        <span id="librarian-total-chunks">{{ total_chunks|default:0 }} {% trans "chunk(s)" %}</span>
+    </div>
+
+    {% if not selected_data_source or not selected_data_source.id %}
+      <div class="text-center">
+        <em class="small">{% trans "Select a folder to view documents." %}</em>
+      </div>
+    {% else %}
+      {% if poll_disabled_reason == "folder_too_large" %}
+        <div class="alert alert-info py-1 px-2 mb-2 small d-flex align-items-center gap-2"
+             role="alert">
+          <i class="bi bi-info-circle"
+             title="{% trans 'For performance reasons, automatic status updates are disabled for large folders' %}"></i>
+          <span class="flex-grow-1">{% trans "Status updates paused" %}</span>
+          <button type="button"
+                  class="btn btn-sm btn-outline-dark py-0 pe-1 ps-2"
+                  onclick="document.querySelector('#editLibrariesInner').dispatchEvent(new Event('refresh', {bubbles: true}))"
+                  title="{% trans 'Refresh to see latest status' %}">
+            {% trans "Refresh" %}
+            <i class="bi bi-arrow-clockwise"></i>
+          </button>
+        </div>
+      {% endif %}
+
+      {% has_perm 'librarian.edit_data_source' user selected_data_source as can_edit_data_source %}
+
+      {# Compact button row - all actions on one line #}
+      <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
+        <div class="d-flex gap-1 align-items-center flex-wrap">
+          {% if can_edit_data_source and selected_data_source.id and not selected_library.is_personal_library %}
+            <button type="button"
+                    class="btn btn-sm btn-outline-dark"
+                    title="{% trans 'Upload' %}"
+                    onclick="document.querySelector('#id_librarian-input_file').click();">
+              <i class="bi bi-upload"></i> <span class="d-none d-xxl-inline">{% trans "Upload" %}</span>
+            </button>
+            <button type="button"
+                    class="btn btn-sm btn-outline-dark"
+                    title="{% trans 'Add URL' %}"
+                    hx-get="{% url 'librarian:modal_create_document' data_source_id=selected_data_source.id %}"
+                    hx-include="#librarian-search-form"
+                    hx-disabled-elt="this">
+              <i class="bi bi-link"></i> <span class="d-none d-xxl-inline">{% trans "URL" %}</span>
+            </button>
+          {% endif %}
+        </div>
+
+        {# Actions, Sort, and Search buttons aligned to the right #}
+        <div class="d-flex gap-1 align-items-center flex-wrap">
+          {% if can_edit_data_source %}
+            <div class="btn-group">
+              <button type="button"
+                      class="btn btn-sm btn-light dropdown-toggle"
+                      data-bs-toggle="dropdown"
+                      aria-expanded="false">{% trans "Actions" %}</button>
+              <ul class="dropdown-menu">
+                {% with confirm_threshold=10 %}
+                  {% translate "All documents in this folder will be processed. Are you sure you want to continue?" as confirm_message %}
+                  <li>
+                    <h6 class="dropdown-header">{% trans "Process all, including completed" %}</h6>
+                  </li>
+                  <li>
+                    <a class="dropdown-item small"
+                       href="#"
+                       hx-get="{% url 'librarian:data_source_start' selected_data_source.id 'default' 'all' %}"
+                       hx-include="#librarian-search-form"
+                       {% if documents|length > confirm_threshold %}hx-confirm="{{ confirm_message }}"{% endif %}>
+                      <span>{% trans "Text only" %}</span>
+                      <span class="text-muted">{% trans "(fastest, $)" %}</span>
+                    </a>
+                  </li>
+                  <li>
+                    <a class="dropdown-item small"
+                       href="#"
+                       hx-get="{% url 'librarian:data_source_start' selected_data_source.id 'layout' 'all' %}"
+                       hx-include="#librarian-search-form"
+                       {% if documents|length > confirm_threshold %}hx-confirm="{{ confirm_message }}"{% endif %}>
+                      <span>{% trans "PDF layout" %}</span>
+                      <span class="text-muted">{% trans "(keeps formatting, $)" %}</span>
+                    </a>
+                  </li>
+                  <li>
+                    <a class="dropdown-item small"
+                       href="#"
+                       hx-get="{% url 'librarian:data_source_start' selected_data_source.id 'azure_read' 'all' %}"
+                       hx-include="#librarian-search-form"
+                       {% if documents|length > confirm_threshold %}hx-confirm="{{ confirm_message }}"{% endif %}>
+                      <span>{% trans "PDF OCR" %}</span>
+                      <span class="text-muted">{% trans "(for scans, $$)" %}</span>
+                    </a>
+                  </li>
+                  <li>
+                    <a class="dropdown-item small"
+                       href="#"
+                       hx-get="{% url 'librarian:data_source_start' selected_data_source.id 'azure_layout' 'all' %}"
+                       hx-include="#librarian-search-form"
+                       {% if documents|length > confirm_threshold %}hx-confirm="{{ confirm_message }}"{% endif %}>
+                      <span>{% trans "PDF layout & OCR" %}</span>
+                      <span class="text-muted">{% trans "(for complex scans, $$$)" %}</span>
+                    </a>
+                  </li>
+                  <li>
+                    <hr class="dropdown-divider">
+                  </li>
+                  <li>
+                    <h6 class="dropdown-header">{% trans "Process incomplete only" %}</h6>
+                  </li>
+                {% endwith %}
+                <li>
+                  <a class="dropdown-item small"
+                     href="#"
+                     hx-get="{% url 'librarian:data_source_start' selected_data_source.id 'default' 'incomplete' %}"
+                     hx-include="#librarian-search-form">
+                    <span>{% trans "Text only" %}</span>
+                    <span class="text-muted">{% trans "(fastest, $)" %}</span>
+                  </a>
+                </li>
+                <li>
+                  <a class="dropdown-item small"
+                     href="#"
+                     hx-get="{% url 'librarian:data_source_start' selected_data_source.id 'layout' 'incomplete' %}"
+                     hx-include="#librarian-search-form">
+                    <span>{% trans "PDF layout" %}</span>
+                    <span class="text-muted">{% trans "(keeps formatting, $)" %}</span>
+                  </a>
+                </li>
+                <li>
+                  <a class="dropdown-item small"
+                     href="#"
+                     hx-get="{% url 'librarian:data_source_start' selected_data_source.id 'azure_read' 'incomplete' %}"
+                     hx-include="#librarian-search-form">
+                    <span>{% trans "PDF OCR" %}</span>
+                    <span class="text-muted">{% trans "(for scans, $$)" %}</span>
+                  </a>
+                </li>
+                <li>
+                  <a class="dropdown-item small"
+                     href="#"
+                     hx-get="{% url 'librarian:data_source_start' selected_data_source.id 'azure_layout' 'incomplete' %}"
+                     hx-include="#librarian-search-form">
+                    <span>{% trans "PDF layout & OCR" %}</span>
+                    <span class="text-muted">{% trans "(for complex scans, $$$)" %}</span>
+                  </a>
+                </li>
+                <li>
+                  <a class="dropdown-item small"
+                     href="#"
+                     hx-get="{% url 'librarian:data_source_embed_large' selected_data_source.id %}"
+                     hx-include="#librarian-search-form">
+                    <span>{% trans "Embed large documents" %}</span>
+                    <span class="text-muted">{% trans "($)" %}</span>
+                  </a>
+                </li>
+                <li>
+                  <hr class="dropdown-divider">
+                </li>
+                <li>
+                  <a class="dropdown-item small"
+                     href="#"
+                     hx-get="{% url 'librarian:data_source_stop' selected_data_source.id %}"
+                     hx-include="#librarian-search-form">
+                    <span>{% trans "Stop all processing" %}</span>
+                  </a>
+                </li>
+              </ul>
+            </div>
+
+            <div class="btn-group">
+              <button id="sort-toggle-btn"
+                      type="button"
+                      class="btn btn-sm btn-light dropdown-toggle"
+                      data-bs-toggle="dropdown"
+                      aria-expanded="false">
+                <i class="bi bi-sort-down"></i>
+              </button>
+              <ul id="librarian-sort-list"
+                  class="dropdown-menu p-2"
+                  style="min-width: 18rem">
+                <div id="librarian-sort-list-inner">{% include "librarian/components/sort_list.html" %}</div>
+              </ul>
+            </div>
+          {% endif %}
+
+          {# Search toggle button #}
+          <button type="button"
+                  class="btn btn-sm btn-light"
+                  onclick="toggleLibrarianSearch()">
+            <i class="bi bi-search"></i>
+          </button>
+        </div>
+      </div>
+
+      {# Search field - initially hidden, toggle with magnifying glass button #}
+      <div id="librarian-search-row" class="mb-2 d-none">
+        <div class="input-group input-group-sm" id="librarian-search-form">
+          <input type="text"
+                 class="form-control border-none"
+                 placeholder="{% trans 'Search...' %}"
+                 aria-label="{% trans 'Search...' %}"
+                 id="librarian-search-input"
+                 name="search"
+                 autocomplete="off"
+                 value="{{ search|default:'' }}"
+                 hx-get="{% url 'librarian:search_docs' selected_data_source.id %}"
+                 hx-select="#librarian-document-list"
+                 hx-trigger="keyup changed delay:500ms"
+                 hx-target="#librarian-document-list"
+                 hx-swap="outerHTML">
+          <input type="hidden"
+                 name="page"
+                 id="librarian-page-input"
+                 value="{{ page|default:1 }}">
+        </div>
       </div>
     {% endif %}
   </div>
 
-  {% if not selected_data_source or not selected_data_source.id %}
-    <div class="text-center">
-      <em class="small">{% trans "Select a folder to view documents." %}</em>
-    </div>
-  {% else %}
-    {% has_perm 'librarian.edit_data_source' user selected_data_source as can_edit_data_source %}
-    {% if not selected_library.is_personal_library and can_edit_data_source %}
-      <div class="row mb-2 g-2">
-        <div class="col-12 col-xl-6 d-flex">
-          <button type="button"
-                  class="btn btn-sm btn-outline-dark w-100 h-100 d-flex justify-content-center"
-                  onclick="document.querySelector('#id_librarian-input_file').click();">
-            <span class="d-flex align-items-center gap-1">
-              <i class="bi bi-upload"></i> {% trans "Upload" %}
-            </span>
-          </button>
-        </div>
-        <div class="col-12 col-xl-6 d-flex">
-          <button type="button"
-                  class="btn btn-sm btn-outline-dark w-100 h-100 d-flex justify-content-center"
-                  hx-get="{% url 'librarian:modal_create_document' data_source_id=selected_data_source.id %}"
-                  hx-include="#librarian-search-input">
-            <span class="d-flex align-items-center gap-1">
-              <i class="bi bi-link"></i> {% trans "Add URL" %}
-            </span>
-          </button>
-        </div>
-      </div>
-    {% endif %}
-    <div class="row mb-2 g-2">
-      {% if can_edit_data_source %}
-        <div class="col-12 col-xl-6 d-flex">
-          <div class="btn-group w-100">
-            <button type="button"
-                    class="btn btn-sm btn-outline-success dropdown-toggle"
-                    data-bs-toggle="dropdown"
-                    aria-expanded="false">{% trans "Bulk actions" %}</button>
-            <ul class="dropdown-menu">
-              <li>
-                <h6 class="dropdown-header">{% trans "Process all, including completed" %}</h6>
-              </li>
-              <li>
-                <a class="dropdown-item small"
-                   href="#"
-                   hx-get="{% url 'librarian:data_source_start' selected_data_source.id 'default' 'all' %}"
-                   hx-include="#librarian-search-input">
-                  <span>{% trans "Text only" %}</span>
-                  <span class="text-muted">{% trans "(fastest, $)" %}</span>
-                </a>
-              </li>
-              <li>
-                <a class="dropdown-item small"
-                   href="#"
-                   hx-get="{% url 'librarian:data_source_start' selected_data_source.id 'layout' 'all' %}"
-                   hx-include="#librarian-search-input">
-                  <span>{% trans "PDF layout" %}</span>
-                  <span class="text-muted">{% trans "(keeps formatting, $)" %}</span>
-                </a>
-              </li>
-              <li>
-                <a class="dropdown-item small"
-                   href="#"
-                   hx-get="{% url 'librarian:data_source_start' selected_data_source.id 'azure_read' 'all' %}"
-                   hx-include="#librarian-search-input">
-                  <span>{% trans "PDF OCR" %}</span>
-                  <span class="text-muted">{% trans "(for scans, $$)" %}</span>
-                </a>
-              </li>
-              <li>
-                <a class="dropdown-item small"
-                   href="#"
-                   hx-get="{% url 'librarian:data_source_start' selected_data_source.id 'azure_layout' 'all' %}"
-                   hx-include="#librarian-search-input">
-                  <span>{% trans "PDF layout & OCR" %}</span>
-                  <span class="text-muted">{% trans "(for complex scans, $$$)" %}</span>
-                </a>
-              </li>
-              <li>
-                <hr class="dropdown-divider">
-              </li>
-              <li>
-                <h6 class="dropdown-header">{% trans "Process incomplete only" %}</h6>
-              </li>
-              <li>
-                <a class="dropdown-item small"
-                   href="#"
-                   hx-get="{% url 'librarian:data_source_start' selected_data_source.id 'default' 'incomplete' %}"
-                   hx-include="#librarian-search-input">
-                  <span>{% trans "Text only" %}</span>
-                  <span class="text-muted">{% trans "(fastest, $)" %}</span>
-                </a>
-              </li>
-              <li>
-                <a class="dropdown-item small"
-                   href="#"
-                   hx-get="{% url 'librarian:data_source_start' selected_data_source.id 'layout' 'incomplete' %}"
-                   hx-include="#librarian-search-input">
-                  <span>{% trans "PDF layout" %}</span>
-                  <span class="text-muted">{% trans "(keeps formatting, $)" %}</span>
-                </a>
-              </li>
-              <li>
-                <a class="dropdown-item small"
-                   href="#"
-                   hx-get="{% url 'librarian:data_source_start' selected_data_source.id 'azure_read' 'incomplete' %}"
-                   hx-include="#librarian-search-input">
-                  <span>{% trans "PDF OCR" %}</span>
-                  <span class="text-muted">{% trans "(for scans, $$)" %}</span>
-                </a>
-              </li>
-              <li>
-                <a class="dropdown-item small"
-                   href="#"
-                   hx-get="{% url 'librarian:data_source_start' selected_data_source.id 'azure_layout' 'incomplete' %}"
-                   hx-include="#librarian-search-input">
-                  <span>{% trans "PDF layout & OCR" %}</span>
-                  <span class="text-muted">{% trans "(for complex scans, $$$)" %}</span>
-                </a>
-              </li>
-              <li>
-                <hr class="dropdown-divider">
-              </li>
-              <li>
-                <a class="dropdown-item small"
-                   href="#"
-                   hx-get="{% url 'librarian:data_source_stop' selected_data_source.id %}"
-                   hx-include="#librarian-search-input">
-                  <span>{% trans "Stop all processing" %}</span>
-                </a>
-              </li>
-            </ul>
-          </div>
-        </div>
-      {% endif %}
-
-      <div class="{% if can_edit_data_source %}col-12 col-xl-6{% else %}col-12{% endif %} d-flex">
-        <div class="btn-group w-100">
-          <button type="button"
-                  class="btn btn-sm btn-outline-secondary dropdown-toggle"
-                  data-bs-toggle="dropdown"
-                  aria-expanded="false">{% trans "Sort" %}</button>
-          <ul class="dropdown-menu p-2" style="min-width: 18rem;">
-            <li>
-              <a class="dropdown-item d-flex align-items-center gap-2 small"
-                 href="#"
-                 hx-get="{% url 'librarian:sort_docs' selected_data_source.id 'date' %}"
-                 hx-select="#librarian-documents"
-                 hx-include="#librarian-search-input"
-                 hx-target="#librarian-documents"
-                 hx-swap="outerHTML">
-                <span class="text-dark"
-                      aria-hidden="true"
-                      style="width:1rem;
-                             text-align:center;
-                             {% if current_sort == 'date_desc' %}{% else %}visibility:hidden{% endif %}">✓</span>
-                <span>{% trans "Date modified/created" %}</span>
-              </a>
-            </li>
-            <li>
-              <a class="dropdown-item d-flex align-items-center gap-2 small"
-                 href="#"
-                 hx-get="{% url 'librarian:sort_docs' selected_data_source.id 'filename' %}"
-                 hx-select="#librarian-documents"
-                 hx-include="#librarian-search-input"
-                 hx-target="#librarian-documents"
-                 hx-swap="outerHTML">
-                <span class="text-dark"
-                      aria-hidden="true"
-                      style="width:1rem;
-                             text-align:center;
-                             {% if current_sort == 'filename_asc' %}{% else %}visibility:hidden{% endif %}">✓</span>
-                <span>{% trans "File name" %}</span>
-              </a>
-            </li>
-            <li>
-              <a class="dropdown-item d-flex align-items-center gap-2 small"
-                 href="#"
-                 hx-get="{% url 'librarian:sort_docs' selected_data_source.id 'filetype' %}"
-                 hx-select="#librarian-documents"
-                 hx-include="#librarian-search-input"
-                 hx-target="#librarian-documents"
-                 hx-swap="outerHTML">
-                <span class="text-dark"
-                      aria-hidden="true"
-                      style="width:1rem;
-                             text-align:center;
-                             {% if current_sort == 'filetype_asc' %}{% else %}visibility:hidden{% endif %}">✓</span>
-                <span>{% trans "File type" %}</span>
-              </a>
-            </li>
-            <li>
-              <a class="dropdown-item d-flex align-items-center gap-2 small"
-                 href="#"
-                 hx-get="{% url 'librarian:sort_docs' selected_data_source.id 'chunks' %}"
-                 hx-select="#librarian-documents"
-                 hx-include="#librarian-search-input"
-                 hx-target="#librarian-documents"
-                 hx-swap="outerHTML">
-                <span class="text-dark"
-                      aria-hidden="true"
-                      style="width:1rem;
-                             text-align:center;
-                             {% if current_sort == 'chunks_desc' %}{% else %}visibility:hidden{% endif %}">✓</span>
-                <span>{% trans "Size (Number of chunks)" %}</span>
-              </a>
-            </li>
-          </ul>
-        </div>
-      </div>
-    </div>
-    <div class="row mb-2 g-2">
-      <div class="input-group input-group-sm w-100">
-        <input type="text"
-               class="form-control border-none"
-               placeholder="{% trans 'Search...' %}"
-               aria-label="{% trans 'Search...' %}"
-               id="librarian-search-input"
-               name="search"
-               autocomplete="off"
-               value="{{ search|default:'' }}"
-               hx-get="{% url 'librarian:search_docs' selected_data_source.id %}"
-               hx-select="#librarian-documents"
-               hx-trigger="keyup changed delay:500ms"
-               hx-target="#librarian-documents"
-               hx-include="[name='search']"
-               hx-swap="outerHTML">
-      </div>
-    </div>
+  <div class="librarian-v-center">
+    {# Document list #}
     {% include "librarian/components/document_list_inner.html" %}
+  </div>
+
+  {# Pagination controls #}
+  <div id="librarian-pagination">{% include "librarian/components/data_source_pagination.html" %}</div>
+
+  {% if can_edit_data_source and not selected_data_source.is_chat_folder %}
+    {% include "librarian/components/librarian_dropzone.html" %}
   {% endif %}
 </div>

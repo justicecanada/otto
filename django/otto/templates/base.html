@@ -26,14 +26,19 @@
           href="{% static 'thirdparty/css/bootstrap.min.css' %}" />
     <link rel="stylesheet"
           href="{% static 'thirdparty/css/bootstrap-icons.min.css' %}" />
-    <script src="{% static 'thirdparty/bootstrap.bundle.min.js' %}"
+    <link rel="preload"
+          href="{% static 'thirdparty/css/fonts/bootstrap-icons.woff2' %}"
+          as="font"
+          type="font/woff2"
+          crossorigin>
+    <script defer
+            src="{% static 'thirdparty/bootstrap.bundle.min.js' %}"
             crossorigin="anonymous"></script>
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{% static 'style.css' %}" />
     <link rel="icon" type="image/x-icon" href="{% static 'otto-icon.png' %}" />
     {% block page_css %}{% endblock %}
 
-    <script src="{% static 'thirdparty/js-cookie-3.0.1.min.js' %}"></script>
     <script>
       const getStoredTheme = () => localStorage.getItem('Ottotheme');
       const setStoredTheme = theme => localStorage.setItem('Ottotheme', theme);
@@ -65,7 +70,7 @@
   <body class="{% block body_classes %}{% endblock %}">
     {% include "components/message_from_admins.html" %}
     {% if not hide_nav %}
-      <nav class="navbar bg-dark border-bottom navbar-expand-sm position-relative"
+      <nav class="navbar bg-dark border-bottom position-relative"
            data-bs-theme="dark"
            id="top-nav">
         <a href="#main-content-wrapper"
@@ -78,7 +83,7 @@
                id="home-link">
               <img src="{% static 'otto-icon.png' %}"
                    width="27"
-                   height="auto"
+                   height="27"
                    class="d-inline-block align-top"
                    style="position: relative;
                           top: 4px;
@@ -92,8 +97,19 @@
           {% include 'components/app_tabs.html' %}
 
           {% if request.user.is_authenticated %}
+            <button class="navbar-toggler border-0 px-2"
+                    type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#top-nav-auth"
+                    aria-controls="top-nav-auth"
+                    aria-expanded="false"
+                    aria-label="{% trans 'Toggle navigation' %}">
+              <span class="navbar-toggler-icon"></span>
+            </button>
             {# {% include 'components/search.html' %} #}
-            <div class="collapse navbar-collapse flex-fill-lg justify-content-end">
+            <div class="collapse navbar-collapse flex-fill-lg justify-content-end"
+                 id="top-nav-auth">
+              {% include 'components/cost_group_switcher.html' %}
               <ul class="navbar-nav position-relative" id="top-right-nav">
                 {% include 'components/user_menu.html' %}
                 {% include 'components/notifications.html' %}
@@ -130,7 +146,7 @@
     <div id="main-content-wrapper">
       {% block content_container %}
         <div class="container body-content">
-          <main class="py-md-5 py-3" role="main">
+          <main class="py-md-5 py-3 pb-3 pb-md-3" role="main">
             {% block body %}{% endblock %}
           </main>
         </div>
@@ -141,7 +157,13 @@
 
     <script>
     // the following will add the csrf token to fetch requests
-    const csrftoken = Cookies.get("csrftoken");
+    function getCookie(name) {
+      const value = `; ${document.cookie}`;
+      const parts = value.split(`; ${name}=`);
+      if (parts.length === 2) return parts.pop().split(';').shift();
+      return null;
+    }
+    const csrftoken = getCookie("csrftoken");
 
     function csrfSafeMethod(method) {
       // these HTTP methods do not require CSRF protection
@@ -168,6 +190,15 @@
     </script>
 
     {% block page_script %}{% endblock %}
+
+    <script>
+      // Translation strings for JavaScript
+      window.OTTO_I18N = {
+        connectionLostMessage: "{% trans 'Connection lost. Please refresh the page.' %}",
+        refreshButton: "{% trans 'Refresh' %}",
+        closeButton: "{% trans 'Close' %}"
+      };
+    </script>
 
     <script src="{% static 'js/script.js' %}"></script>
 

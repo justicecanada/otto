@@ -2,25 +2,34 @@
 <div id="cost-bar-outer"
      hx-get="{% url 'user_cost' %}"
      hx-swap="outerHTML"
-     hx-trigger='load delay:60000ms'
+     hx-trigger='load delay:60000ms, update-cost-widget from:body'
+     hx-request='{"timeout": 15000}'
      data-bs-toggle="tooltip"
      data-bs-placement="bottom"
      data-bs-html="true"
      data-bs-title="{{ cost_tooltip }}">
-    <meter aria-label="{{ cost_label }}"
-           id="cost-bar-inner"
-           class="w-100 d-block"
-           style="height: 12px"
-           min="0"
-           max="100"
-           low="60"
-           high="80"
-           optimum="0"
-           value="{{ cost_percent }}">{{ cost_tooltip }}</meter>
+  <meter aria-label="{{ cost_label }}"
+         id="cost-bar-inner"
+         class="w-100 d-block"
+         style="height: 12px"
+         min="0"
+         max="100"
+         low="60"
+         high="80"
+         optimum="0"
+         value="{{ cost_percent }}">{{ cost_tooltip }}</meter>
 </div>
 
 <li id="user-menu-cost"
     hx-swap-oob="true"
-    class="mb-2 p-3 pt-2 mt-0 border-bottom fw-semibold small text-nowrap">
-    {% trans "Used" %} {{ cost_tooltip_short }}
+    class="mb-2 p-3 pt-2 mt-0 pb-1 fw-semibold small text-nowrap">
+  {% trans "Used" %} {{ cost_tooltip_short }}
+  {% if can_switch_cost_groups %}
+    <br>
+    {% if budget_type == "cost_group" %}
+      <span class="text-muted fw-normal">({% trans "Cost group budget" %})</span>
+    {% else %}
+      <span class="text-muted fw-normal">({% trans "Personal budget" %})</span>
+    {% endif %}
+  {% endif %}
 </li>

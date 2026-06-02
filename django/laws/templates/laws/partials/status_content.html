@@ -77,15 +77,50 @@
           <div class="mb-3">
             <div class="d-flex justify-content-between">
               <span>{% trans "Overall Progress" %}</span>
-              <span>{{ stats.finished|add:stats.empty|add:stats.error|add:stats.deleted }}/{{ stats.total }}</span>
+              <span>{{ stats.finished|add:stats.empty|add:stats.error|add:stats.deleted|add:stats.cancelled }}/{{ stats.total }}</span>
             </div>
+            {% comment %} Stacked progress bar: Primary = finished/other, Warning = parsing, Secondary = parsed+creating, Success = embedding {% endcomment %}
             <div class="progress">
-              <div class="progress-bar"
-                   role="progressbar"
-                   style="width: {{ stats.progress_percent }}%"
-                   aria-valuenow="{{ stats.progress_percent }}"
-                   aria-valuemin="0"
-                   aria-valuemax="100">{{ stats.progress_percent }}%</div>
+              {% with finished_other=stats.finished|add:stats.empty|add:stats.error|add:stats.deleted|add:stats.cancelled parsed_creating=stats.parsed|add:stats.creating %}
+                {% if stats.total > 0 %}
+                  {% widthratio finished_other stats.total 100 as pct_finished %}
+                  {% widthratio stats.parsing stats.total 100 as pct_parsing %}
+                  {% widthratio parsed_creating stats.total 100 as pct_parsed %}
+                  {% widthratio stats.embedding stats.total 100 as pct_embedding %}
+                  {% if pct_finished|floatformat != '0' %}
+                    <div class="progress-bar bg-primary"
+                         role="progressbar"
+                         style="width: {{ pct_finished }}%"
+                         aria-valuenow="{{ pct_finished }}"
+                         aria-valuemin="0"
+                         aria-valuemax="100"></div>
+                  {% endif %}
+                  {% if pct_parsing|floatformat != '0' %}
+                    <div class="progress-bar bg-warning"
+                         role="progressbar"
+                         style="width: {{ pct_parsing }}%"
+                         aria-valuenow="{{ pct_parsing }}"
+                         aria-valuemin="0"
+                         aria-valuemax="100"></div>
+                  {% endif %}
+                  {% if pct_parsed|floatformat != '0' %}
+                    <div class="progress-bar bg-secondary"
+                         role="progressbar"
+                         style="width: {{ pct_parsed }}%"
+                         aria-valuenow="{{ pct_parsed }}"
+                         aria-valuemin="0"
+                         aria-valuemax="100"></div>
+                  {% endif %}
+                  {% if pct_embedding|floatformat != '0' %}
+                    <div class="progress-bar bg-success"
+                         role="progressbar"
+                         style="width: {{ pct_embedding }}%"
+                         aria-valuenow="{{ pct_embedding }}"
+                         aria-valuemin="0"
+                         aria-valuemax="100"></div>
+                  {% endif %}
+                {% endif %}
+              {% endwith %}
             </div>
           </div>
 
@@ -99,10 +134,18 @@
                 {% trans "Checking" %} ({{ stats.pending_checking|default:0 }})
               </p>
               <p class="mb-1">
+                <strong>{% trans "Processing:" %}</strong>
+                {% trans "Parsing XML" %} ({{ stats.parsing|default:0 }}),
+                {% trans "Creating" %} ({{ stats.creating|default:0 }}),
+                {% trans "Parsed" %} ({{ stats.parsed|default:0 }}),
+                {% trans "Embedding" %} ({{ stats.embedding|default:0 }})
+              </p>
+              <p class="mb-1">
                 <strong>{% trans "Finished:" %}</strong>
                 {% trans "New" %} ({{ stats.finished_new|default:0 }}),
                 {% trans "Updated" %} ({{ stats.finished_update|default:0 }}),
-                {% trans "No changes" %} ({{ stats.finished_nochange|default:0 }})
+                {% trans "No changes" %} ({{ stats.finished_nochange|default:0 }}),
+                {% trans "Processed" %} ({{ stats.finished_plain|default:0 }})
               </p>
               <p class="mb-1">
                 <strong>{% trans "Other:" %}</strong>
@@ -155,7 +198,7 @@
                   {{ law.details_label|truncatechars:80 }}
                   {% if law.embed_progress %}
                     <div class="progress my-1" style="height: 8px;">
-                      <div class="progress-bar bg-dark"
+                      <div class="progress-bar bg-info"
                            role="progressbar"
                            style="width: {{ law.embed_progress.percent }}%"
                            aria-valuenow="{{ law.embed_progress.percent }}"
@@ -178,3 +221,17 @@
     </div>
   </div>
 {% endif %}
+
+<!-- Download Skipped Texts Section -->
+<div class="card mt-4">
+  <div class="card-header">
+    <h5 class="mb-0">{% trans "Downloads" %}</h5>
+  </div>
+  <div class="card-body">
+    <p>{% trans "Download processing reports and debug files from the law loading process." %}</p>
+    <a href="{% url 'laws:download_skipped_texts' %}"
+       class="btn btn-sm btn-outline-primary">
+      <i class="bi bi-download"></i> {% trans "Download Skipped Texts" %}
+    </a>
+  </div>
+</div>

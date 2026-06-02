@@ -47,13 +47,9 @@
               </a>
             </div>
             <div class="d-flex align-items-center">
-              <i class="bi bi-person-workspace me-2"></i>
-              <span class="text-muted">{{ feedback.created_by.pilot_name }}</span>
-            </div>
-            <div class="d-flex align-items-center">
               <i class="text-muted bi bi-github me-2"></i>
               <span class="mt-1 badge badge-neutral fw-semibold px-2 py-1 m-0 border">
-                <a href="https://github.com/justicecanada/otto/commit/{{ feedback.otto_version }}"
+                <a href="https://github.com/justice-bac/otto/commit/{{ feedback.otto_version }}"
                    target="_blank"
                    class="text-reset text-decoration-none">{{ feedback.otto_version }}</a>
               </span>
@@ -80,7 +76,6 @@
                 {{ field }}
                 <label class="text-muted" for="{{ field.id_for_label }}">{{ field.label }}</label>
               {% endfor %}
-
             </div>
             <button class="btn btn-light border input-group-text"
                     title="{% trans 'Save note' %}"
@@ -89,7 +84,7 @@
             </button>
           </form>
         </div>
-        <div class="col-4 ">
+        <div class="col-4">
           <span class="fw-semibold text-muted" style="font-size: .85rem;">{% trans 'Metadata' %}</span>
           <div class="border rounded">
             <form hx-post="{% url 'feedback_dashboard_update' feedback_id=feedback.id form_type='metadata' %}"
@@ -107,12 +102,132 @@
               {% endfor %}
             </form>
           </div>
-
         </div>
       </div>
       <div class="row mt-2">
-        <span class="text muted" style="font-size: .75rem;">{% trans 'Last modified:' %} {{ feedback.modified_on }}</span>
+        <span class="text-muted" style="font-size: .75rem;">{% trans 'Last modified:' %} {{ feedback.modified_on }}</span>
       </div>
+      {% if feedback.preset_snapshot %}
+        <div class="row mt-3">
+          <div class="col-12">
+            <span class="fs-6 fw-semibold text-muted">{% trans 'Preset snapshot (at time of feedback)' %}</span>
+            <div class="border rounded p-2 mt-2">
+              <div>
+                <strong>{% trans 'Loaded preset' %}:</strong>
+                {% if feedback.loaded_preset %}
+                  {{ feedback.loaded_preset.name_auto }}
+                {% else %}
+                  <span class="text-muted">{% trans 'None' %}</span>
+                {% endif %}
+              </div>
+              {% if feedback.preset_snapshot.app == "chat_next" %}
+                <div class="mt-2">
+                  <div>
+                    <strong>{% trans 'App' %}:</strong> {% trans 'AI Assistant (new)' %}
+                  </div>
+                  <div>
+                    <strong>{% trans 'Chat model' %}:</strong> {{ feedback.preset_snapshot.chat_model }}
+                  </div>
+                  <div>
+                    <strong>{% trans 'Temperature' %}:</strong> {{ feedback.preset_snapshot.chat_temperature }}
+                  </div>
+                  <div>
+                    <strong>{% trans 'Reasoning effort' %}:</strong> {{ feedback.preset_snapshot.chat_reasoning_effort }}
+                  </div>
+                  <div>
+                    <strong>{% trans 'Verbosity' %}:</strong> {{ feedback.preset_snapshot.chat_verbosity }}
+                  </div>
+                  {% if feedback.preset_snapshot.chat_system_prompt %}
+                    <div>
+                      <strong>{% trans 'System prompt' %}:</strong> <code>{{ feedback.preset_snapshot.chat_system_prompt }}</code>
+                    </div>
+                  {% endif %}
+                  {% if feedback.preset_snapshot.chat_enabled_tools %}
+                    <div>
+                      <strong>{% trans 'Enabled tools' %}:</strong> {{ feedback.preset_snapshot.chat_enabled_tools }}
+                    </div>
+                  {% endif %}
+                </div>
+              {% else %}
+                <div class="mt-2">
+                  <div>
+                    <strong>{% trans 'Mode' %}:</strong> {{ feedback.preset_snapshot.mode }}
+                  </div>
+                  <div>
+                    <strong>{% trans 'Prompt' %}:</strong> <code>{{ feedback.preset_snapshot.prompt }}</code>
+                  </div>
+                  <div>
+                    <strong>{% trans 'Chat model' %}:</strong> {{ feedback.preset_snapshot.chat_model }}
+                  </div>
+                  <div>
+                    <strong>{% trans 'Temperature' %}:</strong> {{ feedback.preset_snapshot.chat_temperature }}
+                  </div>
+                  <div>
+                    <strong>{% trans 'Reasoning effort' %}:</strong> {{ feedback.preset_snapshot.chat_reasoning_effort }}
+                  </div>
+                  <div>
+                    <strong>{% trans 'Verbosity' %}:</strong> {{ feedback.preset_snapshot.chat_verbosity }}
+                  </div>
+                  {% if feedback.preset_snapshot.mode == "qa" %}
+                    <div>
+                      <strong>{% trans 'QA model' %}:</strong> {{ feedback.preset_snapshot.qa_model }}
+                    </div>
+                    <div>
+                      <strong>{% trans 'QA top-k' %}:</strong> {{ feedback.preset_snapshot.qa_topk }}
+                    </div>
+                    <div>
+                      <strong>{% trans 'QA scope' %}:</strong> {{ feedback.preset_snapshot.qa_scope }}
+                    </div>
+                    <div>
+                      <strong>{% trans 'QA mode' %}:</strong> {{ feedback.preset_snapshot.qa_mode }}
+                    </div>
+                    <div>
+                      <strong>{% trans 'QA process mode' %}:</strong> {{ feedback.preset_snapshot.qa_process_mode }}
+                    </div>
+                    <div>
+                      <strong>{% trans 'QA pre instructions' %}:</strong> {{ feedback.preset_snapshot.qa_pre_instructions }}
+                    </div>
+                    <div>
+                      <strong>{% trans 'QA post instructions' %}:</strong> {{ feedback.preset_snapshot.qa_post_instructions }}
+                    </div>
+                    <div>
+                      <strong>{% trans 'QA library' %}:</strong> {{ feedback.preset_snapshot.qa_library_name }}
+                    </div>
+                    <div>
+                      <strong>{% trans 'QA system prompt' %}:</strong> {{ feedback.preset_snapshot.qa_system_prompt }}
+                    </div>
+                  {% endif %}
+                  {% if feedback.preset_snapshot.mode == "summarize" %}
+                    <div>
+                      <strong>{% trans 'Summarize model' %}:</strong> {{ feedback.preset_snapshot.summarize_model }}
+                    </div>
+                    <div>
+                      <strong>{% trans 'Summarize reasoning effort' %}:</strong> {{ feedback.preset_snapshot.summarize_reasoning_effort }}
+                    </div>
+                    <div>
+                      <strong>{% trans 'Summarize prompt' %}:</strong> {{ feedback.preset_snapshot.summarize_prompt }}
+                    </div>
+                  {% endif %}
+                  {% if feedback.preset_snapshot.mode == "translate" %}
+                    <div>
+                      <strong>{% trans 'Translate language' %}:</strong> {{ feedback.preset_snapshot.translate_language }}
+                    </div>
+                    <div>
+                      <strong>{% trans 'Translate model' %}:</strong> {{ feedback.preset_snapshot.translate_model }}
+                    </div>
+                    <div>
+                      <strong>{% trans 'Translate prompt' %}:</strong> {{ feedback.preset_snapshot.translate_prompt }}
+                    </div>
+                    <div>
+                      <strong>{% trans 'Translate glossary filename' %}:</strong> {{ feedback.preset_snapshot.translate_glossary_filename }}
+                    </div>
+                  {% endif %}
+                </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      {% endif %}
     </div>
   </div>
 </div>

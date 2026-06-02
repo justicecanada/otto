@@ -14,14 +14,16 @@ import logging
 import os
 import sys
 from pathlib import Path
-from urllib.parse import quote, urlparse, urlunparse
+from urllib.parse import urlparse, urlunparse
 
 import structlog
 import yaml
 from dotenv import load_dotenv
 from storages.backends.azure_storage import AzureStorage
 
-from chat.llm_models import (
+from otto import priorities
+
+from chat._llm.models import (
     DEFAULT_CHAT_MODEL_ID,
     DEFAULT_LAWS_MODEL_ID,
     DEFAULT_QA_MODEL_ID,
@@ -39,6 +41,14 @@ logger.setLevel(logging.ERROR)
 
 OTTO_BUILD_DATE = ""
 OTTO_VERSION_HASH = ""
+OTTO_USER_GROUP = "Otto user"
+OTTO_ADMIN_GROUP = "Otto admin"
+OTTO_OPERATIONS_ADMIN_GROUP = "Operations admin"
+OTTO_BULK_UPLOADER_GROUP = "Bulk uploader"
+# Backward-compatible alias; prefer OTTO_BULK_UPLOADER_GROUP in new code.
+OTTO_DATA_STEWARD_GROUP = OTTO_BULK_UPLOADER_GROUP
+OTTO_PUBLIC_SHARING_ADMIN_GROUP = "Public sharing admin"
+OTTO_BETA_TESTER_GROUP = "Beta tester"
 
 # Load the version from the version.yaml file
 version_file_path = os.path.join(BASE_DIR, "version.yaml")
@@ -56,7 +66,7 @@ if os.environ.get("DJANGODB_NAME") is None:
         # These are enough to run the CI tests
         load_dotenv(os.path.join(BASE_DIR, ".env.example"))
         print("Using .env.example")
-    except:
+    except Exception:
         raise Exception("No .env or .env.example file found. Shutting down.")
 
 ENVIRONMENT = os.environ.get("ENV", "LOCAL").upper()
@@ -68,10 +78,10 @@ IS_RUNNING_TESTS = "test" in sys.argv or any("pytest" in arg for arg in sys.argv
 IS_PROD = False
 
 SITE_URL = urlparse(os.environ.get("SITE_URL"))
-IS_PILOT_ENVIRONMENT = "pilot" in SITE_URL.hostname if SITE_URL.hostname else False
 
-AZURE_OPENAI_KEY = os.environ.get("AZURE_OPENAI_KEY")
-AZURE_COGNITIVE_SERVICE_KEY = os.environ.get("AZURE_COGNITIVE_SERVICE_KEY")
+AI_SERVICES_NAME = os.environ.get("AI_SERVICES_NAME")
+AZURE_AI_SERVICES_KEY = os.environ.get("AZURE_AI_SERVICES_KEY")
+AZURE_DOCUMENT_INTELLIGENCE_KEY = os.environ.get("AZURE_DOCUMENT_INTELLIGENCE_KEY")
 SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "django-secret-key")
 AZURE_ACCOUNT_KEY = os.environ.get(
     "AZURE_ACCOUNT_KEY"
@@ -91,20 +101,19 @@ AZURE_AUTH = {
     "USERNAME_ATTRIBUTE": "userPrincipalName",  # The AAD attribute or ID token claim you want to use as the value for the user model `USERNAME_FIELD`
     "PUBLIC_PATHS": [
         os.environ.get("ENTRA_REDIRECT_URI"),
+        "/welcome",
         "/welcome/",
         "/healthz",
         "/healthz/",
         "/load_test",
         "/load_test/",
+        "/metrics",
+        "/metrics/",
     ],
     "USER_MAPPING_FN": "otto.utils.auth.map_entra_to_django_user",  # Optional, path to the function used to map the AAD to Django attributes
 }
 LOGIN_URL = "/azure_auth/login"
 LOGIN_REDIRECT_URL = "/"  # Or any other endpoint
-
-# OpenAI
-AZURE_OPENAI_ENDPOINT = os.environ.get("AZURE_OPENAI_ENDPOINT")
-AZURE_OPENAI_VERSION = os.environ.get("AZURE_OPENAI_VERSION")
 
 DEFAULT_CHAT_MODEL = DEFAULT_CHAT_MODEL_ID
 DEFAULT_QA_MODEL = DEFAULT_QA_MODEL_ID
@@ -112,32 +121,126 @@ DEFAULT_SUMMARIZE_MODEL = DEFAULT_SUMMARIZE_MODEL_ID
 DEFAULT_TRANSLATE_MODEL = DEFAULT_TRANSLATE_MODEL_ID
 DEFAULT_LAWS_MODEL = DEFAULT_LAWS_MODEL_ID
 
-DEFAULT_MONTHLY_MAX = 32  # allowance $CAD/user/month unless otherwise specified
-LIBRARY_RETENTION_DAYS = 30
-CHAT_RETENTION_DAYS = 30
+DEFAULT_LAWS_LLM_PRIORITY = priorities.LOWEST
+DEFAULT_DOCUMENT_LLM_PRIORITY = priorities.LOW
+DEFAULT_LLM_PRIORITY = priorities.MEDIUM
 
-# Azure Cognitive Services
-AZURE_COGNITIVE_SERVICE_ENDPOINT = os.environ.get("AZURE_COGNITIVE_SERVICE_ENDPOINT")
-AZURE_COGNITIVE_SERVICE_REGION = os.environ.get("AZURE_COGNITIVE_SERVICE_REGION")
+DEFAULT_MONTHLY_MAX = 32  # allowance $CAD/user/month unless otherwise specified
+LIBRARY_RETENTION_DAYS = 90
+LIBRARY_WARN_BEFORE_DELETION_DAYS = 15
+CHAT_RETENTION_DAYS = 90
+
+PER_DOC_BATCH_SIZE = 5  # Number of documents to process in parallel for chat responses
+EMBEDDING_BATCH_SIZE = 64  # Number of chunks to send to embedding model (then database insert in a transaction)
+EMBED_TIME_SLICE_SECONDS = 90  # Re-schedules remainder of task after this many seconds
+
+# HNSW Index Configuration
+HNSW_THRESHOLD = 50000  # Number of chunks before HNSW index is recommended
+HNSW_REBUILD_THRESHOLD = 100000  # Don't rebuild index until 2x original size
+
+
+# Azure AI Services
+def _normalize_endpoint(endpoint: str | None) -> str | None:
+    if not endpoint:
+        return None
+    return endpoint if endpoint.endswith("/") else f"{endpoint}/"
+
+
+_raw_azure_ai_services_endpoint = os.environ.get(
+    "AZURE_AI_SERVICES_ENDPOINT"
+) or os.environ.get("AZURE_OPENAI_ENDPOINT")
+AZURE_AI_SERVICES_ENDPOINT = _normalize_endpoint(_raw_azure_ai_services_endpoint)
+AZURE_AI_SERVICES_VERSION = os.environ.get(
+    "AZURE_AI_SERVICES_VERSION"
+) or os.environ.get("AZURE_OPENAI_VERSION")
+AZURE_AI_SERVICES_REGION = os.environ.get("AZURE_AI_SERVICES_REGION")
+EXTERNAL_TOOL_AZURE_LANGUAGE_REVIEW_ENABLED = (
+    os.environ.get("EXTERNAL_TOOL_AZURE_LANGUAGE_REVIEW_ENABLED", "True") == "True"
+)
+EXTERNAL_TOOL_AZURE_LANGUAGE_REVIEW_ENDPOINT = (
+    _normalize_endpoint(os.environ.get("EXTERNAL_TOOL_AZURE_LANGUAGE_REVIEW_ENDPOINT"))
+    or AZURE_AI_SERVICES_ENDPOINT
+)
+EXTERNAL_TOOL_AZURE_LANGUAGE_REVIEW_API_VERSION = os.environ.get(
+    "EXTERNAL_TOOL_AZURE_LANGUAGE_REVIEW_API_VERSION", "2022-05-01"
+)
+AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT = _normalize_endpoint(
+    os.environ.get("AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT")
+)
 CUSTOM_TRANSLATOR_ID = os.environ.get("CUSTOM_TRANSLATOR_ID")
-AZURE_ACCOUNT_NAME = os.environ.get(
-    "AZURE_STORAGE_ACCOUNT_NAME", ""
-)  # Azure as default storage requires this name to be AZURE_ACCOUNT_NAME
-AZURE_CONTAINER = os.environ.get(
-    "AZURE_STORAGE_CONTAINER", ""
-)  # Azure as default storage requires this name to be AZURE_STORAGE_CONTAINER
+
+# Azure Speech-to-Text (batch transcription)
+AZURE_SPEECH_TO_TEXT_ENDPOINT = _normalize_endpoint(
+    os.environ.get("AZURE_SPEECH_TO_TEXT_ENDPOINT")
+)
+
+# Azure as default storage requires this name to be AZURE_ACCOUNT_NAME
+AZURE_ACCOUNT_NAME = os.environ.get("AZURE_STORAGE_ACCOUNT_NAME", "")
+
+# Azure as default storage requires this name to be AZURE_STORAGE_CONTAINER
+AZURE_CONTAINER = os.environ.get("AZURE_STORAGE_CONTAINER", "")
+
+AZURE_TRANSLATION_DOCUMENT_SIZE_LIMIT = 40 * 1000 * 1000  # 40 MB
 
 DEBUG = os.environ.get("DEBUG", "False") == "True"
 print("Running in debug mode:", DEBUG)
 DEBUG_PROPAGATE_EXCEPTIONS = True
 
-ALLOWED_HOSTS = [SITE_URL.hostname, "localhost", "127.0.0.1", "django-service"]
+CHAT_DEBUG_STREAM_TESTS_ENABLED = (
+    DEBUG or os.environ.get("ENABLE_CHAT_DEBUG_STREAM_TESTS", "False") == "True"
+) and ENVIRONMENT != "PROD"
+
+BROWSER_TEST_AUTH_PUBLIC_PATHS = ["/dev/browser-login", "/dev/browser-login/"]
+BROWSER_TEST_AUTH_ENABLED = (
+    os.environ.get("ENABLE_BROWSER_TEST_AUTH", "False") == "True"
+    and ENVIRONMENT == "LOCAL"
+    and DEBUG
+    and (SITE_URL.hostname or "").lower() in {"localhost", "127.0.0.1"}
+)
+BROWSER_TEST_AUTH_UPN = (
+    os.environ.get("BROWSER_TEST_AUTH_UPN", "browser.test.admin@example.com")
+    .strip()
+    .lower()
+)
+BROWSER_TEST_AUTH_EMAIL = (
+    os.environ.get("BROWSER_TEST_AUTH_EMAIL", BROWSER_TEST_AUTH_UPN).strip().lower()
+)
+BROWSER_TEST_AUTH_FIRST_NAME = os.environ.get(
+    "BROWSER_TEST_AUTH_FIRST_NAME", "Browser"
+).strip()
+BROWSER_TEST_AUTH_LAST_NAME = os.environ.get(
+    "BROWSER_TEST_AUTH_LAST_NAME", "Test Admin"
+).strip()
+BROWSER_TEST_AUTH_OID = os.environ.get(
+    "BROWSER_TEST_AUTH_OID", "browser-test-admin-local"
+).strip()
+
+if BROWSER_TEST_AUTH_ENABLED:
+    AZURE_AUTH["PUBLIC_PATHS"].extend(BROWSER_TEST_AUTH_PUBLIC_PATHS)
+
+# Allow for Prometheus scraping
+if os.environ.get("AKS_POD_CIDR"):
+    ALLOWED_CIDR_NETS = [os.environ.get("AKS_POD_CIDR")]
+
+ALLOWED_HOSTS = [
+    SITE_URL.hostname,
+    "localhost",
+    "127.0.0.1",
+    "django-service",
+    "django-service.otto.svc.cluster.local",  # Needed for Prometheus scraping in K8s
+]
 
 # AC-2: Entra Integration Helper App Configuration
 AUTHENTICATION_BACKENDS = [
     "azure_auth.backends.AzureBackend",
     "rules.permissions.ObjectPermissionBackend",
 ]
+
+if BROWSER_TEST_AUTH_ENABLED:
+    AUTHENTICATION_BACKENDS = [
+        "django.contrib.auth.backends.ModelBackend",
+        *AUTHENTICATION_BACKENDS,
+    ]
 
 if IS_RUNNING_TESTS:
     AUTHENTICATION_BACKENDS = [
@@ -152,6 +255,8 @@ INSTALLED_APPS = [
     "django_structlog",
     "modeltranslation",
     "django_prometheus",
+    "drf_spectacular",
+    "rest_framework",
     # "django.contrib.admin", # Do not enable admin in production
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -159,6 +264,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django.contrib.postgres",
+    "django.contrib.humanize",
     "corsheaders",
     "autocomplete",
     "rules.apps.AutodiscoverRulesConfig",
@@ -167,6 +273,7 @@ INSTALLED_APPS = [
     "otto",
     "librarian",
     "chat",
+    "chat_next",
     "laws",
     # Third-party apps
     "channels",
@@ -174,9 +281,11 @@ INSTALLED_APPS = [
     "text_extractor",
     "django_celery_beat",
     "django_file_form",
+    "translate",
 ]
 
 MIDDLEWARE = [
+    "allow_cidr.middleware.AllowCIDRMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
@@ -185,12 +294,13 @@ MIDDLEWARE = [
     "django.contrib.sessions.middleware.SessionMiddleware",
     # AC-2, AC-3, IA-2, IA-6, IA-8: Authentication, AC-14: Limited Access
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "otto.utils.api_auth.ApiTokenAuthenticationMiddleware",
     "otto.utils.middleware.ExtendSessionMiddleware",
     # AC-3 & AC-14: Limited Access to handle login flows: redirect to login page, use Azure login, accept terms to use
     # AC-3(7), IA-8: Custom middleware for enforcing role-based access control
     "otto.utils.auth.RedirectToLoginMiddleware",
     # AC-2, AC-14, IA-2, IA-6, IA-8, SC-23: Azure AD Integration to protect entire site by default
-    "azure_auth.middleware.AzureMiddleware",
+    "otto.utils.auth.ApiAwareAzureMiddleware",
     "otto.utils.auth.AcceptTermsMiddleware",
     "django.middleware.locale.LocaleMiddleware",
     "otto.utils.middleware.TimezoneMiddleware",
@@ -202,12 +312,13 @@ MIDDLEWARE = [
     "django_prometheus.middleware.PrometheusAfterMiddleware",
     # AU-6: Supports structured logging, facilitating the review and analysis of audit records for inappropriate or unusual activity
     "django_structlog.middlewares.RequestMiddleware",
+    "otto.utils.middleware.RequestPressureMiddleware",
     "otto.utils.middleware.HtmxMessageMiddleware",
     "otto.utils.middleware.PreventConcurrentLoginsMiddleware",
 ]
 
 if IS_RUNNING_TESTS:
-    MIDDLEWARE.remove("azure_auth.middleware.AzureMiddleware")
+    MIDDLEWARE.remove("otto.utils.auth.ApiAwareAzureMiddleware")
 
 CORS_ORIGIN_ALLOW_ALL = False
 CORS_ORIGIN_WHITELIST = [
@@ -235,6 +346,9 @@ if DEBUG_TOOLBAR:
         "SHOW_COLLAPSED": True,
         "UPDATE_ON_FETCH": True,
         "RENDER_PANELS": False,
+        "DISABLE_PANELS": {
+            "debug_toolbar.panels.templates.TemplatesPanel",
+        },
     }
 
 
@@ -242,6 +356,7 @@ ROOT_URLCONF = "otto.urls"
 
 TEMPLATES = [
     {
+        "NAME": "django",
         "BACKEND": "django.template.backends.django.DjangoTemplates",
         "DIRS": [os.path.join(BASE_DIR, "otto", "templates")],
         "APP_DIRS": True,
@@ -257,14 +372,25 @@ TEMPLATES = [
     },
 ]
 
+# REDIS
+REDIS_HOST = os.environ.get("REDIS_HOST", "redis")
+REDIS_PORT = int(os.environ.get("REDIS_PORT", "6379"))
+REDIS_URL = f"redis://{REDIS_HOST}:{REDIS_PORT}/0"  # Celery broker & results
+REDIS_CACHE_URL = f"redis://{REDIS_HOST}:{REDIS_PORT}/1"  # Django cache (django-file-form TUS metadata)
+REDIS_CHANNELS_URL = f"redis://{REDIS_HOST}:{REDIS_PORT}/2"  # Channels
+
+# ASYNC - CHANNELS
 WSGI_APPLICATION = "otto.wsgi.application"
-
 ASGI_APPLICATION = "otto.asgi.application"
-
 
 CHANNEL_LAYERS = {
     "default": {
-        "BACKEND": "channels.layers.InMemoryChannelLayer",
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [REDIS_CHANNELS_URL],
+            "expiry": 60,  # Messages expire after 60s (explicit default)
+            "group_expiry": 86400,  # Group memberships expire after 24h
+        },
     },
 }
 
@@ -280,6 +406,7 @@ DATABASES = {
     "vector_db": {
         "ENGINE": "django.db.backends.sqlite3",
         "NAME": BASE_DIR / "db.sqlite3",
+        "TEST": {"NAME": "vector_test"},
     },
 }
 
@@ -303,6 +430,9 @@ if os.environ.get("DJANGODB_ENGINE") is not None:
         "PASSWORD": os.environ.get("DJANGODB_PASSWORD", ""),
         "HOST": os.environ.get("DJANGODB_HOST"),
         "PORT": os.environ.get("DJANGODB_PORT", "5432"),
+        "TEST": {
+            "NAME": "test_" + os.environ.get("DJANGODB_NAME", "otto"),
+        },
     }
     if DJANGODB_PGBOUNCER:
         DATABASES["default"].update(pgbouncer_options)
@@ -316,6 +446,9 @@ if os.environ.get("VECTORDB_ENGINE") is not None:
         "PASSWORD": os.environ.get("VECTORDB_PASSWORD", ""),
         "HOST": os.environ.get("VECTORDB_HOST"),
         "PORT": os.environ.get("VECTORDB_PORT", "5432"),
+        "TEST": {
+            "NAME": "test_" + os.environ.get("VECTORDB_NAME", "llama_index"),
+        },
     }
     if VECTORDB_PGBOUNCER:
         DATABASES["vector_db"].update(pgbouncer_options)
@@ -334,6 +467,23 @@ REST_FRAMEWORK = {
     "DEFAULT_RENDERER_CLASSES": [
         "rest_framework.renderers.JSONRenderer",
         "rest_framework.renderers.BrowsableAPIRenderer",
+    ],
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "otto.api.authentication.OttoMachineTokenAuthentication",
+        "otto.api.authentication.OttoSessionAuthentication",
+    ],
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    "URL_FORMAT_OVERRIDE": None,
+}
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "Otto API",
+    "DESCRIPTION": "Versioned Otto API foundation for reporting and future integrations.",
+    "VERSION": "v1",
+    "SERVE_INCLUDE_SCHEMA": False,
+    "SERVE_PERMISSIONS": ["otto.api.permissions.OttoApiDocsPermission"],
+    "SERVE_AUTHENTICATION": [
+        "otto.api.authentication.OttoSessionAuthentication",
     ],
 }
 
@@ -376,10 +526,10 @@ SESSION_SAVE_EVERY_REQUEST = False
 
 # Security
 
-if SITE_URL.scheme == "https" and SITE_URL.port == None:
+if SITE_URL.scheme == "https" and SITE_URL.port is None:
     CSRF_TRUSTED_ORIGINS = [urlunparse(SITE_URL)]
     SECURE_SSL_REDIRECT = True
-    SECURE_REDIRECT_EXEMPT = [r"^healthz/$"]
+    SECURE_REDIRECT_EXEMPT = [r"^healthz/$", r"^metrics/?$", r"^load_test/?$"]
     SESSION_COOKIE_SECURE = True  # SC-23: Secure session cookies
     CSRF_COOKIE_SECURE = True
     USE_X_FORWARDED_HOST = True
@@ -396,8 +546,13 @@ else:
 
 STATIC_ROOT = os.path.join(BASE_DIR, os.environ.get("STATIC_ROOT", "staticfiles"))
 STATIC_URL = "/static/"
-# forever-cacheable files and compression support
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+
+# Use non-manifest storage in tests so we don't require collectstatic
+if IS_RUNNING_TESTS:
+    STATICFILES_STORAGE = "whitenoise.storage.CompressedStaticFilesStorage"
+else:
+    # forever-cacheable files and compression support
+    STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 # Default Storage needs to be a local directory for append to work
 DEFAULT_FILE_STORAGE = "django.core.files.storage.FileSystemStorage"
@@ -412,6 +567,7 @@ AZURE_STORAGE = AzureStorage(
 
 AZURE_STORAGE_TRANSLATION_INPUT_URL_SEGMENT = "temp/translation/in"
 AZURE_STORAGE_TRANSLATION_OUTPUT_URL_SEGMENT = "temp/translation/out"
+AZURE_STORAGE_TRANSCRIPTION_INPUT_URL_SEGMENT = "temp/transcription/in"
 
 # Media storage
 MEDIA_ROOT = os.path.join(BASE_DIR, os.environ.get("MEDIA_ROOT", "media"))
@@ -433,26 +589,44 @@ STORAGES = {
 
 AUTH_USER_MODEL = "otto.User"
 
-# REDIS
-
-REDIS_URL = "redis://{host}:{port}/0".format(
-    host=os.environ.get("REDIS_HOST", "redis"),
-    port=os.environ.get("REDIS_PORT", "6379"),
-)
+# User.upn is intentionally non-unique globally to support account merges.
+# Active users remain unique via the conditional DB constraint.
+SILENCED_SYSTEM_CHECKS = ["auth.W004"]
 
 # CELERY
-
 CELERY_BROKER_URL = REDIS_URL
 CELERY_RESULT_BACKEND = REDIS_URL
 CELERY_ACCEPT_CONTENT = ["application/json"]
 CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
 CELERY_TIMEZONE = "UTC"
+LIGHT_QUEUE = "light"
+HEAVY_QUEUE = "heavy"
+EMBED_QUEUE = "embed"
+CELERY_TASK_DEFAULT_QUEUE = LIGHT_QUEUE
+# Improve fairness: reduce prefetch so a single long task doesn't monopolize the worker
+CELERY_WORKER_PREFETCH_MULTIPLIER = 1
+# Safer acknowledgements so tasks re-queue if a worker dies mid-slice
+# Use the proper Celery config name via namespace mapping
+CELERY_TASK_ACKS_LATE = True
+# Report STARTED state for long-running tasks so pollers and incident logs can
+# distinguish queued work from work that has actually begun executing.
+CELERY_TASK_TRACK_STARTED = True
+# Give workers a short soft-shutdown window so late-acked Redis tasks can be
+# handed back cleanly during normal pod termination.
+CELERY_WORKER_SOFT_SHUTDOWN_TIMEOUT = 30
+CELERY_WORKER_ENABLE_SOFT_SHUTDOWN_ON_IDLE = True
+# Periodically recycle prefork child processes to reclaim fragmented memory.
+# Only relevant for prefork pool (heavyworker); ignored by gevent workers.
+CELERY_WORKER_MAX_TASKS_PER_CHILD = 100
+# Replace a child process if it exceeds ~2 GB. Set high enough that heavy tasks
+# (LLM context windows, large doc extraction) can complete; pods are 4–8 Gi.
+CELERY_WORKER_MAX_MEMORY_PER_CHILD = 2000000  # KB (~2 GB)
 
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": REDIS_URL,
+        "LOCATION": REDIS_CACHE_URL,
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         },
@@ -488,10 +662,12 @@ LOGGING = {
         "console": {
             "class": "logging.StreamHandler",
             "formatter": "console",
+            "filters": ["raise_endpoint_level"],
         },
         "json": {
             "class": "logging.StreamHandler",
             "formatter": "json_formatter",
+            "filters": ["raise_endpoint_level"],
         },
         "null": {
             "class": "logging.NullHandler",
@@ -501,6 +677,11 @@ LOGGING = {
         "handlers": ["json"],
         "level": LOG_LEVEL,
         "stream": sys.stdout,
+    },
+    "filters": {
+        "raise_endpoint_level": {
+            "()": "otto.utils.logging.RaiseLevelForEndpointsFilter",
+        },
     },
 }
 
@@ -535,12 +716,32 @@ structlog.configure(
     cache_logger_on_first_use=True,
 )
 
-ALLOWED_FETCH_URLS = [
-    "canada.ca",
-    "gc.ca",
-    "canlii.org",
-    "wikipedia.org",
-]
+
+def _load_content_ingestion_allowed_domains(file_path: Path) -> list[str]:
+    if not file_path.exists():
+        raise FileNotFoundError(
+            f"Content-ingestion allowlist file not found: {file_path}"
+        )
+
+    domains = [
+        line.strip()
+        for line in file_path.read_text(encoding="utf-8").splitlines()
+        if line.strip() and not line.strip().startswith("#")
+    ]
+
+    if not domains:
+        raise ValueError(f"Content-ingestion allowlist file is empty: {file_path}")
+
+    return domains
+
+
+CONTENT_INGESTION_ALLOWED_DOMAINS_FILE = (
+    BASE_DIR / "otto" / "data" / "content_ingestion_domains.txt"
+)
+CONTENT_INGESTION_ALLOWED_DOMAINS = _load_content_ingestion_allowed_domains(
+    CONTENT_INGESTION_ALLOWED_DOMAINS_FILE
+)
+ALLOWED_FETCH_URLS = CONTENT_INGESTION_ALLOWED_DOMAINS
 
 WARN_COST = 0.5
 
@@ -556,5 +757,4 @@ FILE_FORM_ALWAYS_COPY_UPLOADED_FILE = False
 
 temp_upload_dir = os.path.join(MEDIA_ROOT, FILE_FORM_UPLOAD_DIR)
 
-if not os.path.exists(temp_upload_dir):
-    os.mkdir(temp_upload_dir)
+os.makedirs(temp_upload_dir, exist_ok=True)
