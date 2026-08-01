@@ -6,7 +6,7 @@
     "sync": "node ./scripts/sync-assets.mjs"
   },
   "dependencies": {
-    "docx-preview": "0.3.7",
+    "docx-preview": "0.4.0",
     "jszip": "3.10.1"
   }
 }
